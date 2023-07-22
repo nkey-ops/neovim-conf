@@ -49,8 +49,9 @@ return require('packer').startup(function(use)
         }
     }
 
-    -- compatibilities set up
     use('neovim/nvim-lspconfig')
+
+    -- compatibilities set up
     use('hrsh7th/cmp-nvim-lsp')
     use('hrsh7th/cmp-buffer')
     use('hrsh7th/cmp-path')
@@ -58,13 +59,14 @@ return require('packer').startup(function(use)
     use('hrsh7th/nvim-cmp')
 
     use('hrsh7th/cmp-vsnip')
-    use('onsails/lspkind.nvim')
+    use('hrsh7th/vim-vsnip')
 
+    --icons for Autocompletion
+    use('onsails/lspkind.nvim')
 
 
     use('mfussenegger/nvim-jdtls')
     use('Pocco81/auto-save.nvim')
-
 
     -- MARKDOWN
     use {
@@ -76,4 +78,5 @@ return require('packer').startup(function(use)
         "iamcco/markdown-preview.nvim",
         run = function() vim.fn["mkdp#util#install"]() end,
     })
+
 end)

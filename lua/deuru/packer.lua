@@ -52,12 +52,12 @@ return require('packer').startup(function(use)
     use('neovim/nvim-lspconfig')
 
     -- compatibilities set up
-    use('hrsh7th/cmp-nvim-lsp')
+    use('hrsh7th/nvim-cmp')
     use('hrsh7th/cmp-buffer')
     use('hrsh7th/cmp-path')
     use('hrsh7th/cmp-cmdline')
-    use('hrsh7th/nvim-cmp')
 
+    use('hrsh7th/cmp-nvim-lsp')
     use('hrsh7th/cmp-vsnip')
     use('hrsh7th/vim-vsnip')
 
@@ -69,14 +69,28 @@ return require('packer').startup(function(use)
     use('Pocco81/auto-save.nvim')
 
     -- MARKDOWN
-    use {
-        "williamboman/mason.nvim",
-        "williamboman/mason-lspconfig.nvim",
-        "neovim/nvim-lspconfig",
-    }
     use({
         "iamcco/markdown-preview.nvim",
         run = function() vim.fn["mkdp#util#install"]() end,
     })
 
+    -- Status Lne
+    use {
+        'nvim-lualine/lualine.nvim',
+        requires = { 'nvim-tree/nvim-web-devicons', opt = true }
+    }
+
+    -- Database
+    use {
+        "tpope/vim-dadbod",
+        opt = true,
+        requires = {
+            "kristijanhusak/vim-dadbod-ui",
+            "kristijanhusak/vim-dadbod-completion",
+        },
+        config = function()
+            require("config.dadbod").setup()
+        end,
+        cmd = { "DBUIToggle", "DBUI", "DBUIAddConnection", "DBUIFindBuffer", "DBUIRenameBuffer", "DBUILastQueryInfo" },
+    }
 end)

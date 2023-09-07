@@ -30,6 +30,7 @@ local config = {
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
         "-javaagent:" .. "/opt/jdtls/lombok.jar",
         --
+        --
         "-jar", "/opt/jdtls/plugins/org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
         "-configuration", "/opt/jdtls/config_linux",
         "-data", workspace_dir
@@ -119,17 +120,19 @@ config['on_attach'] = function(client, bufnr)
     }, bufnr)
 end
 
+jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
+
 --
 -- This starts a new client & server,
 -- or attaches to an existing client & server depending on the `root_dir`.
-require('jdtls').start_or_attach(config)
+jdtls.start_or_attach(config)
 print("Created work space: " .. workspace_dir)
 
+
 local opts = { noremap = true, silent = true }
---[[IMPORT]]
-vim.api.nvim_set_keymap('n', '<leader>wo', '<cmd>lua require("jdtls").organize_imports()<CR>', opts)
---[[EXTVAR]]
-vim.api.nvim_set_keymap('n', '<leader>ev', '<cmd>lua require("jdtls").extract_variable()<CR>', opts)
+--[[IMPORT]] vim.api.nvim_set_keymap('n', '<leader>o', '<cmd>lua require("jdtls").organize_imports()<CR>', opts)
+--[[EXTVAR]] vim.api.nvim_set_keymap('n', '<leader>ev', '<cmd>lua require("jdtls").extract_variable()<CR>', opts)
+--[[JOL]]    vim.api.nvim_set_keymap('n', '<leader>jo', '<C-w>s <cmd>lua require("jdtls").jol()<CR>', opts)
 
 
 --" If using nvim-dap

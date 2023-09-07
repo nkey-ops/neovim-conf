@@ -1,4 +1,4 @@
-require'lspconfig'.marksman.setup{}
+require('lspconfig').marksman.setup{}
 
 
 -- After setting up mason-lspconfig you may set up servers via lspconfig

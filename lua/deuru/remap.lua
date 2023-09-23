@@ -63,3 +63,23 @@ vim.api.nvim_create_user_command("Cppath", function()
     vim.notify('Copied "' .. path .. '" to the clipboard!')
 end, {})
 
+
+-- : Substitute
+--   [w]ord under cursor
+--   [/] last search pattern
+--   ["] from default register
+--   [.] last inserted text
+
+--vim.keymap.set("n", "<leader>gsw",  ">%s/<C-r><C-w>//g<left><left><CR>")
+--nnoremap gs/ :%s/<c-r>///g<left><left>
+--nnoremap gs" :%s/<c-r>"//g<left><left>
+--nnoremap gs. :%s/<c-r>.//g<left><left>
+--xnoremap gsw y:<c-u>%s/<c-r>"//g<left><left>
+--xnoremap gs/ :s/<c-r>///g<left><left>
+--xnoremap gs" :s/<c-r>"//g<left><left>
+--xnoremap gs. :s/<c-r>.//g<left><left>
+--" Change word under cursor
+--nnoremap c* *``cgn
+--nnoremap c# #``cgN
+
+

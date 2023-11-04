@@ -8,7 +8,7 @@ return require('packer').startup(function(use)
     use 'wbthomason/packer.nvim'
 
     use {
-        'nvim-telescope/telescope.nvim', tag = '0.1.1',
+        'nvim-telescope/telescope.nvim', breanch = '0.1.x',
         -- or                            , branch = '0.1.x',
         requires = { { 'nvim-lua/plenary.nvim' } }
     }
@@ -16,10 +16,15 @@ return require('packer').startup(function(use)
     use({
         'rose-pine/neovim',
         as = 'rose-pine',
-        config = function()
-            vim.cmd('colorscheme rose-pine')
-        end
     })
+--   use {'AlexvZyl/nordic.nvim'}
+--    use {'doums/darcula'}
+   -- use { "briones-gabriel/darcula-solid.nvim", requires = "rktjmp/lush.nvim" }
+--    use {
+--        'xiantang/darcula-dark.nvim',
+--        requires = {"nvim-treesitter/nvim-treesitter"}
+--   }
+    use { "catppuccin/nvim", as = "catppuccin" }
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
     use('nvim-treesitter/playground')
@@ -60,7 +65,7 @@ return require('packer').startup(function(use)
     use('hrsh7th/cmp-nvim-lsp')
     use('hrsh7th/cmp-vsnip')
     use('hrsh7th/vim-vsnip')
-
+    use ("rafamadriz/friendly-snippets")
     --icons for Autocompletion
     use('onsails/lspkind.nvim')
 
@@ -80,17 +85,22 @@ return require('packer').startup(function(use)
         requires = { 'nvim-tree/nvim-web-devicons', opt = true }
     }
 
+    --checkstyle
+    use('jose-elias-alvarez/null-ls.nvim')
+--    use('mfussenegger/nvim-lint')
+    use("ray-x/lsp_signature.nvim")
+
     -- Database
-    use {
-        "tpope/vim-dadbod",
-        opt = true,
-        requires = {
-            "kristijanhusak/vim-dadbod-ui",
-            "kristijanhusak/vim-dadbod-completion",
-        },
-        config = function()
-            require("config.dadbod").setup()
-        end,
-        cmd = { "DBUIToggle", "DBUI", "DBUIAddConnection", "DBUIFindBuffer", "DBUIRenameBuffer", "DBUILastQueryInfo" },
-    }
+--    use {
+--        "tpope/vim-dadbod",
+--        opt = true,
+--        requires = {
+--            "kristijanhusak/vim-dadbod-ui",
+--            "kristijanhusak/vim-dadbod-completion",
+--        },
+--        config = function()
+--            require("config.dadbod").setup()
+--        end,
+--        cmd = { "DBUIToggle", "DBUI", "DBUIAddConnection", "DBUIFindBuffer", "DBUIRenameBuffer", "DBUILastQueryInfo" },
+--    }
 end)

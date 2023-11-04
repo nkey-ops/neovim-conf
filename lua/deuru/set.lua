@@ -36,4 +36,4 @@ vim.opt.hlsearch = true
 
 vim.opt.showtabline = 0
 
-
+vim.opt.completeopt = {'menu', 'menuone', 'noselect'}

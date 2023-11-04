@@ -52,8 +52,9 @@ end)
 vim.keymap.set('t', '<Esc>', "<C-\\><C-n>")
 -- open terminal window at current dir
 vim.keymap.set("n","<C-t>",
-       ":let $VIM_DIR=expand('%:p:h')<CR>:terminal<CR>icd $VIM_DIR<CR><C-\\><C-n>");
-
+       ":split<CR>"..
+       ":let $VIM_DIR=expand('%:h')<CR>"..
+       ":terminal<CR>icd $VIM_DIR<CR><C-L><C-\\><C-n>");
 
 
 -- yunk current dir path

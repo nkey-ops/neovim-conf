@@ -1,5 +1,18 @@
+local mason_pack = '/home/deuru/.local/share/nvim/mason/packages'
+
+--local null_ls = require('null-ls')
+--null_ls.setup({
+--    sources = {
+--        null_ls.builtins.diagnostics.checkstyle.with({
+--            extra_args = { "-c", mason_pack .. "/checkstyle/google_checks.xml" },
+--            -- or "/sun_checks.xml" or path to self written rules
+--        }),
+--    }
+--})
+
 -- setting up cmp capabilities for jdtls
 local jdtls = require('jdtls')
+require("cmp")
 
 -- setting up project dir
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
@@ -24,14 +37,17 @@ local config = {
         "-Dosgi.bundles.defaultStartLevel=4",
         "-Declipse.product=org.eclipse.jdt.ls.core.product",
         "-Dlog.level=ALL",
-        "-Xms1g",
+        "-Xms500m",
         "--add-modules=ALL-SYSTEM",
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
         "-javaagent:" .. "/opt/jdtls/lombok.jar",
         --
         --
-        "-jar", "/opt/jdtls/plugins/org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
+        "-jar",
+        "/opt/jdtls/plugins/org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
+        mason_pack .. "/google-java-format/google-java-format-*-deps.jar",
+        mason_pack .. "/checkstyle/checkstyle-*.jar \"$@\"",
         "-configuration", "/opt/jdtls/config_linux",
         "-data", workspace_dir
     },
@@ -43,6 +59,7 @@ local config = {
     settings = {
         java = {
             signatureHelp = { enabled = true },
+            contentProvider = { preferred = 'fernflower' },
             import = { enabled = true },
             rename = { enabled = true },
         },
@@ -84,41 +101,41 @@ local config = {
         },
         overwrite = true,
     },
-     sources = {
-         organizeImports = {
-             starThreshold = 9999,
-             staticStarThreshold = 9999,
-         },
-     },
-     codeGeneration = {
-         toString = {
-             template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}",
-         },
-         useBlocks = true,
-     },
-     flags = {
-         allow_incremental_sync = true,
-     },
+    sources = {
+        organizeImports = {
+            starThreshold = 9999,
+            staticStarThreshold = 9999,
+        },
+    },
+    codeGeneration = {
+        toString = {
+            template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}",
+        },
+        useBlocks = true,
+    },
+    flags = {
+        allow_incremental_sync = true,
+    },
     init_options = {
         bundles = {}
     },
 
     -- assining cap
     capabilities = require('cmp_nvim_lsp').default_capabilities()
-
 }
 
-config['on_attach'] = function(client, bufnr)
-    require'keymaps'.map_java_keys(bufnr);
-    require "lsp_signature".on_attach({
-        bind = true, -- This is mandatory, otherwise border config won't get registered.
-        floating_window_above_cur_line = false,
-        padding = '',
-        handler_opts = {
-            border = "rounded"
-        }
-    }, bufnr)
-end
+--config['on_attach'] = function(client, bufnr)
+--    require 'keymaps'.map_java_keys(bufnr);
+--    require "lsp_signature".on_attach({
+--        bind = true, -- This is mandatory, otherwise border config won't get registered.
+--        floating_window_above_cur_line = false,
+--        padding = '',
+--        handler_opts = {
+--            border = "rounded"
+--        }
+--    }, bufnr)
+--end
+
 
 jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
 
@@ -130,9 +147,30 @@ print("Created work space: " .. workspace_dir)
 
 
 local opts = { noremap = true, silent = true }
---[[IMPORT]] vim.api.nvim_set_keymap('n', '<leader>o', '<cmd>lua require("jdtls").organize_imports()<CR>', opts)
---[[EXTVAR]] vim.api.nvim_set_keymap('n', '<leader>ev', '<cmd>lua require("jdtls").extract_variable()<CR>', opts)
---[[JOL]]    vim.api.nvim_set_keymap('n', '<leader>jo', '<C-w>s <cmd>lua require("jdtls").jol()<CR>', opts)
+--[[IMPORT]]
+vim.api.nvim_set_keymap('n', '<leader>o', '<cmd>lua require("jdtls").organize_imports()<CR>', opts)
+--[[EXTVAR]]
+vim.keymap.set({ 'n', 'v' }, '<leader>ev', '<cmd>lua require("jdtls").extract_variable()<CR>', opts)
+--[[EXT METH]]
+vim.keymap.set({ 'n', 'v' }, '<leader>em', '<cmd>lua require("jdtls").extract_method()<CR>', opts)
+--[[JOL]]
+vim.api.nvim_set_keymap('n', '<leader>jo', '<C-w>s <cmd>lua require("jdtls").jol()<CR>', opts)
+
+vim.api.nvim_set_keymap("n", "<leader>/", "<plug>kommentary_line_default", {})
+vim.api.nvim_set_keymap("v", "<leader>/", "<plug>kommentary_visual_default", {})
+
+
+-- vim.api.nvim_exec([[
+--          hi LspReferenceRead cterm=bold ctermbg=red guibg=LightYellow
+--          hi LspReferenceText cterm=bold ctermbg=red guibg=LightYellow
+--          hi LspReferenceWrite cterm=bold ctermbg=red guibg=LightYellow
+--          augroup lsp_document_highlight
+--            autocmd!
+--            autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
+--            autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
+--          augroup END
+--      ]], false)
+
 
 
 --" If using nvim-dap

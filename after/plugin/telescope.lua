@@ -12,7 +12,7 @@ vim.keymap.set('n', '<leader>pt',
             builtin.treesitter()
         end
 , {})
-vim.keymap.set('n', '<leader>pgm',
+vim.keymap.set('n', '<leader>pm',
         function ()
             builtin.treesitter({symbols = {'method', 'function'}, search = "moves"})
         end

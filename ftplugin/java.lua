@@ -1,15 +1,5 @@
 local mason_pack = '/home/deuru/.local/share/nvim/mason/packages'
 
---local null_ls = require('null-ls')
---null_ls.setup({
---    sources = {
---        null_ls.builtins.diagnostics.checkstyle.with({
---            extra_args = { "-c", mason_pack .. "/checkstyle/google_checks.xml" },
---            -- or "/sun_checks.xml" or path to self written rules
---        }),
---    }
---})
-
 -- setting up cmp capabilities for jdtls
 local jdtls = require('jdtls')
 require("cmp")
@@ -17,7 +7,13 @@ require("cmp")
 -- setting up project dir
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
 local workspace_dir = '/home/deuru/table/wspace/' .. project_name
---                                               ^^
+
+local root_dir = require('jdtls.setup').find_root({ 'gradlew', 'mvnw', '.git', 'pom.xml' })
+
+
+local extendedClientCapabilities = require('jdtls').extendedClientCapabilities
+extendedClientCapabilities.resolveAdditionalTextEditsSupport = true
+
 
 -- File types that signify a Java project's root directory. This will be
 -- used by eclipse to determine what constitutes a workspace
@@ -36,8 +32,9 @@ local config = {
         "-Declipse.application=org.eclipse.jdt.ls.core.id1",
         "-Dosgi.bundles.defaultStartLevel=4",
         "-Declipse.product=org.eclipse.jdt.ls.core.product",
+        '-Dlog.protocol=true',
         "-Dlog.level=ALL",
-        "-Xms500m",
+        "-Xms3g",
         "--add-modules=ALL-SYSTEM",
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
@@ -45,10 +42,8 @@ local config = {
         --
         --
         "-jar",
-        "/opt/jdtls/plugins/org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
-        mason_pack .. "/google-java-format/google-java-format-*-deps.jar",
-        mason_pack .. "/checkstyle/checkstyle-*.jar \"$@\"",
-        "-configuration", "/opt/jdtls/config_linux",
+        "/opt/jdtls-latest/plugins/org.eclipse.equinox.launcher_1.6.600.v20231012-1237.jar",
+        "-configuration", "/opt/jdtls-latest/config_linux",
         "-data", workspace_dir
     },
     -- 💀
@@ -62,27 +57,49 @@ local config = {
             contentProvider = { preferred = 'fernflower' },
             import = { enabled = true },
             rename = { enabled = true },
-        },
-        maven = {
-            downloadSources = true,
-        },
-        implementationsCodeLens = {
-            enabled = true,
-        },
-        referencesCodeLens = {
-            enabled = true,
-        },
-        references = {
-            includeDecompiledSources = true,
-        },
-        format = {
-            enabled = true,
-            settings = {
-                url = vim.fn.stdpath "config" .. "/lang-servers/intellij-java-google-style.xml",
-                profile = "GoogleStyle",
+
+            maven = {
+                downloadSources = true,
             },
+            implementationsCodeLens = {
+                enabled = true,
+            },
+            referenceCodeLens = {
+                enabled = true,
+            },
+            references = {
+                includeAccessors = true;
+                includeDecompiledSources = true,
+            },
+
+--            format = {
+--                enabled = true,
+--                settings = {
+--                    url = mason_pack .. "/google-java-format/google_checks.xml",
+--                    profile = "GoogleStyle",
+--                },
+--           },
+
+--        /**
+--         * Enable/disable the signature help,
+--         * default is false
+--         */
+--        signatureHelp?: SignatureHelpOption;
+--        sources?: SourcesOption;
+--          symbols = {
+--            includeSourceMethodDeclarations = false
+--          },
+--        templates?: TemplatesOption;
+--        trace?: TraceOptions;
+--        edit?: EditOption;
+
+
+
+
         },
     },
+
+
     completion = {
         favoriteStaticMembers = {
             "org.hamcrest.MatcherAssert.assertThat",
@@ -116,8 +133,18 @@ local config = {
     flags = {
         allow_incremental_sync = true,
     },
+
     init_options = {
-        bundles = {}
+        bundles = 
+          vim.list_extend(
+            vim.split(
+              vim.fn.glob("/home/deuru/table/space/vscode-java-test/server/*.jar", true),
+            "\n"),
+
+            {vim.fn.glob(mason_pack ..
+              "/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar")}
+          )
+        
     },
 
     -- assining cap
@@ -136,14 +163,24 @@ local config = {
 --    }, bufnr)
 --end
 
-
 jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
 
 --
 -- This starts a new client & server,
 -- or attaches to an existing client & server depending on the `root_dir`.
 jdtls.start_or_attach(config)
-print("Created work space: " .. workspace_dir)
+--print("Created work space: " .. workspace_dir)
+
+
+-- Turns on auto-save
+--vim.cmd.ASToggle();
+
+--print(vim.split(
+--              vim.fn.glob( mason_pack ..
+--                "/home/deuru/table/space/vscode-java-test/server/*.jar", true),
+--          "\n"))
+--print(vim.fn.glob(mason_pack ..
+--              "/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar"))
 
 
 local opts = { noremap = true, silent = true }
@@ -152,14 +189,32 @@ vim.api.nvim_set_keymap('n', '<leader>o', '<cmd>lua require("jdtls").organize_im
 --[[EXTVAR]]
 vim.keymap.set({ 'n', 'v' }, '<leader>ev', '<cmd>lua require("jdtls").extract_variable()<CR>', opts)
 --[[EXT METH]]
-vim.keymap.set({ 'n', 'v' }, '<leader>em', '<cmd>lua require("jdtls").extract_method()<CR>', opts)
+vim.keymap.set({'n', 'v'}, '<leader>em', '<Esc><cmd>lua require("jdtls").extract_method(true)<CR>', {})
+--vim.keymap.set({'n', 'v'}, '<leader>em', function ()
+--  local mode = vim.api.nvim_get_mode()['mode']
+--  print(mode)
+--  if mode == 'v' or mode == 'V' then
+--    vim.cmd("lua require('jdtls').extract_method(true)")
+--  else
+--    vim.cmd("lua require('jdtls').extract_method()")
+--  end
+--end, {})
 --[[JOL]]
 vim.api.nvim_set_keymap('n', '<leader>jo', '<C-w>s <cmd>lua require("jdtls").jol()<CR>', opts)
 
 vim.api.nvim_set_keymap("n", "<leader>/", "<plug>kommentary_line_default", {})
 vim.api.nvim_set_keymap("v", "<leader>/", "<plug>kommentary_visual_default", {})
 
+local format_path = mason_pack .. '/google-java-format/google-java-format-1.18.1-all-deps.jar';
+vim.cmd("Glaive codefmt google_java_executable=\"java -jar " .. format_path .. "\"");
 
+vim.keymap.set("n", "<leader>f", "<cmd>call codefmt#FormatBuffer()<CR>")
+vim.keymap.set("v", "<leader>g", function ()
+        local r = vim.region(0, "'<", "'>", vim.fn.visualmode(), true)
+        print(r[1])
+    --vim.cmd("call codefmt#FormatLines())
+end
+)
 -- vim.api.nvim_exec([[
 --          hi LspReferenceRead cterm=bold ctermbg=red guibg=LightYellow
 --          hi LspReferenceText cterm=bold ctermbg=red guibg=LightYellow
@@ -172,8 +227,7 @@ vim.api.nvim_set_keymap("v", "<leader>/", "<plug>kommentary_visual_default", {})
 --      ]], false)
 
 
-
---" If using nvim-dap
---" This requires java-debug and vscode-java-test bundles, see install steps in this README further below.
---nnoremap <leader>df <Cmd>lua require'jdtls'.test_class()
---nnoremap <leader>dn <Cmd>lua require'jdtls'.test_nearest_method()
+-- If using nvim-dap
+-- This requires java-debug and vscode-java-test bundles, see install steps in this README further below.
+vim.api.nvim_set_keymap("n", "<leader>df", "<Cmd>lua require('jdtls').test_class()<CR>", {})
+vim.api.nvim_set_keymap("n", "<leader>dn", "<Cmd>lua require('jdtls').test_nearest_method()<CR>", {})

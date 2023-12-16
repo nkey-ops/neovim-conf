@@ -38,13 +38,6 @@ return require('packer').startup(function(use)
         requires = {
             -- LSP Support
             { 'neovim/nvim-lspconfig' }, -- Required
-            {
-                -- Optional
-                'williamboman/mason.nvim',
-                run = function()
-                    pcall(vim.cmd, 'MasonUpdate')
-                end,
-            },
             { 'williamboman/mason-lspconfig.nvim' }, -- Optional
 
             -- Autocompletion
@@ -53,7 +46,15 @@ return require('packer').startup(function(use)
             { 'L3MON4D3/LuaSnip' },     -- Required
         }
     }
-
+    use{
+       'williamboman/mason.nvim',
+       opts = {
+          registries = {
+		      	'github:nvim-java/mason-registry',
+		      	'github:mason-org/mason-registry',
+		      },
+       },
+    }
     use('neovim/nvim-lspconfig')
 
     -- compatibilities set up
@@ -69,10 +70,14 @@ return require('packer').startup(function(use)
     --icons for Autocompletion
     use('onsails/lspkind.nvim')
 
-
     use('mfussenegger/nvim-jdtls')
-    use('Pocco81/auto-save.nvim')
+    use('mfussenegger/nvim-dap')
 
+    use('Pocco81/auto-save.nvim')
+    require('auto-save').setup({
+        enabled = false;
+    })
+    --
     -- MARKDOWN
     use({
         "iamcco/markdown-preview.nvim",
@@ -90,17 +95,31 @@ return require('packer').startup(function(use)
 --    use('mfussenegger/nvim-lint')
     use("ray-x/lsp_signature.nvim")
 
-    -- Database
---    use {
---        "tpope/vim-dadbod",
---        opt = true,
---        requires = {
---            "kristijanhusak/vim-dadbod-ui",
---            "kristijanhusak/vim-dadbod-completion",
---        },
---        config = function()
---            require("config.dadbod").setup()
---        end,
---        cmd = { "DBUIToggle", "DBUI", "DBUIAddConnection", "DBUIFindBuffer", "DBUIRenameBuffer", "DBUILastQueryInfo" },
---    }
+    -- Google Format
+    use("google/vim-codefmt")
+    use("google/vim-maktaba")
+    use("google/vim-glaive")
+    -- end
+
+    use {
+        "rest-nvim/rest.nvim",
+        commit = "8b62563",
+        requires = { "nvim-lua/plenary.nvim" },
+    }
+
+   -- Database
+    use {
+        "kristijanhusak/vim-dadbod-ui",
+        requires = {
+            "tpope/vim-dadbod",
+            "kristijanhusak/vim-dadbod-completion",
+            opt = true
+        }
+    }
+
+   use{ "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {}}
+
+
+
+
 end)

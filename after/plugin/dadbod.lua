@@ -21,6 +21,13 @@ local function setup()
   })
 end
 
+-- disable folding 
+   vim.api.nvim_create_autocmd("FileType", {
+      pattern = "dbout",
+      callback = function()
+        vim.wo.foldenable = false
+      end,
+    })
 
 vim.keymap.set("n", "<leader>du", "<cmd>DBUIToggle<CR>")
 

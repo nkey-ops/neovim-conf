@@ -48,6 +48,11 @@ vim.keymap.set("n", "<leader><leader>", function()
   vim.cmd("so")
 end)
 
+
+-- enable syntax check
+vim.keymap.set("n", "<leader>esp", "<cmd>set spell spelllang=en_us<CR>");
+vim.keymap.set("n", "<leader>dsp", "<cmd>set nospell<CR>");
+
 -- exit term usign Esc
 vim.keymap.set('t', '<Esc>', "<C-\\><C-n>")
 -- open terminal window at current dir

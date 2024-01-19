@@ -13,18 +13,19 @@ return require('packer').startup(function(use)
         requires = { { 'nvim-lua/plenary.nvim' } }
     }
 
+    --THEMES
     use({
         'rose-pine/neovim',
         as = 'rose-pine',
     })
---   use {'AlexvZyl/nordic.nvim'}
---    use {'doums/darcula'}
-   -- use { "briones-gabriel/darcula-solid.nvim", requires = "rktjmp/lush.nvim" }
---    use {
---        'xiantang/darcula-dark.nvim',
---        requires = {"nvim-treesitter/nvim-treesitter"}
---   }
     use { "catppuccin/nvim", as = "catppuccin" }
+--  use { "briones-gabriel/darcula-solid.nvim", requires = "rktjmp/lush.nvim" }
+--  use {'AlexvZyl/nordic.nvim'}
+--  use {'doums/darcula'}
+--  use { 'xiantang/darcula-dark.nvim',
+--      requires = {"nvim-treesitter/nvim-treesitter"}
+--  }
+    -- ENDS THEMES
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
     use('nvim-treesitter/playground')

@@ -104,7 +104,7 @@ return require('packer').startup(function(use)
 
     use {
         "rest-nvim/rest.nvim",
-        commit = "8b62563",
+        --commit = "8b62563",
         requires = { "nvim-lua/plenary.nvim" },
     }
 
@@ -120,7 +120,8 @@ return require('packer').startup(function(use)
 
    use{ "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {}}
 
-
-
+   -- useless
+   use {'eandrju/cellular-automaton.nvim'}
+   use {"tpope/vim-surround"}
 
 end)

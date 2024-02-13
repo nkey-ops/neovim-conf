@@ -44,9 +44,9 @@ require("rest-nvim").setup({
 --parse.request()
 
 -- Gets and Sets the found key2 as a context var with the name
-_G.gas_key = function(key1, key2, context, name)
+_G.gas_header = function(key1, key2, context, name)
   if (key1 == nil or key2 == nil or context == nil or name == nil) then
-    print("One of the parameters is nil")
+    print("One of the parameters is nil:", key1, key2, context, name )
     return
   end
 
@@ -63,6 +63,26 @@ _G.gas_key = function(key1, key2, context, name)
     return
   end
 
-  local js = string.sub(line, s, e)
-  context.set_env(name, js)
+  local st = string.sub(line, s, e)
+  context.set_env(name, st)
+
+  print("Set env-var:", name, st )
+end
+
+
+_G.gas_json = function(key1, context, name)
+  if (key1 == nil or context == nil or name == nil) then
+    print("One of the parameters is nil:", key1, context, name )
+    return
+  end
+
+  local value = context.json_decode(context.result.body)[key1]
+  if (value == nil) then
+    print("Couldn't find key1:", key1)
+    return
+  end
+
+  context.set_env(name, value)
+
+  print("Set env-var:", name, value )
 end

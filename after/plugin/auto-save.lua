@@ -1,5 +1,6 @@
 local last_save_at = os.time()
-local save_after_sec = 5
+local save_after_sec = 10
+
 
 require("auto-save").setup(
   {

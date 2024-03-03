@@ -10,8 +10,16 @@ return require('packer').startup(function(use)
     use {
         'nvim-telescope/telescope.nvim', breanch = '0.1.x',
         -- or                            , branch = '0.1.x',
-        requires = { { 'nvim-lua/plenary.nvim' } }
+
+        requires =
+        {
+            { 'nvim-lua/plenary.nvim' },
+        }
     }
+
+    -- Requires manual compilation via "make" at the directory where
+    -- packer installed it
+    use { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' }
 
     --THEMES
     use({
@@ -19,12 +27,12 @@ return require('packer').startup(function(use)
         as = 'rose-pine',
     })
     use { "catppuccin/nvim", as = "catppuccin" }
---  use { "briones-gabriel/darcula-solid.nvim", requires = "rktjmp/lush.nvim" }
---  use {'AlexvZyl/nordic.nvim'}
---  use {'doums/darcula'}
---  use { 'xiantang/darcula-dark.nvim',
---      requires = {"nvim-treesitter/nvim-treesitter"}
---  }
+    --  use { "briones-gabriel/darcula-solid.nvim", requires = "rktjmp/lush.nvim" }
+    --  use {'AlexvZyl/nordic.nvim'}
+    --  use {'doums/darcula'}
+    --  use { 'xiantang/darcula-dark.nvim',
+    --      requires = {"nvim-treesitter/nvim-treesitter"}
+    --  }
     -- ENDS THEMES
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
@@ -38,7 +46,7 @@ return require('packer').startup(function(use)
         branch = 'v2.x',
         requires = {
             -- LSP Support
-            { 'neovim/nvim-lspconfig' }, -- Required
+            { 'neovim/nvim-lspconfig' },             -- Required
             { 'williamboman/mason-lspconfig.nvim' }, -- Optional
 
             -- Autocompletion
@@ -47,14 +55,14 @@ return require('packer').startup(function(use)
             { 'L3MON4D3/LuaSnip' },     -- Required
         }
     }
-    use{
-       'williamboman/mason.nvim',
-       opts = {
-          registries = {
-		      	'github:nvim-java/mason-registry',
-		      	'github:mason-org/mason-registry',
-		      },
-       },
+    use {
+        'williamboman/mason.nvim',
+        opts = {
+            registries = {
+                'github:nvim-java/mason-registry',
+                'github:mason-org/mason-registry',
+            },
+        },
     }
     use('neovim/nvim-lspconfig')
 
@@ -67,7 +75,7 @@ return require('packer').startup(function(use)
     use('hrsh7th/cmp-nvim-lsp')
     use('hrsh7th/cmp-vsnip')
     use('hrsh7th/vim-vsnip')
-    use ("rafamadriz/friendly-snippets")
+    use("rafamadriz/friendly-snippets")
     --icons for Autocompletion
     use('onsails/lspkind.nvim')
 
@@ -76,7 +84,7 @@ return require('packer').startup(function(use)
 
     use('Pocco81/auto-save.nvim')
     require('auto-save').setup({
-        enabled = false;
+        enabled = false,
     })
     --
     -- MARKDOWN
@@ -88,12 +96,12 @@ return require('packer').startup(function(use)
     -- Status Lne
     use {
         'nvim-lualine/lualine.nvim',
-        requires = { 'nvim-tree/nvim-web-devicons', opt = true }
+        requires = { "nvim-tree/nvim-web-devicons" }
     }
 
     --checkstyle
     use('jose-elias-alvarez/null-ls.nvim')
---    use('mfussenegger/nvim-lint')
+    --    use('mfussenegger/nvim-lint')
     use("ray-x/lsp_signature.nvim")
 
     -- Google Format
@@ -108,7 +116,7 @@ return require('packer').startup(function(use)
         requires = { "nvim-lua/plenary.nvim" },
     }
 
-   -- Database
+    -- Database
     use {
         "kristijanhusak/vim-dadbod-ui",
         requires = {
@@ -116,12 +124,32 @@ return require('packer').startup(function(use)
             "kristijanhusak/vim-dadbod-completion",
             opt = true
         }
+
     }
 
-   use{ "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {}}
+    use { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} }
 
-   -- useless
-   use {'eandrju/cellular-automaton.nvim'}
-   use {"tpope/vim-surround"}
+    -- Vim Extensions
+    use { "tpope/vim-surround" }
+    --use { "aquasecurity/vim-trivy" } -- TODO
 
+
+
+    -- Languages
+    -- YAML
+    use {
+        "someone-stole-my-name/yaml-companion.nvim",
+        requires = {
+            { "neovim/nvim-lspconfig" },
+            { "nvim-lua/plenary.nvim" },
+            { "nvim-telescope/telescope.nvim" },
+        },
+        config = function()
+            require("telescope").load_extension("yaml_schema")
+        end,
+    }
+
+
+    -- useless
+    use { 'eandrju/cellular-automaton.nvim' }
 end)

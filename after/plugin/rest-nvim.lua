@@ -44,6 +44,19 @@ require("rest-nvim").setup({
 --~/.local/share/nvim/site/pack/packer/start/plenary.nvim/lua/plenary/curl.lua
 --parse.request()
 
+vim.api.nvim_create_autocmd({ "FileType" }, {
+    pattern = 'http',
+    callback = function(args)
+        vim.keymap.set("n", "<leader>r", "<Plug>RestNvim",
+            { desc = "RestNvim: [R]un Curl Command", buffer = args.buf })
+        vim.keymap.set("n", "<leader>p", "<Plug>RestNvimPreview",
+            { desc = "RestNvim: [P]review Curl Command", buffer = args.buf })
+        vim.keymap.set("n", "<leader>l", "<Plug>RestNvimLast",
+            { desc = "RestNvim: Run [L]ast Curl Command", buffer = args.buf })
+    end
+})
+
+
 -- Gets and Sets the found key2 as a context var with the name
 _G.gas_header = function(key1, key2, context, name)
     if (key1 == nil or key2 == nil or context == nil or name == nil) then

@@ -11,12 +11,11 @@ vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
 
 vim.keymap.set("n", "<leader>vwm", function()
-  require("vim-with-me").StartVimWithMe()
+    require("vim-with-me").StartVimWithMe()
 end)
 vim.keymap.set("n", "<leader>svwm", function()
-  require("vim-with-me").StopVimWithMe()
+    require("vim-with-me").StopVimWithMe()
 end)
-
 -- greatest remap ever
 vim.keymap.set("x", "<leader>p", [["_dP]])
 
@@ -41,7 +40,7 @@ vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 vim.keymap.set("n", "<leader>mr", "<cmd>CellularAutomaton make_it_rain<CR>");
 
 vim.keymap.set("n", "<leader><leader>", function()
-  vim.cmd("so")
+    vim.cmd("so")
 end)
 
 vim.keymap.set("n", "[b", "<cmd>bprevious<CR>")
@@ -58,22 +57,19 @@ vim.keymap.set("n", "<leader>dsp", "<cmd>set nospell<CR>");
 vim.keymap.set('t', '<Esc>', "<C-\\><C-n>")
 -- open terminal window at current dir
 vim.keymap.set("n", "<leader>tc",
-  ":split<CR>" ..
-  ":let $VIM_DIR=expand('%:h')<CR>" ..
-  ":terminal<CR>icd $VIM_DIR<CR><C-L><C-\\><C-n>");
+    ":split<CR>" ..
+    ":let $VIM_DIR=expand('%:h')<CR>" ..
+    ":terminal<CR>icd $VIM_DIR<CR><C-L><C-\\><C-n>");
 
 -- open terminal window at the root
 vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>");
 
 -- yunk current dir path
 vim.api.nvim_create_user_command("Cppath", function()
-  local path = vim.fn.expand("%:p")
-  vim.fn.setreg("+", path)
-  vim.notify('Copied "' .. path .. '" to the clipboard!')
+    local path = vim.fn.expand("%:p")
+    vim.fn.setreg("+", path)
+    vim.notify('Copied "' .. path .. '" to the clipboard!')
 end, {})
 
 
 vim.cmd("cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'")
-
-
-

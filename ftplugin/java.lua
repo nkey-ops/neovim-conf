@@ -27,6 +27,7 @@ extendedClientCapabilities.resolveAdditionalTextEditsSupport = true
 
 local config = {
     cmd = {
+
         --
         "java", -- Or the absolute path '/path/to/java11_or_newer/bin/java'
         "-Declipse.application=org.eclipse.jdt.ls.core.id1",
@@ -34,7 +35,15 @@ local config = {
         "-Declipse.product=org.eclipse.jdt.ls.core.product",
         '-Dlog.protocol=true',
         "-Dlog.level=ALL",
-        "-Xms3g",
+
+        "-XX:+UseParallelGC",
+        "-XX:GCTimeRatio=4",
+        "-XX:AdaptiveSizePolicyWeight=90",
+        "-Dsun.zip.disableMemoryMapping=true",
+        "-Xmx1G",
+        "-Xms100m",
+
+        --"-Xms3g",
         "--add-modules=ALL-SYSTEM",
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
@@ -68,30 +77,30 @@ local config = {
                 enabled = true,
             },
             references = {
-                includeAccessors = true;
+                includeAccessors = true,
                 includeDecompiledSources = true,
             },
 
---            format = {
---                enabled = true,
---                settings = {
---                    url = mason_pack .. "/google-java-format/google_checks.xml",
---                    profile = "GoogleStyle",
---                },
---           },
+            --            format = {
+            --                enabled = true,
+            --                settings = {
+            --                    url = mason_pack .. "/google-java-format/google_checks.xml",
+            --                    profile = "GoogleStyle",
+            --                },
+            --           },
 
---        /**
---         * Enable/disable the signature help,
---         * default is false
---         */
---        signatureHelp?: SignatureHelpOption;
---        sources?: SourcesOption;
---          symbols = {
---            includeSourceMethodDeclarations = false
---          },
---        templates?: TemplatesOption;
---        trace?: TraceOptions;
---        edit?: EditOption;
+            --        /**
+            --         * Enable/disable the signature help,
+            --         * default is false
+            --         */
+            --        signatureHelp?: SignatureHelpOption;
+            --        sources?: SourcesOption;
+            --          symbols = {
+            --            includeSourceMethodDeclarations = false
+            --          },
+            --        templates?: TemplatesOption;
+            --        trace?: TraceOptions;
+            --        edit?: EditOption;
 
 
 
@@ -135,99 +144,118 @@ local config = {
     },
 
     init_options = {
-        bundles = 
-          vim.list_extend(
-            vim.split(
-              vim.fn.glob("/home/deuru/table/space/vscode-java-test/server/*.jar", true),
-            "\n"),
+        bundles =
+            vim.list_extend(
+                vim.split(
+                    vim.fn.glob("~/table/space/vscode-java-test/server/*.jar", true),
+                    "\n"),
 
-            {vim.fn.glob(mason_pack ..
-              "/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar")}
-          )
-        
+                { vim.fn.glob(mason_pack ..
+                    "/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar")
+                }
+            )
+
     },
 
     -- assining cap
     capabilities = require('cmp_nvim_lsp').default_capabilities()
 }
 
---config['on_attach'] = function(client, bufnr)
---    require 'keymaps'.map_java_keys(bufnr);
---    require "lsp_signature".on_attach({
---        bind = true, -- This is mandatory, otherwise border config won't get registered.
---        floating_window_above_cur_line = false,
---        padding = '',
---        handler_opts = {
---            border = "rounded"
---        }
---    }, bufnr)
---end
 
-jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
 
---
 -- This starts a new client & server,
 -- or attaches to an existing client & server depending on the `root_dir`.
 jdtls.start_or_attach(config)
---print("Created work space: " .. workspace_dir)
+
+-- Key-binds
+vim.keymap.set('n', '<leader>o',
+    function() jdtls.organize_imports() end,
+    { desc = "Java Import", silent = true }
+)
+
+vim.keymap.set({ 'n', 'v' }, '<leader>ev', function()
+        local mode = vim.api.nvim_get_mode()['mode']
+        if mode == 'v' or mode == 'V' then
+            Exit_visual()
+            jdtls.extract_variable({ visual = true })
+        else
+            jdtls.extract_variable()
+        end
+    end,
+    { desc = "Java [E]xtract [V]ariable", silent = true }
+)
+vim.keymap.set({ 'n', 'v' }, '<leader>em', function()
+        local mode = vim.api.nvim_get_mode()['mode']
+        if mode == 'v' or mode == 'V' then
+            Exit_visual()
+            jdtls.extract_method({ visual = true })
+        else
+            jdtls.extract_method()
+        end
+    end,
+    { desc = "Java [E]xtract [M]ethod", silent = true }
+)
 
 
--- Turns on auto-save
---vim.cmd.ASToggle();
-
---print(vim.split(
---              vim.fn.glob( mason_pack ..
---                "/home/deuru/table/space/vscode-java-test/server/*.jar", true),
---          "\n"))
---print(vim.fn.glob(mason_pack ..
---              "/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar"))
+vim.keymap.set('n', '<leader>jo',
+    function() jdtls.jol() end,
+    { desc = "Java [Jo]l", silent = true }
+)
 
 
-local opts = { noremap = true, silent = true }
---[[IMPORT]]
-vim.api.nvim_set_keymap('n', '<leader>o', '<cmd>lua require("jdtls").organize_imports()<CR>', opts)
---[[EXTVAR]]
-vim.keymap.set({ 'n', 'v' }, '<leader>ev', '<cmd>lua require("jdtls").extract_variable()<CR>', opts)
---[[EXT METH]]
-vim.keymap.set({'n', 'v'}, '<leader>em', '<Esc><cmd>lua require("jdtls").extract_method(true)<CR>', {})
---vim.keymap.set({'n', 'v'}, '<leader>em', function ()
---  local mode = vim.api.nvim_get_mode()['mode']
---  print(mode)
---  if mode == 'v' or mode == 'V' then
---    vim.cmd("lua require('jdtls').extract_method(true)")
---  else
---    vim.cmd("lua require('jdtls').extract_method()")
---  end
---end, {})
---[[JOL]]
-vim.api.nvim_set_keymap('n', '<leader>jo', '<C-w>s <cmd>lua require("jdtls").jol()<CR>', opts)
 
-vim.api.nvim_set_keymap("n", "<leader>/", "<plug>kommentary_line_default", {})
-vim.api.nvim_set_keymap("v", "<leader>/", "<plug>kommentary_visual_default", {})
+vim.api.nvim_create_autocmd({ "LspAttach" }, {
+    pattern = '*.java',
+    callback = function(args)
+        vim.keymap.set({ 'n', 'v' }, "<leader>f",
+            function()
+                local mode = vim.api.nvim_get_mode()['mode']
+                if mode == 'v' or mode == 'V' then
+                    Exit_visual()
 
-local format_path = mason_pack .. '/google-java-format/google-java-format-1.18.1-all-deps.jar';
+                    local s = vim.fn.getpos("'<")[2]
+                    local e = vim.fn.getpos("'>")[2]
+                    vim.cmd(s .. ',' .. e .. "FormatLines")
+                else
+                    vim.cmd("FormatCode")
+                end
+            end,
+            { desc = "Java [F]ormat", buffer = args.buf }
+        )
+    end
+})
+
+vim.keymap.set("n", "<leader>df",
+    function() jdtls.test_class({}) end,
+    { desc = "Java Test Class" }
+)
+vim.keymap.set("n", "<leader>tm",
+    function() jdtls.test_nearest_method({}) end,
+    { desc = "Java [T]est Nearest [M]ethod" }
+)
+
+
+vim.cmd("setlocal tabstop=2")
+vim.cmd("setlocal softtabstop=2")
+vim.cmd("setlocal shiftwidth=2")
+vim.cmd("setlocal colorcolumn = \"100\"")
+
+-- Setting up Google Formater
+local format_path = vim.fn.glob(mason_pack .. "/google-java-format/google-java-format-1.20.0-all-deps.jar")
 vim.cmd("Glaive codefmt google_java_executable=\"java -jar " .. format_path .. "\"");
 
-vim.keymap.set("n", "<leader>f", "<cmd>call codefmt#FormatBuffer()<CR>")
-vim.keymap.set("v", "<leader>g", function ()
-        local r = vim.region(0, "'<", "'>", vim.fn.visualmode(), true)
-        print(r[1])
-    --vim.cmd("call codefmt#FormatLines())
+jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
+
+--- Exits visual mode
+function Exit_visual()
+    local mode = vim.api.nvim_get_mode()['mode']
+    if mode ~= 'v' and mode ~= 'V' then
+        error("Exit_visual(): Can't exit visual mode because it isn't in visual mode")
+        return
+    end
+
+    vim.api.nvim_feedkeys(
+        vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
+        "x", false
+    )
 end
-)
--- vim.api.nvim_exec([[
---          hi LspReferenceRead cterm=bold ctermbg=red guibg=LightYellow
---          hi LspReferenceText cterm=bold ctermbg=red guibg=LightYellow
---          hi LspReferenceWrite cterm=bold ctermbg=red guibg=LightYellow
---          augroup lsp_document_highlight
---            autocmd!
---            autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
---            autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
---          augroup END
---      ]], false)
-
-
--- If using nvim-dap
--- This requires java-debug and vscode-java-test bundles, see install steps in this README further below.
-vim.api.nvim_set_keymap("n", "<leader>df", "<Cmd>lua require('jdtls').test_class()<CR>", {})
-vim.api.nvim_set_keymap("n", "<leader>dn", "<Cmd>lua require('jdtls').test_nearest_method()<CR>", {})

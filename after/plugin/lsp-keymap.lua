@@ -1,20 +1,16 @@
--- Setup language servers.
-local lspconfig = require('lspconfig')
-
 local vim = vim;
 
 -- Global mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
-vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist)
+vim.keymap.set('n', '<space>e', vim.diagnostic.open_float,
+    { desc = "Diagnostic Open Float Window" })
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev,
+    { desc = "Diagnostic Go to the Prev Error" })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next,
+    { desc = "Diagnostic Go to the Next Error" })
+vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist,
+    { desc = "Diagnostic Open Local List of Errors" })
 
--- vim.keymap.set('n', '<space>dd', vim.diagnostic.disable(nil, nil), opts )
---[[DIS DIAG]]
-vim.keymap.set('n', '<space>dd', vim.diagnostic.disable)
---[[ENA DIAG]]
-vim.keymap.set('n', '<space>ed', vim.diagnostic.enable)
 
 -- Use LspAttach autocommand to only map the following keys
 -- after the language server attaches to the current buffer
@@ -28,14 +24,11 @@ vim.api.nvim_create_autocmd('LspAttach', {
         -- See `:help vim.lsp.*` for documentation on any of the below functions
         local opts = { buffer = ev.buf }
 
-        --[[DIS DIAG]]
-        local vapi = vim.api;
-        local lsp = vim.lsp;
+        vim.keymap.set('n', '<space>dd', vim.diagnostic.disable)
+        vim.keymap.set('n', '<space>ed', vim.diagnostic.enable)
+        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+        vim.keymap.set('n', 'gd', vim.lsp.buf.definition)
 
-        --[[DEFINI]]
-        ---vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-        --[[HOVER]]
-        -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
         vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
         vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
         vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
@@ -47,8 +40,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
         vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
         vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
         vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+
         vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
-        vim.keymap.set({ 'n', 'v' }, '<leader>cf',
+        vim.keymap.set({ 'n', 'v' }, '<leader>f',
             function()
                 vim.lsp.buf.format { async = true }
             end, opts)

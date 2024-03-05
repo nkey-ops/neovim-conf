@@ -133,8 +133,6 @@ return require('packer').startup(function(use)
     use { "tpope/vim-surround" }
     --use { "aquasecurity/vim-trivy" } -- TODO
 
-
-
     -- Languages
     -- YAML
     use {
@@ -149,7 +147,13 @@ return require('packer').startup(function(use)
         end,
     }
 
-
+    --Comments
+   use {
+        'numToStr/Comment.nvim',
+        config = function()
+            require('Comment').setup()
+        end
+    }
     -- useless
     use { 'eandrju/cellular-automaton.nvim' }
 end)

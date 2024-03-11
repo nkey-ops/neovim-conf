@@ -59,12 +59,15 @@ end
 
 Add_java_alies()
 
---notes
---  local lines = lines_from(file_name)
---  local line_id;
---  for k, v in pairs(lines) do
---    print(v)
---    if string.find(v, "bin") then
---      line_id = k
---    end
---  end
+function Exit_visual()
+    local mode = vim.api.nvim_get_mode()['mode']
+    if mode ~= 'v' and mode ~= 'V' then
+        error("Exit_visual(): Can't exit visual mode because it isn't in visual mode")
+        return
+    end
+
+    vim.api.nvim_feedkeys(
+        vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
+        "x", false
+    )
+end

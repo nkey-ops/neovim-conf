@@ -8,9 +8,6 @@ require("cmp")
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
 local workspace_dir = '/home/deuru/table/wspace/' .. project_name
 
-local root_dir = require('jdtls.setup').find_root({ 'gradlew', 'mvnw', '.git', 'pom.xml' })
-
-
 local extendedClientCapabilities = require('jdtls').extendedClientCapabilities
 extendedClientCapabilities.resolveAdditionalTextEditsSupport = true
 
@@ -40,7 +37,7 @@ local config = {
         "-XX:GCTimeRatio=4",
         "-XX:AdaptiveSizePolicyWeight=90",
         "-Dsun.zip.disableMemoryMapping=true",
-        "-Xmx1G",
+        "-Xmx512m",
         "-Xms100m",
 
         --"-Xms3g",
@@ -161,47 +158,14 @@ local config = {
     capabilities = require('cmp_nvim_lsp').default_capabilities()
 }
 
-
-
 -- This starts a new client & server,
 -- or attaches to an existing client & server depending on the `root_dir`.
 jdtls.start_or_attach(config)
 
--- Key-binds
-vim.keymap.set('n', '<leader>o',
-    function() jdtls.organize_imports() end,
-    { desc = "Java Import", silent = true }
-)
-
-vim.keymap.set({ 'n', 'v' }, '<leader>ev', function()
-        local mode = vim.api.nvim_get_mode()['mode']
-        if mode == 'v' or mode == 'V' then
-            Exit_visual()
-            jdtls.extract_variable({ visual = true })
-        else
-            jdtls.extract_variable()
-        end
-    end,
-    { desc = "Java [E]xtract [V]ariable", silent = true }
-)
-vim.keymap.set({ 'n', 'v' }, '<leader>em', function()
-        local mode = vim.api.nvim_get_mode()['mode']
-        if mode == 'v' or mode == 'V' then
-            Exit_visual()
-            jdtls.extract_method({ visual = true })
-        else
-            jdtls.extract_method()
-        end
-    end,
-    { desc = "Java [E]xtract [M]ethod", silent = true }
-)
-
-
-vim.keymap.set('n', '<leader>jo',
-    function() jdtls.jol() end,
-    { desc = "Java [Jo]l", silent = true }
-)
-
+-- Setting up Google Formater
+local format_path = vim.fn.glob(mason_pack .. "/google-java-format/google-java-format-1.20.0-all-deps.jar")
+vim.cmd("Glaive codefmt google_java_executable=\"java -jar " .. format_path .. "\"");
+jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
 
 
 vim.api.nvim_create_autocmd({ "LspAttach" }, {
@@ -225,37 +189,4 @@ vim.api.nvim_create_autocmd({ "LspAttach" }, {
     end
 })
 
-vim.keymap.set("n", "<leader>df",
-    function() jdtls.test_class({}) end,
-    { desc = "Java Test Class" }
-)
-vim.keymap.set("n", "<leader>tm",
-    function() jdtls.test_nearest_method({}) end,
-    { desc = "Java [T]est Nearest [M]ethod" }
-)
 
-
-vim.cmd("setlocal tabstop=2")
-vim.cmd("setlocal softtabstop=2")
-vim.cmd("setlocal shiftwidth=2")
-vim.cmd("setlocal colorcolumn = \"100\"")
-
--- Setting up Google Formater
-local format_path = vim.fn.glob(mason_pack .. "/google-java-format/google-java-format-1.20.0-all-deps.jar")
-vim.cmd("Glaive codefmt google_java_executable=\"java -jar " .. format_path .. "\"");
-
-jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
-
---- Exits visual mode
-function Exit_visual()
-    local mode = vim.api.nvim_get_mode()['mode']
-    if mode ~= 'v' and mode ~= 'V' then
-        error("Exit_visual(): Can't exit visual mode because it isn't in visual mode")
-        return
-    end
-
-    vim.api.nvim_feedkeys(
-        vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
-        "x", false
-    )
-end

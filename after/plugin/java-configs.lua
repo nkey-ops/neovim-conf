@@ -9,8 +9,9 @@ vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
         vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
             once = true,
             callback = function(args2)
-                if vim.api.nvim_buf_is_valid(args.buf) then
-                    print("[Autocmd]:", args2.id "Can't find buffer with id", args.buf)
+                if not vim.api.nvim_buf_is_valid(args.buf) then
+                    print("[Autocmd]:", args2.id, "Can't find buffer with id", args.buf)
+                    return
                 end
 
                 vim.api.nvim_buf_delete(args.buf, {})

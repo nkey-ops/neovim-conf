@@ -8,10 +8,12 @@ vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
 
         vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
             once = true,
-            callback = function()
+            callback = function(args2)
                 if vim.api.nvim_buf_is_valid(args.buf) then
-                    vim.api.nvim_buf_delete(args.buf, {})
+                    print("[Autocmd]:", args2.id "Can't find buffer with id", args.buf)
                 end
+
+                vim.api.nvim_buf_delete(args.buf, {})
             end
         })
     end
@@ -68,10 +70,10 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
             function() jdtls.test_class({}) end,
             { desc = "Java Test Class", silent = true, buffer = args.buf }
         )
-        vim.keymap.set("n", "<leader>tm",
+        vim.keymap.set("n", "<leader>tn",
             function() jdtls.test_nearest_method({}) end,
             {
-                desc = "Java [T]est Nearest [M]ethod",
+                desc = "Java [T]est [N]earest Method",
                 silent = true,
                 buffer = args.buf
             }

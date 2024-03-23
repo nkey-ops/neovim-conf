@@ -3,13 +3,6 @@
 -- Only required if you have packer configured as `opt`
 vim.cmd [[packadd packer.nvim]]
 
-local packer = require('packer')
-
-packer.init({
-    luarocks = {
-        python_cmd = 'python3'
-    }
-})
 return require('packer').startup(function(use)
     -- Packer can manage itself
     use 'wbthomason/packer.nvim'
@@ -44,7 +37,7 @@ return require('packer').startup(function(use)
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
     use('nvim-treesitter/playground')
-    use {
+    use{
         'theprimeagen/harpoon',
         branch = "harpoon2"
     }
@@ -122,9 +115,9 @@ return require('packer').startup(function(use)
 
     use {
         "rest-nvim/rest.nvim",
-        rocks = {
-            { "lua-curl", env = { CURL_INCDIR = "/usr/include/x86_64-linux-gnu" } },
-            "nvim-nio", "mimetypes", "xml2lua" },
+        --commit = "8b62563",
+        tag = "v1.2.1",
+        requires = { "nvim-lua/plenary.nvim" },
     }
 
     -- Database

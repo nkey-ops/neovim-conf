@@ -1,74 +1,57 @@
 require("rest-nvim").setup({
-  client = "curl",
-  env_file = ".env",
-  env_pattern = "\\.env$",
-  env_edit_command = "tabedit",
-  encode_url = true,
-  skip_ssl_verification = false,
-  custom_dynamic_variables = {},
-  logs = {
-    level = "info",
-    save = true,
-  },
-  result = {
-    split = {
-      horizontal = true,
-      in_place = true,
-      stay_in_current_window_after_split = true,
+    -- Open request results in a horizontal split
+    result_split_horizontal = true,
+    -- Keep the http file buffer above|left when split horizontal|vertical
+    result_split_in_place = true,
+    -- Skip SSL verification, useful for unknown certificates
+    skip_ssl_verification = false,
+    -- Encode URL before making request
+    encode_url = false,
+    -- Highlight request on run
+    highlight = {
+        enabled = true,
+        timeout = 150,
     },
-    behavior = {
-      decode_url = true,
-      show_info = {
-        url = true,
-        headers = true,
-        http_info = true,
-        curl_command = true,
-      },
-      statistics = {
-        enable = true,
-        ---@see https://curl.se/libcurl/c/curl_easy_getinfo.html
-        stats = {
-          { "total_time", title = "Time taken:" },
-          { "size_download_t", title = "Download size:" },
+    result = {
+        -- toggle showing URL, HTTP info, headers at top the of result window
+        show_url = true,
+        -- show the generated curl command in case you want to launch
+        -- the same request via the terminal (can be verbose)
+        show_curl_command = true,
+        show_http_info = true,
+        show_headers = true,
+        -- table of curl `--write-out` variables or false if disabled
+        -- for more granular control see Statistics Spec
+        show_statistics = false,
+        -- executables or functions for formatting response body [optional]
+        -- set them to false if you want to disable them
+        formatters = {
+            json = "jq",
+            vnd = "jq",
+            html = function(body)
+                return vim.fn.system({ "tidy", "-i", "-q" }, body)
+            end
         },
-      },
-      formatters = {
-        json = "jq",
-        vnd = "jq",
-        html = function(body)
-          if vim.fn.executable("tidy") == 0 then
-            return body, { found = false, name = "tidy" }
-          end
-          local fmt_body = vim.fn.system({
-            "tidy",
-            "-i",
-            "-q",
-            "--tidy-mark",      "no",
-            "--show-body-only", "auto",
-            "--show-errors",    "0",
-            "--show-warnings",  "0",
-            "-",
-          }, body):gsub("\n$", "")
-
-          return fmt_body, { found = true, name = "tidy" }
-        end,
-      },
     },
-  },
-  highlight = {
-    enable = true,
-    timeout = 150,
-  },
+    -- Jump to request line on run
+    jump_to_request = false,
+    env_file = '.env',
+    custom_dynamic_variables = {},
+    yank_dry_run = true,
 })
+
+--to remove redirects (-L) go to
+--~/.local/share/nvim/site/pack/packer/start/plenary.nvim/lua/plenary/curl.lua
+--parse.request()
 
 vim.api.nvim_create_autocmd({ "FileType" }, {
     pattern = 'http',
     callback = function(args)
-        vim.keymap.set("n", "<leader>r", "<cmd>Rest run<CR>",
+        vim.keymap.set("n", "<leader>r", "<Plug>RestNvim",
             { desc = "RestNvim: [R]un Curl Command", buffer = args.buf })
-        vim.keymap.set("n", "<leader>p", "<cmd>Rest result prev<CR>",
+        vim.keymap.set("n", "<leader>p", "<Plug>RestNvimPreview",
             { desc = "RestNvim: [P]review Curl Command", buffer = args.buf })
-        vim.keymap.set("n", "<leader>l", "<cmd>Rest last<CR>",
+        vim.keymap.set("n", "<leader>l", "<Plug>RestNvimLast",
             { desc = "RestNvim: Run [L]ast Curl Command", buffer = args.buf })
     end
 })

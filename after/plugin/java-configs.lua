@@ -81,10 +81,9 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
         )
 
         -- settings
-        print("Settings")
         vim.cmd("setlocal tabstop=2")
         vim.cmd("setlocal softtabstop=2")
         vim.cmd("setlocal shiftwidth=2")
-        vim.cmd("setlocal colorcolumn = \"100\"")
+        vim.cmd("setlocal colorcolumn=100")
     end
 })

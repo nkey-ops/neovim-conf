@@ -279,30 +279,16 @@ local marks_delete_completion = function(arg_lead, cmd_line, cursor_pos)
     return mark_keys
 end
 
-local mark_delete_user_command_opts =
-{
-    nargs = 1,
-    complete = marks_delete_completion,
-    desc = "Deletes a mark using the mark key"
-}
-
 vim.api.nvim_create_user_command("Marks", function() Marks() end,
     { desc = "Lists marked files for current dirrectory" })
-vim.api.nvim_create_user_command("Mar", function() Marks() end,
-    { desc = "Lists marked files for current dirrectory" })
-
 vim.api.nvim_create_user_command("MarksAll", function() MarksAll() end,
     { desc = "Lists all marked files with their current dirrectories" })
-vim.api.nvim_create_user_command("Marl", function() MarksAll() end,
-    { desc = "Lists all marked files with their current dirrectories" })
-
 vim.api.nvim_create_user_command("MarksMaxKeySeq",
     function(opts) Marks_set_max_key_seq(opts.args) end,
     { desc = "Sets a max sequens of characters of the mark-key", nargs = 1 })
-
 vim.api.nvim_create_user_command("MarksDelete",
-    function(opts) Marks_delete(opts.args) end,
-    mark_delete_user_command_opts)
-vim.api.nvim_create_user_command("Mard",
-    function(opts) Marks_delete(opts.args) end,
-    mark_delete_user_command_opts)
+    function(opts) Marks_delete(opts.args) end, {
+        nargs = 1,
+        complete = marks_delete_completion,
+        desc = "Deletes a mark using the mark key"
+    })

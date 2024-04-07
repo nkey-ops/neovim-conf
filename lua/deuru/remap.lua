@@ -48,21 +48,23 @@ vim.keymap.set("n", "]b", "<cmd>bnext<CR>")
 vim.keymap.set("n", "[B", "<cmd>bfirst<CR>")
 vim.keymap.set("n", "]B", "<cmd>blast<CR>")
 
+vim.keymap.set("n", "<C-l>", "<cmd>nohlsearch<CR>", { desc = "Run :noh" })
 
--- enable syntax check
-vim.keymap.set("n", "<leader>esp", "<cmd>set spell spelllang=en_us<CR>");
-vim.keymap.set("n", "<leader>dsp", "<cmd>set nospell<CR>");
+vim.keymap.set("n", "<leader>esc", "<cmd>set spell spelllang=en_us<CR>",
+    { desc = "[E]nable [S]yntax [C]heck" });
+vim.keymap.set("n", "<leader>dsp", "<cmd>set nospell<CR>",
+    { desc = "[D]isable [S]yntax [C]heck" });
 
--- exit term using Esc
-vim.keymap.set('t', '<Esc>', "<C-\\><C-n>")
--- open terminal window at current dir
+vim.keymap.set('t', '<Esc>', "<C-\\><C-n>",
+    { desc = "Exit terminal" })
+
 vim.keymap.set("n", "<leader>tc",
     ":split<CR>" ..
     ":let $VIM_DIR=expand('%:h')<CR>" ..
-    ":terminal<CR>icd $VIM_DIR<CR><C-L><C-\\><C-n>");
-
--- open terminal window at the root
-vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>");
+    ":terminal<CR>icd $VIM_DIR<CR><C-L><C-\\><C-n>",
+    { desc = "Open Terminal window at a current directory" });
+vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>",
+    { desc = "Open Terminal window at the root directory" });
 
 -- yunk current dir path
 vim.api.nvim_create_user_command("Cppath", function()

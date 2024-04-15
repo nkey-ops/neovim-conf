@@ -3,7 +3,7 @@
 -- Only required if you have packer configured as `opt`
 vim.cmd [[packadd packer.nvim]]
 
-return require('packer').startup(function(use)
+require('packer').startup(function(use)
     -- Packer can manage itself
     use 'wbthomason/packer.nvim'
 
@@ -37,7 +37,7 @@ return require('packer').startup(function(use)
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
     use('nvim-treesitter/playground')
-    use{
+    use {
         'theprimeagen/harpoon',
         branch = "harpoon2"
     }
@@ -135,6 +135,8 @@ return require('packer').startup(function(use)
 
     -- Vim Extensions
     use { "tpope/vim-surround" }
+    use { "nelstrom/vim-visual-star-search" }
+    --
     --use { "aquasecurity/vim-trivy" } -- TODO
 
     -- Languages
@@ -160,4 +162,42 @@ return require('packer').startup(function(use)
     }
     -- useless
     use { 'eandrju/cellular-automaton.nvim' }
+
+    use {
+        'nvimdev/dashboard-nvim',
+        event = 'VimEnter',
+
+        theme = 'hyper',
+        hide = {
+            tabline = true
+        },
+        require("dashboard").setup({
+            theme = 'hyper',
+            hide = {
+                tabline = true
+            },
+            config = {
+                week_header = {
+                    enable = true,
+                },
+                shortcut = {
+                    {
+                        desc = '󰊳 Update',
+                        group = '@property',
+                        action = 'lua require("packer").update()',
+                        key = 'u'
+                    },
+                    {
+                        icon = ' ',
+                        icon_hl = '@variable',
+                        desc = 'Files',
+                        group = 'Label',
+                        action = 'Telescope find_files',
+                        key = 'f',
+                    },
+                },
+            },
+        }),
+        requires = { 'nvim-tree/nvim-web-devicons' }
+    }
 end)

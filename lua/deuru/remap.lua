@@ -52,7 +52,7 @@ vim.keymap.set("n", "<C-l>", "<cmd>nohlsearch<CR>", { desc = "Run :noh" })
 
 vim.keymap.set("n", "<leader>esc", "<cmd>set spell spelllang=en_us<CR>",
     { desc = "[E]nable [S]yntax [C]heck" });
-vim.keymap.set("n", "<leader>dsp", "<cmd>set nospell<CR>",
+vim.keymap.set("n", "<leader>dsc", "<cmd>set nospell<CR>",
     { desc = "[D]isable [S]yntax [C]heck" });
 
 vim.keymap.set('t', '<Esc>', "<C-\\><C-n>",

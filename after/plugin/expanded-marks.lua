@@ -119,7 +119,7 @@ M.get_mark_key = function(max_key_seq, first_char)
 
 
     local chars = string.char(first_char)
-    local char_counter = 2
+    local char_counter = 1
     while true do
         local ch = vim.fn.getchar()
         char_counter = char_counter + 1
@@ -167,7 +167,8 @@ M.get_last_mark_key = function(max_key_seq, mark_keys, first_char)
         char_counter = char_counter + 1
 
         -- If ch is not [a-zA-Z] then stop markering
-        if ((char < 65 or (char > 90 and char < 97) or char > 122)
+        if (type(char) ~= "number"
+            or (char < 65 or (char > 90 and char < 97) or char > 122)
                 and char ~= 96) then
             return
         end
@@ -190,8 +191,6 @@ M.get_last_mark_key = function(max_key_seq, mark_keys, first_char)
         elseif mark_keys_remains == 0 then
             return nil
         end
-
-        char_counter = char_counter + 1
     end
     return mark_key
 end
@@ -420,7 +419,9 @@ function Update_local_marks()
         local pair =
             vim.api.nvim_buf_get_extmark_by_id(
                 local_buffer_id, M.opts.local_marks_name_space, mark[1], {})
-        assert(pair ~= nil)
+
+        assert(pair ~= nil and pair[1] ~= nil and pair[2] ~= nil )
+
         marks[local_buffer_name][mark_key] = { mark[1], pair[1], pair[2] }
     end
 
@@ -586,9 +587,16 @@ vim.api.nvim_create_autocmd({ "BufWrite" }, {
     end
 })
 
+--TODO fix
 vim.api.nvim_create_autocmd({ "BufNew" }, {
     pattern = "*",
     callback = function()
         Restore_local_marks()
     end
 })
+
+
+
+
+
+

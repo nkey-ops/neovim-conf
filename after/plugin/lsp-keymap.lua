@@ -44,7 +44,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
         vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
         vim.keymap.set({ 'n', 'v' }, '<leader>f',
             function()
-                vim.lsp.buf.format { async = true }
+                Update_local_marks()
+                vim.lsp.buf.format()
+                Restore_local_marks()
             end, opts)
         --             vim.keymap.set('n', '<leader>lg', vim.lsp.buf.formatting_sync(nil, 1000), opts)
     end,

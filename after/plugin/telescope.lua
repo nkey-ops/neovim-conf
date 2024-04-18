@@ -37,17 +37,17 @@ telescope.setup {
 }
 
 
-vim.keymap.set('n', '<leader>tf', builtin.find_files, {})
-vim.keymap.set('n', '<C-p>', builtin.git_files, {})
-vim.keymap.set('n', '<leader>tg', function()
+vim.keymap.set('n', '<A-f>', builtin.find_files, {})
+vim.keymap.set('n', '<A-f>g', builtin.git_files, {})
+vim.keymap.set('n', '<A-g>', function()
     builtin.grep_string({ search = vim.fn.input("Grep > ") });
 end)
 
-
-vim.keymap.set('n', '<leader>ta',
+vim.keymap.set('n', '<A-a>s',
     function() builtin.treesitter() end,
-    { desc = "[T]elescope: List [A]ll Symbols" })
-vim.keymap.set('n', '<leader>tm',
+    { desc = "Telescope: List [A]ll [S]ymbols" })
+
+vim.keymap.set('n', '<A-m>',
     function()
         builtin.treesitter(
             {
@@ -55,8 +55,8 @@ vim.keymap.set('n', '<leader>tm',
                 search = "moves"
             })
     end,
-    { desc = "[T]elescope: List [M]ethods" })
-vim.keymap.set('n', "<leader>tw",
+    { desc = "Telescope: List [M]ethods" })
+vim.keymap.set('n', "<A-w>",
     function()
         builtin.lsp_dynamic_workspace_symbols(
             {
@@ -64,4 +64,4 @@ vim.keymap.set('n', "<leader>tw",
                 symbol_width = 100
             })
     end,
-    { desc = "[T]elescope: Search Dynamically [W]orkspace Symbols" })
+    { desc = "Telescope: Search Dynamically [W]orkspace Symbols" })

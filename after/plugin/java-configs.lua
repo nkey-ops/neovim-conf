@@ -1,5 +1,4 @@
--- Close buffers with ".class" extension to
--- free up space
+-- Close buffers with ".class" extension to free up space
 vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
     desc = "Closes buffers with the '.class' extension to free up space",
     pattern = '*.class',

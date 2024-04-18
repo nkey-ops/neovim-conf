@@ -2,15 +2,33 @@ local mason_pack = '/home/deuru/.local/share/nvim/mason/packages'
 
 -- setting up cmp capabilities for jdtls
 local jdtls = require('jdtls')
-require("cmp")
+local cmp = require("cmp")
+local mason_registry = require('mason-registry')
 
--- setting up project dir
-local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
-local workspace_dir = '/home/deuru/table/wspace/' .. project_name
+local mason_jdtls_path = mason_registry.get_package('jdtls'):get_install_path()
+local java_debug_adapter = mason_registry
+    .get_package("java-debug-adapter")
+    :get_install_path()
 
-local extendedClientCapabilities = require('jdtls').extendedClientCapabilities
+local google_java_format = mason_registry
+    .get_package("google-java-format")
+    :get_install_path()
+
+local Paths = {
+    workspace_dir      = '/home/deuru/table/wspace/' ..
+        vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t'),
+    jdtls              = mason_jdtls_path,
+    jdtls_launcher     = vim.fn.glob(
+        mason_jdtls_path .. '/plugins/org.eclipse.equinox.launcher_*.jar'),
+    java_debug_plugin  = vim.fn.glob(java_debug_adapter ..
+        "extension/server/com.microsoft.java.debug.plugin-*.jar"),
+    lombok = "/opt/jdtls/lombok.jar",
+    google_java_format = vim.fn.glob(google_java_format ..
+        "google-java-format-*-all-deps.jar")
+}
+
+local extendedClientCapabilities = jdtls.extendedClientCapabilities
 extendedClientCapabilities.resolveAdditionalTextEditsSupport = true
-
 
 -- File types that signify a Java project's root directory. This will be
 -- used by eclipse to determine what constitutes a workspace
@@ -44,18 +62,17 @@ local config = {
         "--add-modules=ALL-SYSTEM",
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "-javaagent:" .. "/opt/jdtls/lombok.jar",
+        "-javaagent:" .. Paths.lombok,
         --
         --
-        "-jar",
-        "/opt/jdtls-latest/plugins/org.eclipse.equinox.launcher_1.6.600.v20231012-1237.jar",
-        "-configuration", "/opt/jdtls-latest/config_linux",
-        "-data", workspace_dir
+        -- "/opt/jdtls-latest/plugins/org.eclipse.equinox.launcher_1.6.600.v20231012-1237.jar",
+        "-jar", Paths.jdtls_launcher,
+        "-configuration", Paths.jdtls .. "/config_linux",
+        "-data", Paths.workspace_dir
     },
     -- 💀
     -- This is the default if not provided, you can remove it. Or adjust as needed.
     -- One dedicated LSP server & client will be started per unique root_dir
-
     root_dir = require('jdtls.setup').find_root({ 'gradlew', 'mvnw', '.git', 'pom.xml' }),
     settings = {
         java = {
@@ -117,10 +134,10 @@ local config = {
             "org.mockito.Mockito.*",
         },
         importOrder = {
-            "java",
-            "javax",
             "com",
-            "org"
+            "org",
+            "java",
+            "javax"
         },
         overwrite = true,
     },
@@ -147,9 +164,7 @@ local config = {
                     vim.fn.glob("~/table/space/vscode-java-test/server/*.jar", true),
                     "\n"),
 
-                { vim.fn.glob(mason_pack ..
-                    "/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar")
-                }
+                { Paths.java_debug_plugin }
             )
 
     },
@@ -163,8 +178,7 @@ local config = {
 jdtls.start_or_attach(config)
 
 -- Setting up Google Formater
-local format_path = vim.fn.glob(mason_pack .. "/google-java-format/google-java-format-1.20.0-all-deps.jar")
-vim.cmd("Glaive codefmt google_java_executable=\"java -jar " .. format_path .. "\"");
+vim.cmd("Glaive codefmt google_java_executable=\"java -jar " .. Paths.google_java_format .. "\"");
 jdtls.jol_path = '/opt/jol/jol-cli-0.9-full.jar'
 
 
@@ -188,5 +202,3 @@ vim.api.nvim_create_autocmd({ "LspAttach" }, {
         )
     end
 })
-
-

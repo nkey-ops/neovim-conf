@@ -50,7 +50,7 @@ require('packer').startup(function(use)
         requires = {
             -- LSP Support
             { 'neovim/nvim-lspconfig' },             -- Required
-            { 'williamboman/mason-lspconfig.nvim' }, -- Optional
+            -- { 'williamboman/mason-lspconfig.nvim' }, -- Optional
 
             -- Autocompletion
             { 'hrsh7th/nvim-cmp' },     -- Required
@@ -67,6 +67,8 @@ require('packer').startup(function(use)
             },
         },
     }
+
+    use('williamboman/mason-lspconfig.nvim')
     use('neovim/nvim-lspconfig')
 
     -- compatibilities set up

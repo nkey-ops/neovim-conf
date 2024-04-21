@@ -66,6 +66,9 @@ vim.keymap.set("n", "<leader>tc",
 vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>",
     { desc = "Open Terminal window at the root directory" });
 
+vim.keymap.set("c", "<C-b>", "<Down>")
+vim.keymap.set("c", "<C-q>", "<Up>")
+
 -- yunk current dir path
 vim.api.nvim_create_user_command("Cppath", function()
     local path = vim.fn.expand("%:p")

@@ -1,5 +1,3 @@
-local mason_pack = '/home/deuru/.local/share/nvim/mason/packages'
-
 local null_ls = require('null-ls')
 null_ls.setup({
     sources = {
@@ -11,14 +9,14 @@ null_ls.setup({
                     "-f",
                     "sarif",
                     "-c",
-                    mason_pack .. "/checkstyle/google_checks.xml",
+                    vim.fn.glob('~/.config/nvim') .. '/addons/google_checks.xml',
                     params.bufname,
                 }
             end,
 
-           -- extra_args = { "-c",
-           --      mason_pack .. "/checkstyle/google_checks.xml" },
-           -- -- or "/sun_checks.xml" or path to self written rules
+            -- extra_args = { "-c",
+            --      mason_pack .. "/checkstyle/google_checks.xml" },
+            -- -- or "/sun_checks.xml" or path to self written rules
         }),
     }
 })
@@ -31,4 +29,3 @@ vim.api.nvim_create_autocmd({ "BufWritePost" }, {
         local _, _ = pcall(vim.lsp.codelens.refresh)
     end,
 })
-

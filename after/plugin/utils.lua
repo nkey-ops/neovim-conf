@@ -33,7 +33,7 @@ end
 ---- by REPLACING ALL ITS CONTENTS
 ----
 function Add_java_alies()
-    local file_name = '/home/deuru/.bash_aliases_dyn'
+    local file_name = vim.fn.glob("~/.bash_aliases_dyn")
     local root_dir = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h')
 
     if (root_dir == nil or not File_exists(root_dir .. '/target')) then

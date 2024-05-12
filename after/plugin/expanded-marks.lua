@@ -1,8 +1,8 @@
---todo max key seq set is lower by one
+-- todo max key seq set is lower by one
 -- The mark's location moves to the bottom of the file after formatting
 -- marks are'nt saved after closing the buffer
---TODO highlight after the jump?
---TODO set local hard cup max key seq
+-- TODO highlight after the jump?
+-- TODO set local hard cup max key seq
 local M = {
     opts = {
         global_marks_file_path = vim.fn.glob("~/.local/share/nvim") .. "/expaned_marks.json",
@@ -579,24 +579,20 @@ vim.api.nvim_create_user_command("Mark",
     end, {})
 
 
--- Autocmds
-vim.api.nvim_create_autocmd({ "BufWrite" }, {
-    pattern = "*",
-    callback = function()
-        Update_local_marks()
-    end
-})
-
---TODO fix
-vim.api.nvim_create_autocmd({ "BufNew" }, {
-    pattern = "*",
-    callback = function()
-        Restore_local_marks()
-    end
-})
-
-
-
-
-
-
+-- -- Autocmds
+-- vim.api.nvim_create_autocmd({ "BufWrite" }, {
+--     pattern = "*",
+--     callback = function()
+--         Update_local_marks()
+--     end
+-- })
+--
+-- --TODO fix
+-- vim.api.nvim_create_autocmd({ "BufNew" }, {
+--     pattern = "*",
+--     callback = function()
+--         Restore_local_marks()
+--     end
+-- })
+--
+--

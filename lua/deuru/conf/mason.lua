@@ -1,4 +1,3 @@
-local mason = require('mason').setup({})
 local mason_registry = require("mason-registry")
 local Package = require("mason-core.package")
 
@@ -9,16 +8,7 @@ local packages =
     "sql-formatter",
     "java-debug-adapter",
     "java-test",
-    "marksman",
     -- "trivy",
-    -- LSPs
-    "lemminx",
-    "jdtls",
-    "json-lsp",
-    "lua-language-server",
-    "yaml-language-server",
-    "sqlls",
-    "html-lsp",
 }
 
 print("lsp.lua: Enshuring all the Mason packages are installed...")

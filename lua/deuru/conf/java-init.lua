@@ -1,10 +1,19 @@
 -- Close buffers with ".class" extension to free up space
+local mason_registry = require('mason-registry')
+local google_java_format = mason_registry
+    .get_package("google-java-format")
+    :get_install_path()
+local google_java_format_jar = vim.fn.glob(google_java_format ..
+    "/google-java-format-*.jar")
+
+-- vim.cmd("Glaive codefmt google_java_executable=\"java -jar "
+--     .. google_java_format_jar .. "\"");
+
 vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
     desc = "Closes buffers with the '.class' extension to free up space",
     pattern = '*.class',
     nested = true,
     callback = function(args)
-
         vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
             once = true,
             callback = function(args2)
@@ -21,7 +30,7 @@ vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
 
 
 vim.api.nvim_create_autocmd({ "FileType" }, {
-    desc = "Creats buffer local keybind for files with the '*.java' extension",
+    desc = "Creats buffer local keybinds for files with the '*.java' extension",
     pattern = 'java',
 
     callback = function(args)
@@ -62,21 +71,49 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
                 buffer = args.buf
             }
         )
+        vim.keymap.set({ 'n', 'v' }, "<leader>f",
+            function()
+                local mode = vim.api.nvim_get_mode()['mode']
+                if mode == 'v' or mode == 'V' then
+                    Exit_visual()
+
+                    local s = vim.fn.getpos("'<")[2]
+                    local e = vim.fn.getpos("'>")[2]
+                    vim.cmd(s .. ',' .. e .. "FormatLines")
+                else
+                    vim.cmd("FormatCode")
+                end
+            end,
+            { desc = "Java [F]ormat", buffer = args.buf }
+        )
+
         vim.keymap.set('n', '<leader>jo',
             function() jdtls.jol() end,
             { desc = "Java [Jo]l", silent = true, buffer = args.buf }
         )
-        vim.keymap.set("n", "<leader>df",
+        vim.keymap.set("n", "<leader>tt",
             function() jdtls.test_class({}) end,
             { desc = "Java Test Class", silent = true, buffer = args.buf }
         )
-        vim.keymap.set("n", "<leader>tn",
+        vim.keymap.set("n", "<leader>tm",
             function() jdtls.test_nearest_method({}) end,
             {
-                desc = "Java [T]est [N]earest Method",
+                desc = "Java [T]est Nearest [M]ethod",
                 silent = true,
                 buffer = args.buf
             }
+        )
+        vim.keymap.set("n", "<leader>tp",
+            function() jdtls.pick_test({}) end,
+            { desc = "Java [P]ick [T]est", silent = true, buffer = args.buf }
+        )
+        vim.keymap.set("n", "<leader>tg",
+            function() jdtls.generate({}) end,
+            { desc = "Java [G]enerate [T]est", silent = true, buffer = args.buf }
+        )
+        vim.keymap.set("n", "<leader>tb",
+            function() jdtls.tests.goto_subjects() end,
+            { desc = "Java [G]o to subjects", silent = true, buffer = args.buf }
         )
 
         -- settings

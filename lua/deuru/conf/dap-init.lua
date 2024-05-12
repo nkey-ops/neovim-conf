@@ -20,9 +20,7 @@ vim.keymap.set('n', '<leader>B', function() dap.set_breakpoint() end)
 vim.keymap.set('n', '<leader>lp', function() dap.set_breakpoint(nil, nil, vim.fn.input('Log point message: ')) end)
 vim.keymap.set('n', '<leader>dr', function() dap.repl.open() end)
 vim.keymap.set('n', '<leader>dl', function() dap.run_last() end)
-
 vim.keymap.set('n', '<leader>dlb', function() dap.list_breakpoints() end)
-
 
 vim.keymap.set({ 'n', 'v' }, '<leader>dh', function()
     widgets.hover()
@@ -38,3 +36,4 @@ vim.keymap.set('n', '<leader>ds', function()
     local widgets = widgets
     widgets.centered_float(widgets.scopes)
 end)
+

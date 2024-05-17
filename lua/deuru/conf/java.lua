@@ -2,7 +2,6 @@ return function()
     -- setting up cmp capabilities for jdtls
     local jdtls = require('jdtls')
     local mason_registry = require('mason-registry')
-
     -- local mason_jdtls_path = mason_registry.get_package('jdtls'):get_install_path()
     local mason_jdtls_path = vim.fn.glob("~/jdtls")
     local java_debug_adapter = mason_registry
@@ -36,9 +35,6 @@ return function()
     -- This variable is used to configure eclipse to use the directory name of the
     -- current project found using the root_marker as the folder for project specific data.
     --local workspace_folder = home .. "/.local/share/eclipse/" .. vim.fn.fnamemodify(root_dir, ":p:h:t")
-
-
-
     jdtls.start_or_attach({
         cmd = {
             "java", -- Or the absolute path '/path/to/java11_or_newer/bin/java'
@@ -89,14 +85,6 @@ return function()
                     includeDecompiledSources = true,
                 },
 
-                --            format = {
-                --                enabled = true,
-                --                settings = {
-                --                    url = mason_pack .. "/google-java-format/google_checks.xml",
-                --                    profile = "GoogleStyle",
-                --                },
-                --           },
-
                 --        /**
                 --         * Enable/disable the signature help,
                 --         * default is false
@@ -121,12 +109,12 @@ return function()
                 "java.util.Objects.requireNonNullElse",
                 "org.mockito.Mockito.*",
             },
-            importOrder = {
-                "com",
-                "org",
-                "java",
-                "javax"
-            },
+            -- importOrder = {
+            --     "com",
+            --     "org",
+            --     "java",
+            --     "javax"
+            -- },
             overwrite = true,
         },
         sources = {

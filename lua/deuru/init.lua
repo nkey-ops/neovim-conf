@@ -88,10 +88,10 @@ local plugins = {
     },
     {
         'hrsh7th/nvim-cmp',
-        event = { 'InsertEnter',
-            -- 'CmdlineEnter'
-
+        eventgt = { 'InsertEnter',
+            'CmdlineEnter'
         },
+        enabled = true,
         config = require('deuru.conf.cmp'),
         dependencies = {
             { 'L3MON4D3/LuaSnip',                    version = "v2.*", },
@@ -112,23 +112,32 @@ local plugins = {
         cmd = { 'LspInfo', 'LspInstall', 'LspStart' },
         event = { 'BufReadPre', 'BufNewFile' },
         dependencies = {
-            { 'hrsh7th/cmp-nvim-lsp' }, { 'williamboman/mason-lspconfig.nvim' },
+            { 'williamboman/mason-lspconfig.nvim' },
         },
         config = require('deuru.conf.lsp-zero')
     },
     {
         'windwp/nvim-autopairs',
         event = "InsertEnter",
-        config = true
+        config = true,
+        enabled = true,
         -- use opts = {} for passing setup options
         -- this is equalent to setup({}) function
     },
     {
         'mfussenegger/nvim-jdtls',
-        ft = 'java',
+        dependencies = {
+            {
+                'jose-elias-alvarez/null-ls.nvim',
+                init = function() require('deuru.conf.checkstyle-init') end,
+                enabled = true
+            }, 'mhartington/formatter.nvim'
+
+        },
         config = require('deuru.conf.java'),
         lazy = true,
-        init = function() require('deuru.conf.java-init') end
+        init = function() require('deuru.conf.java-init') end,
+        enabled = true
     },
 
     {
@@ -162,18 +171,6 @@ local plugins = {
         config = require('deuru.conf.lualine'),
     },
 
-    {
-        'jose-elias-alvarez/null-ls.nvim',
-        dependencies = {
-            "google/vim-codefmt",
-            "google/vim-maktaba",
-            "google/vim-maktaba",
-            "google/vim-glaive"
-        },
-        init = function() require('deuru.conf.checkstyle-init') end,
-        enabled = false
-        --   use('mfussenegger/nvim-lint')
-    },
     {
         'rest-nvim/rest.nvim',
         commit = "8b62563",
@@ -221,7 +218,6 @@ local plugins = {
             require('Comment').setup()
         end
     }
-
 }
 
 require("lazy").setup(plugins)

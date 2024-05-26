@@ -8,7 +8,7 @@ return function()
         defaults = {
             layout_strategy = 'vertical',
             layout_config = { height = 0.95 },
-
+            chache_picker = {1, 100},
             mappings = {
                 i = {
                     -- exit on esc press
@@ -31,6 +31,7 @@ return function()
     }
 
 
+    vim.keymap.set('n', '<A-r>', builtin.resume, {})
     vim.keymap.set('n', '<A-f>', builtin.find_files, {})
     vim.keymap.set('n', '<A>g', builtin.git_files, {})
     vim.keymap.set('n', '<A-g>r', function()

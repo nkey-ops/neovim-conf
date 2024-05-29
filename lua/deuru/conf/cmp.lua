@@ -65,7 +65,7 @@ return function()
         confirmation = {
             default_behavior = cmp.ConfirmBehavior.Replace,
         },
-        completion = { autocomplete = false },
+        -- completion = { autocomplete = true },
 
         formatting = {
             format =
@@ -131,10 +131,14 @@ return function()
     })
 
     local cmdline_mapping = cmp.mapping.preset.cmdline({
-        ['<C-y>'] = { c = cmp.mapping.scroll_docs(-1) },
-        ['<C-e>'] = { c = cmp.mapping.scroll_docs(1) },
-        ['<C-u>'] = { c = cmp.mapping.scroll_docs(-4) },
-        ['<C-d>'] = { c = cmp.mapping.scroll_docs(4) },
+        ['<C-y>'] = {
+            c = function()
+                cmp.select_next_item()
+                vim.api.nvim_feedkeys(
+                    vim.api.nvim_replace_termcodes("<CR>", true, false, true),
+                    'm', false)
+            end
+        },
         ['<C-[>'] = { c = cmp.mapping.abort() },
         ['<C-p>'] = {
             c = function()
@@ -145,9 +149,18 @@ return function()
                 end
             end
         },
-        -- ['<C-c>'] = cmp.mapping.complete_common_string(),
         ['<C-n>'] = { c = cmp.mapping.select_next_item() },
-        ['<C-i>'] = { c = cmp.mapping.confirm({ select = true }) },
+        ['<C-i>'] = {
+            c =
+                function()
+                    cmp.select_next_item()
+                    cmp.close()
+                    vim.api.nvim_feedkeys(
+                        vim.api.nvim_replace_termcodes("<Space>", true, false, true),
+                        'm', false)
+                    cmp.complete()
+                end
+        },
         ['<Tab>'] = { c = vim.NIL },
     })
 
@@ -169,18 +182,4 @@ return function()
         })
     })
 
-    -- vim.api.nvim_create_autocmd("FileType", {
-    --     pattern = {
-    --         "sql",
-    --         "mysql",
-    --         "plsql",
-    --     },
-    --     callback = function()
-    --         require("cmp").setup.buffer {
-    --             sources = {
-    --                 { name = "vim-dadbod-completion" }
-    --             }
-    --         }
-    --     end,
-    -- })
 end

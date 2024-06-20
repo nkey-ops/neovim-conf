@@ -1,4 +1,6 @@
-require("deuru.remap") require("deuru.set")
+require("deuru.remap")
+require("deuru.set")
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
     vim.fn.system({
@@ -15,7 +17,6 @@ vim.opt.rtp:prepend(lazypath)
 local plugins = {
     {
         'nvim-telescope/telescope.nvim',
-        tag = '0.1.6',
         dependencies = { 'nvim-lua/plenary.nvim' },
         config = require('deuru.conf.telescope')
     },
@@ -63,21 +64,12 @@ local plugins = {
     {
         "ray-x/lsp_signature.nvim",
         event = 'VeryLazy',
-        config = function()
+        init = function()
             require('lsp_signature').setup({
                 bind = true, -- This is mandatory, otherwise border config won't get registered.
-                handler_opts = {
-                    border = "rounded",
-                },
                 floating_window = false,
             })
         end,
-        int = function()
-            vim.keymap.set({ 'i' }, '<C-f>', function()
-                require('lsp_signature').toggle_float_win()
-            end, { silent = true, noremap = true, desc = 'toggle signature' })
-        end
-
     },
 
     {
@@ -131,13 +123,12 @@ local plugins = {
                 'jose-elias-alvarez/null-ls.nvim',
                 init = function() require('deuru.conf.checkstyle-init') end,
                 enabled = true
-            }, 'mhartington/formatter.nvim'
-
+            },
+            { 'mhartington/formatter.nvim', lazy = true }
         },
-        config = require('deuru.conf.java'),
+        config = false,
         lazy = true,
         init = function() require('deuru.conf.java-init') end,
-        enabled = true
     },
 
     {
@@ -173,7 +164,6 @@ local plugins = {
 
     {
         'rest-nvim/rest.nvim',
-        commit = "8b62563",
         tag = "v1.2.1",
         dependencies = { "nvim-lua/plenary.nvim" },
         config = require('deuru.conf.rest-nvim'),
@@ -217,6 +207,13 @@ local plugins = {
         config = function()
             require('Comment').setup()
         end
+    },
+    {
+        "nkey-ops/extended-marks.nvim",
+        init = function() require('extended-marks') end,
+    },
+    {
+        "tpope/vim-eunuch"
     }
 }
 

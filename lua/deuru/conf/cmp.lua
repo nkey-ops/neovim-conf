@@ -61,11 +61,6 @@ return function()
         performance = {},
         view = { entries = { name = 'custom', selection_ordre = 'near_cursor' } },
         preselect = cmp.PreselectMode.Item,
-        -- FIXES jdtls word duplication
-        confirmation = {
-            default_behavior = cmp.ConfirmBehavior.Replace,
-        },
-        -- completion = { autocomplete = true },
 
         formatting = {
             format =
@@ -93,6 +88,7 @@ return function()
                         cmp.complete()
                     end
                 end,
+
             ['<C-n>'] =
                 function()
                     if cmp.visible() then
@@ -133,7 +129,7 @@ return function()
     local cmdline_mapping = cmp.mapping.preset.cmdline({
         ['<C-y>'] = {
             c = function()
-                cmp.select_next_item()
+                cmp.confirm({ select = true })
                 vim.api.nvim_feedkeys(
                     vim.api.nvim_replace_termcodes("<CR>", true, false, true),
                     'm', false)
@@ -153,7 +149,7 @@ return function()
         ['<C-i>'] = {
             c =
                 function()
-                    cmp.select_next_item()
+                    cmp.confirm({ select = true })
                     cmp.close()
                     vim.api.nvim_feedkeys(
                         vim.api.nvim_replace_termcodes("<Space>", true, false, true),
@@ -181,5 +177,4 @@ return function()
             { name = 'cmdline' }
         })
     })
-
 end

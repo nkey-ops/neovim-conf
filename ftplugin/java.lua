@@ -92,7 +92,7 @@ local config = {
                 settings = {
                     ---[1] https://github.com/redhat-developer/vscode-java/wiki/Formatter-settings
                     --  [2] https://github.com/redhat-developer/vscode-java/blob/master/formatters/eclipse-formatter.xml
-                    url = "/home/local/.config/nvim/addons/google-style.xml",
+                    url = "/home/local/.config/nvim/addons/java-format-styles.xml",
                     profile = "Default",
                 }
 

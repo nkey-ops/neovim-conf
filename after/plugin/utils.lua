@@ -1,10 +1,12 @@
--- see if the filfe exists
+-- see if the file exists
 function File_exists(file_name)
     local f = io.open(file_name, "rb")
     if f then f:close() end
     return f ~= nil
 end
 
+
+--
 -- print all line numbers and their contents
 local function add_dynamic_java_ali(file_name, root_dir)
     if file_name == nil or root_dir == nil then

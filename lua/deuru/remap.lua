@@ -69,6 +69,9 @@ vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>",
 vim.keymap.set("c", "<C-b>", "<Down>")
 vim.keymap.set("c", "<C-q>", "<Up>")
 
+vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>" , {desc = "Run :messages"})
+
+
 -- yunk current dir path
 vim.api.nvim_create_user_command("Cppath", function()
     local path = vim.fn.expand("%:p")
@@ -76,5 +79,9 @@ vim.api.nvim_create_user_command("Cppath", function()
     vim.notify('Copied "' .. path .. '" to the clipboard!')
 end, {})
 
-
 vim.cmd("cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'")
+
+P = function(v)
+    print(vim.inspect(v))
+    return v
+end

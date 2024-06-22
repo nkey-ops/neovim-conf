@@ -72,6 +72,11 @@ local attach_java_configs = function()
                 '<cmd>FormatWrite java<CR>',
                 { desc = "Java [F]ormat", buffer = args.buf }
             )
+
+            vim.keymap.set("n", "<leader>jc",
+                "<cmd>JdtCompile<CR>",
+                { desc = "Java JdtCompile", silent = true, buffer = args.buf }
+            )
             vim.keymap.set('n', '<leader>jo',
                 function() jdtls.jol() end,
                 { desc = "Java [Jo]l", silent = true, buffer = args.buf }
@@ -93,12 +98,16 @@ local attach_java_configs = function()
                 { desc = "Java [P]ick [T]est", silent = true, buffer = args.buf }
             )
             vim.keymap.set("n", "<leader>tg",
-                function() jdtls.generate({}) end,
+                function() jdtls.tests.generate({}) end,
                 { desc = "Java [G]enerate [T]est", silent = true, buffer = args.buf }
             )
             vim.keymap.set("n", "<leader>tb",
                 function() jdtls.tests.goto_subjects() end,
                 { desc = "Java [G]o to subjects", silent = true, buffer = args.buf }
+            )
+            vim.keymap.set("n", "<leader>ud",
+                "<cmd>JdtUpdateDebugConf<CR>",
+                { desc = "Java JdtUpdateDebugConf", silent = true, buffer = args.buf }
             )
 
             -- settings

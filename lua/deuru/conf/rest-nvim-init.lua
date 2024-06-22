@@ -2,7 +2,7 @@ local rest = require("rest-nvim")
 vim.api.nvim_create_autocmd({ "FileType" }, {
     pattern = 'http',
     callback = function(args)
-        vim.keymap.set("n", "<leader>r", "<Plug>RestNvim",
+        vim.keymap.set("n", "<leader>r", rest.run,
             { desc = "RestNvim: [R]un Curl Command", buffer = args.buf })
         vim.keymap.set("n", "<leader>p", "<Plug>RestNvimPreview",
             { desc = "RestNvim: [P]review Curl Command", buffer = args.buf })
@@ -77,4 +77,5 @@ _G.gas_json = function(key, context, env_var_name)
     end
 
     context.set_env(env_var_name, body)
+    print("Set env-var:", env_var_name, body)
 end

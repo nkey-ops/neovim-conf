@@ -44,7 +44,7 @@ map.set('n', '<leader>dbl', function() dap.set_breakpoint(nil, nil, vim.fn.input
     { desc = "Debug: Set [B]reakpoint with [l]og message" })
 -- map.set('n', '<leader>dbe', function() dap.set_exception_breakpoints() end, { desc = "Debug: [C]lear [B]reakpoints" })
 map.set('n', '<leader>dbl', function() dap.list_breakpoints() end, { desc = "Debug: [L]ist [B]reakpoints" })
-map.set('n', '<leader>dbc', function() dap.clear_breakpoints() end, { desc = "Debug: [C]lear [B]reakpoints" })
+map.set('n', '<leader>dbd', function() dap.clear_breakpoints() end, { desc = "Debug: [C]lear [B]reakpoints" })
 
 -- map.set('n', '<C-d>p', function() dap.up() end, { desc = "Debug: [S]tacktrace Up" })
 -- map.set('n', '<C-d>n', function() dap.down() end, { desc = "Debug: [S]tacktrace Down" })

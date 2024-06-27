@@ -19,6 +19,45 @@ require('formatter').setup {
     }
 }
 
+local enable_auto_format = true
+local java_formats = { "google", "intellij" }
+local java_format = java_formats[2]
+
+vim.api.nvim_create_user_command("EnableJavaAutoFormat",
+    function(opts)
+        assert(opts.args == "true" or opts.args == "false", "Can be true or false")
+        enable_auto_format = opts.args == "true" and true or false
+    end, {
+        nargs = 1,
+        complete = function() return { "true", "false" } end,
+    })
+
+vim.api.nvim_create_user_command("SetJavaFormat",
+    function(opts)
+        local is_matched = false
+        for _, value in pairs(java_formats) do
+            if string.match(opts.args, value) then
+                is_matched = true
+            end
+        end
+        assert(is_matched, "Format should be one of:" .. vim.inspect(java_formats))
+        java_format = opts.args
+    end, {
+        nargs = 1,
+        complete = function() return java_formats end,
+    })
+
+local format = function()
+    assert(type(enable_auto_format) == 'boolean', "Should be boolean:", enable_auto_format)
+    if enable_auto_format then
+        if string.match(java_format, 'google') then
+            vim.cmd("FormatWrite java")
+        else
+            vim.lsp.buf.format()
+        end
+    end
+end
+
 
 local attach_java_configs = function()
     vim.api.nvim_create_autocmd('User', {
@@ -69,7 +108,10 @@ local attach_java_configs = function()
                 }
             )
             vim.keymap.set('n', "<leader>f",
-                '<cmd>FormatWrite java<CR>',
+                function()
+                    vim.lsp.buf.format()
+                end,
+
                 { desc = "Java [F]ormat", buffer = args.buf }
             )
 
@@ -110,11 +152,12 @@ local attach_java_configs = function()
                 { desc = "Java JdtUpdateDebugConf", silent = true, buffer = args.buf }
             )
 
-            -- settings
-            vim.cmd("setlocal softtabstop=2")
-            vim.cmd("setlocal tabstop=2")
-            vim.cmd("setlocal shiftwidth=2")
-            vim.cmd("setlocal colorcolumn=100")
+            vim.api.nvim_create_autocmd("BufWritePre", {
+                pattern = "*.java",
+                callback = function()
+                    format()
+                end
+            })
         end
     })
 end

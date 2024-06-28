@@ -1,6 +1,5 @@
 require("deuru.remap")
 require("deuru.set")
-
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
     vim.fn.system({
@@ -215,6 +214,11 @@ local plugins = {
     },
     {
         "tpope/vim-eunuch"
+    },
+    {
+        "nanozuki/tabby.nvim",
+        dependencies = 'nvim-tree/nvim-web-devicons',
+        init = function() require('deuru.conf.tabby-init') end
     }
 }
 

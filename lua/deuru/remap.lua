@@ -66,10 +66,15 @@ vim.keymap.set("n", "<leader>tc",
 vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>",
     { desc = "Open Terminal window at the root directory" });
 
-vim.keymap.set("c", "<C-b>", "<Down>")
-vim.keymap.set("c", "<C-q>", "<Up>")
+-- Vim Like Cmd Navigation
+vim.keymap.set("c", "<A-h>", "<Left>")
+vim.keymap.set("c", "<A-l>", "<Right>")
+vim.keymap.set("c", "<A-j>", "<Down>")
+vim.keymap.set("c", "<A-k>", "<Up>")
+vim.keymap.set("c", "<A-w>", "<C-Right>")
+vim.keymap.set("c", "<A-b>", "<C-Left>")
 
-vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>" , {desc = "Run :messages"})
+vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>", { desc = "Run :messages" })
 
 
 -- yunk current dir path

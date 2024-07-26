@@ -16,3 +16,25 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
         vim.cmd("setlocal wrap")
     end
 })
+
+vim.lsp.handlers['textDocument/hover'] =
+    function(err, result, ctx, config)
+        if (result.contents ~= nil
+                and result.contents[1] ~= nil
+                and result.contents[1].language ~= nil
+                and result.contents[1].language:match('java')) then
+
+        P(result.contents)
+
+            result.contents[2] = result.contents[2]:gsub("%[(.-)%]%(.-%%3C(.-)%%28(.-)%.class#.-%)", "[%1](%2.%3)");
+            result.contents[2] = result.contents[2]:gsub("%s\\%[", "[");
+            result.contents[2] = result.contents[2]:gsub("\\%]", "]");
+        end
+
+        local buf_id, win_id =
+            vim.lsp.with(vim.lsp.handlers.hover, {})(err, result, ctx, config)
+
+        vim.api.nvim_set_option_value("filetype", "lsp_markdown", { buf = buf_id })
+
+        return buf_id, win_id
+    end

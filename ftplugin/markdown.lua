@@ -10,4 +10,3 @@ vim.keymap.set("n", "<C-s>", vim.cmd["MarkdownPreviewStop"], {
     buffer = 0,
     desc = "MarkdownPreviewStop"
 })
-vim.api.nvim_command("setlocal spell")

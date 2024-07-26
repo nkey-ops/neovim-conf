@@ -19,7 +19,7 @@ require('formatter').setup {
     }
 }
 
-local enable_auto_format = true
+local enable_auto_format = false
 local java_formats = { "google", "intellij" }
 local java_format = java_formats[2]
 
@@ -109,7 +109,11 @@ local attach_java_configs = function()
             )
             vim.keymap.set('n', "<leader>f",
                 function()
-                    vim.lsp.buf.format()
+                    if string.match(java_format, 'google') then
+                        vim.cmd("FormatWrite java")
+                    else
+                        vim.lsp.buf.format()
+                    end
                 end,
 
                 { desc = "Java [F]ormat", buffer = args.buf }
@@ -152,7 +156,7 @@ local attach_java_configs = function()
                 { desc = "Java JdtUpdateDebugConf", silent = true, buffer = args.buf }
             )
 
-            vim.api.nvim_create_autocmd("BufWritePre", {
+            vim.api.nvim_create_autocmd("BufWritePost", {
                 pattern = "*.java",
                 callback = function()
                     format()

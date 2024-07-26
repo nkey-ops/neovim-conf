@@ -43,15 +43,16 @@ local config = {
         '-Declipse.product=org.eclipse.jdt.ls.core.product',
         '-Dlog.protocol=true',
         '-Dlog.level=ALL',
-        "-Xmx512m",
-        "-Xms100m",
+
+        '-Xmx600m',
+        '-XX:ReservedCodeCacheSize=64m',
+        '-XX:-UseCompressedClassPointers',
+        '-Xss256k',
 
         '--add-modules=ALL-SYSTEM',
         '--add-opens', 'java.base/java.util=ALL-UNNAMED',
         '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
 
-        "-Xmx512m",
-        "-Xms100m",
 
         "-javaagent:" .. Paths.lombok,
         -- 💀

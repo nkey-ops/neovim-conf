@@ -8,7 +8,7 @@ return function()
         defaults = {
             layout_strategy = 'vertical',
             layout_config = { height = 0.95 },
-            chache_picker = {1, 100},
+            chache_picker = { 1, 100 },
             mappings = {
                 i = {
                     -- exit on esc press
@@ -56,4 +56,8 @@ return function()
                 })
         end,
         { desc = "Telescope: Search Dynamically [W]orkspace Symbols" })
+    vim.keymap.set("n", "<A-b>", function ()
+       builtin.buffers({ignore_current_buffer = true, 
+                        desc = "Telescope: Show [B]uffers"}) 
+    end)
 end

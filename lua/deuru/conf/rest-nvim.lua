@@ -55,5 +55,12 @@ return function()
     -- request/init.lua | 403
     -- { regtype = "v", inclusive = false }
 
-end
 
+    -- /home/local/.local/share/nvim/lazy/rest.nvim/lua/rest-nvim/request/init
+    -- get_curl_args
+    --
+    -- 157
+    -- if line_content:find("--{%%") then
+    --   line_content = "a"
+    -- end
+end

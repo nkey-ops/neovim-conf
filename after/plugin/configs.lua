@@ -7,8 +7,9 @@ vim.keymap.set({ 'n' }, '<Esc>', function()
     end
 end, { desc = "Close floating window" })
 
-vim.api.nvim_create_autocmd({ "FileType" }, {
-    pattern = 'markdown',
+-- Note: it's not done through FileType because of the issues with lsp.hanlers
+vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    pattern = '*.md',
     callback = function()
         vim.cmd("setlocal linebreak")
         vim.cmd("setlocal breakindent")
@@ -17,22 +18,35 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
     end
 })
 
+local stripP = function(string)
+    assert(string ~= nil and type(string) == "string")
+
+    string = string:gsub("%[(.-)%]%(.-%%3C(.-)%%28(.-)%.class#.-%)", "[%1](%2.%3)");
+    string = string:gsub("%s\\%[", "[");
+    string = string:gsub("\\%]", "]");
+    return string
+end
+
 vim.lsp.handlers['textDocument/hover'] =
     function(err, result, ctx, config)
-        if (result.contents ~= nil
+        local is_java = false
+        if (result ~= nil
+                and result.contents ~= nil
                 and result.contents[1] ~= nil
                 and result.contents[1].language ~= nil
                 and result.contents[1].language:match('java')) then
-
-            result.contents[2] = result.contents[2]:gsub("%[(.-)%]%(.-%%3C(.-)%%28(.-)%.class#.-%)", "[%1](%2.%3)");
-            result.contents[2] = result.contents[2]:gsub("%s\\%[", "[");
-            result.contents[2] = result.contents[2]:gsub("\\%]", "]");
+            result.contents[2] = stripP(result.contents[2]);
+            is_java = true
         end
 
-        local buf_id, win_id =
+        local buf, win_id =
             vim.lsp.with(vim.lsp.handlers.hover, {})(err, result, ctx, config)
 
-        vim.api.nvim_set_option_value("filetype", "lsp_markdown", { buf = buf_id })
+        if is_java and buf ~= nil and vim.api.nvim_buf_is_valid(buf) and
+            string.match(
+                vim.api.nvim_get_option_value("filetype", { buf = buf }), "markdown") then
+            vim.api.nvim_set_option_value("filetype", "lsp_markdown", { buf = buf })
+        end
 
-        return buf_id, win_id
+        return buf, win_id
     end

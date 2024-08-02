@@ -1,4 +1,3 @@
--- Close buffers with ".class" extension to free up space
 local mason_registry = require('mason-registry')
 local google_java_format_jar =
     mason_registry
@@ -166,23 +165,13 @@ local attach_java_configs = function()
     })
 end
 
-vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
+vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
     group = vim.api.nvim_create_augroup('JavaLspSettings', { clear = false }),
-    desc = "Closes buffers with the '.class' extension to free up space",
+    desc = "Sets .class buftype=help",
     pattern = '*.class',
-    nested = true,
     callback = function(args)
-        vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
-            once = true,
-            callback = function(args2)
-                if not vim.api.nvim_buf_is_valid(args.buf) then
-                    print("[Autocmd]:", args2.id, "Can't find buffer with id", args.buf)
-                    return
-                end
-
-                vim.api.nvim_buf_delete(args.buf, {})
-            end
-        })
+        vim.bo[args.buf].buftype = "help"
+        vim.bo[args.buf].buflisted = false
     end
 })
 

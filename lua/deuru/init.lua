@@ -1,5 +1,6 @@
 require("deuru.remap")
 require("deuru.set")
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
     vim.fn.system({
@@ -32,8 +33,7 @@ local plugins = {
         priority = 1000,
         config = require('deuru.conf.colors'),
         init = function()
-            vim.cmd('set termguicolors')
-            vim.cmd.colorscheme("catppuccin-mocha")
+            vim.cmd.colorscheme("catppuccin-frappe")
         end
     },
     {
@@ -209,7 +209,8 @@ local plugins = {
         end
     },
     {
-        "nkey-ops/extended-marks.nvim",
+        -- "nkey-ops/extended-marks.nvim",
+        dir = "/home/local/table/extended-marks.nvim/",
         init = function() require('extended-marks') end,
     },
     {
@@ -219,7 +220,23 @@ local plugins = {
         "nanozuki/tabby.nvim",
         dependencies = 'nvim-tree/nvim-web-devicons',
         init = function() require('deuru.conf.tabby-init') end
-    }
+    },
+
+    {
+        "epwalsh/obsidian.nvim",
+        version = "*",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+        },
+        config = require("deuru.conf.obsidian")
+    },
+    {
+        "danymat/neogen",
+        config = true,
+        enabled = false,
+        -- Uncomment next line if you want to follow only stable versions
+        -- version = "*"
+    },
 }
 
 require("lazy").setup(plugins)

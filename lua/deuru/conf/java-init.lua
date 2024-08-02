@@ -1,3 +1,5 @@
+local local_marks = require("extended-marks.local")
+
 local mason_registry = require('mason-registry')
 local google_java_format_jar =
     mason_registry
@@ -108,11 +110,13 @@ local attach_java_configs = function()
             )
             vim.keymap.set('n', "<leader>f",
                 function()
+                    local_marks.update()
                     if string.match(java_format, 'google') then
                         vim.cmd("FormatWrite java")
                     else
                         vim.lsp.buf.format()
                     end
+                    local_marks.restore()
                 end,
 
                 { desc = "Java [F]ormat", buffer = args.buf }

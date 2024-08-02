@@ -2,7 +2,8 @@ return function()
     local lsp_zero = require('lsp-zero')
     lsp_zero.extend_lspconfig()
 
-    -- local local_marks = require('extended-marks.local-marks')
+    local local_marks = require('extended-marks.local')
+
     lsp_zero.on_attach(function(_, bufnr)
         lsp_zero.default_keymaps({ buffer = bufnr })
     end)
@@ -20,13 +21,7 @@ return function()
         },
         handlers = {
             marksman = require('lspconfig').marksman.setup({}),
-            lemminx = require('lspconfig').lemminx.setup(
-                {
-                    settings = {
-                        xml = { catalogs = "/home/local/.config/nvim/addons/Default-xml.xml" }
-                    }
-
-                }),
+            limminx = require("lspconfig").lemminx.setup({}),
             jdtls = lsp_zero.noop,
             jsonls = require('lspconfig').jsonls.setup({}),
             yamlss = require('lspconfig').yamlls.setup({}),
@@ -133,9 +128,9 @@ return function()
             vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, opts)
             vim.keymap.set({ 'n', 'v' }, '<leader>f',
                 function()
-                    -- local_marks.update_local_marks()
+                    local_marks.update()
                     vim.lsp.buf.format()
-                    -- local_marks.restore_local_marks()
+                    local_marks.restore()
                 end
                 , opts)
             --             vim.keymap.set('n', '<leader>lg', vim.lsp.buf.formatting_sync(nil, 1000), opts)
@@ -148,8 +143,10 @@ return function()
 
             vim.api.nvim_create_autocmd("BufWritePre", {
                 buffer = ev.buf,
-                callback = function()
-                    vim.lsp.buf.format()
+                callback = function(args)
+                    if (not args.match:match('*.java')) then
+                        vim.lsp.buf.format()
+                    end
                 end
             })
         end,

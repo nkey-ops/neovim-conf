@@ -13,9 +13,9 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 
 
 -- Gets and Sets the found key2 as a context var with the name
-_G.gas_header = function(key1, key2, context, name)
-    if (key1 == nil or key2 == nil or context == nil or name == nil) then
-        print("One of the parameters is nil:", key1, key2, context, name)
+_G.gas_header = function(key1, key2, context, env_var_name)
+    if (key1 == nil or key2 == nil or context == nil or env_var_name == nil) then
+        print("One of the parameters is nil:", key1, key2, context, env_var_name)
         return
     end
 
@@ -34,9 +34,9 @@ _G.gas_header = function(key1, key2, context, name)
     end
 
     local st = string.sub(line, s, e)
-    context.set_env(name, st)
+    context.set_env(env_var_name, st)
 
-    print("Set env-var:", name, st)
+    print(("Set env-var: '%s'='%s'"):format( env_var_name, st))
 end
 
 --TODO corner keys for empty tables
@@ -77,5 +77,5 @@ _G.gas_json = function(key, context, env_var_name)
     end
 
     context.set_env(env_var_name, body)
-    print("Set env-var:", env_var_name, body)
+    print(("Set env-var: '%s'='%s'"):format( env_var_name, body))
 end

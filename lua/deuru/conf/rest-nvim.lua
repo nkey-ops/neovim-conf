@@ -1,7 +1,7 @@
 return function()
     require("rest-nvim").setup({
         -- Open request results in a horizontal split
-        result_split_horizontal = true,
+        result_split_horizontal = false,
         -- Keep the http file buffer above|left when split horizontal|vertical
         result_split_in_place = true,
         -- Skip SSL verification, useful for unknown certificates
@@ -30,7 +30,16 @@ return function()
                 json = "jq",
                 vnd = "jq",
                 html = function(body)
-                    return vim.fn.system({ "tidy", "-i", "-q" }, body)
+                    return vim.fn.system({
+                            "tidy",
+                            "-i", "-q",
+                            "--tidy-mark", "no",
+                            "--force-output", "yes",
+                            "--show-info", "0",
+                            "--show-warnings", "0",
+                            "--show-errors", "0",
+                        },
+                        body)
                 end
             },
         },

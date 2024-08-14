@@ -154,7 +154,8 @@ local plugins = {
     {
         "iamcco/markdown-preview.nvim",
         run = function() vim.fn["mkdp#util#install"]() end,
-        enabled = false
+        init = function() require('deuru.conf.markdown-init') end,
+        build = "cd app && npm install",
     },
     {
         'nvim-lualine/lualine.nvim',

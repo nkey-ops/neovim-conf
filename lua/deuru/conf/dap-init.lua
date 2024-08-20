@@ -1,21 +1,21 @@
 local dap, dapui = require("dap"), require("dapui")
 local widgets = require("dap.ui.widgets")
 
-dap.configurations.java = {
-    --vscode java clien args
-    {
-        type = 'java',
-        -- attach to a running Java program that was started with --debug-jvm
-        -- and that is waiting on 5005 for a debug adapter to attach
-        request = 'attach',
-        name = "Java attach",
-        hostName = "127.0.0.1",
-        port = 5005,
-        projectName = "Current Project",
-    }
-}
+-- dap.configurations.java = {
+--     -- --vscode java clien args
+--     -- {
+--     --     type = 'java',
+--     --     -- attach to a running Java program that was started with --debug-jvm
+--     --     -- and that is waiting on 5005 for a debug adapter to attach
+--     --     request = 'attach',
+--     --     name = "Java attach",
+--     --     hostName = "127.0.0.1",
+--     --     port = 5005,
+--     --     projectName = "Current Project",
+--     -- }
+-- }
 
-dap.defaults.fallback.switchbuf = "usetab, useopen"
+dap.defaults.fallback.switchbuf = "usetab, useopen, uselast"
 
 local my_sidebar = widgets.sidebar(widgets.frames)
 vim.keymap.set("n", "<leader>dws", function() my_sidebar.open() end)
@@ -24,6 +24,7 @@ local map = vim.keymap;
 map.set('n', '<leader>dc', function() dap.continue() end, { desc = "Debug: [C]ontinue" })
 map.set('n', '<leader>drl', function() dap.run_last() end, { desc = "Debug: [R]un [L]ast" })
 map.set('n', '<leader>dre', function() dap.restart() end, { desc = "Debug: [R]estart" })
+map.set('n', '<leader>drc', function() dap.run_to_cursor() end, { desc = "Debug: [R]un to the [C]ursor" })
 map.set('n', '<leader>dte', function() dap.terminate() end, { desc = "Debug: [Te]minate" })
 map.set('n', '<leader>dp', function() dap.pause() end, { desc = "Debug: [P]ause" })
 -- Steps
@@ -51,9 +52,8 @@ map.set('n', '<leader>dbd', function() dap.clear_breakpoints() end, { desc = "De
 
 map.set('n', '<leader>df', function() dap.focus_frame() end, { desc = "Debug: [F]ocus Frame" })
 map.set('n', '<leader>dfr', function() dap.restart_frame() end, { desc = "Debug: [R]estart Frame" })
-map.set('n', '<leader>drc', function() dap.run_to_cursor() end, { desc = "Debug: [R]un to the [C]ursor" })
 
-map.set('n', '<leader>dr', function() dap.repl.toggle() end)
+map.set('n', '<leader>dur', function() dap.repl.toggle() end)
 map.set('n', '<leader>dui', function() dapui.toggle() end)
 
 vim.keymap.set({ 'n', 'v' }, '<leader>dh', function()
@@ -75,10 +75,4 @@ dap.listeners.before.attach.dapui_config = function()
 end
 dap.listeners.before.launch.dapui_config = function()
     dapui.open()
-end
-dap.listeners.before.event_terminated.dapui_config = function()
-    dapui.close()
-end
-dap.listeners.before.event_exited.dapui_config = function()
-    dapui.close()
 end

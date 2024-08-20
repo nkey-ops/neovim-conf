@@ -1,8 +1,10 @@
 return function()
+    print("called")
     vim.opt.pumheight = 10
+
     local format_opts = {
         ellipsis_char = '…',
-        max_label_width = 20,
+        max_label_width = 40,
         min_label_width = 20
     }
 
@@ -59,18 +61,25 @@ return function()
         },
 
         performance = {},
-        view = { entries = { name = 'custom', selection_ordre = 'near_cursor' } },
+        view = {
+            entries = { name = 'custom', selection_ordre = 'near_cursor' },
+            docs = { auto_open = true }
+        },
         preselect = cmp.PreselectMode.Item,
+
+
 
         formatting = {
             format =
                 function(entry, vim_item)
-                    local lspkind_format = lspkind.cmp_format({ mode = 'symbol' })
+                    local lspkind_format = lspkind.cmp_format({ mode = 'symbol', maxwidth = 50 })
                     local lsp_zero_formatting = lsp_zero.cmp_format({ details = true })
 
-                    vim_item = lspkind_format(entry, vim_item)
                     vim_item = lsp_zero_formatting.format(entry, vim_item)
-                    return set_window_width(vim_item, format_opts)
+                    vim_item = lspkind_format(entry, vim_item)
+                    vim_item.menu = vim.fn.strcharpart(vim_item.menu, 0, 4) .. ']'
+
+                    return vim_item
                 end
         },
         -- lsp_zero.cmp_format({ details = true, max_width = 40 }),
@@ -82,20 +91,22 @@ return function()
             ['<C-[>'] = cmp.mapping.abort(),
             ['<C-p>'] =
                 function()
-                    if cmp.visible() then
-                        cmp.select_prev_item()
-                    else
-                        cmp.complete()
-                    end
+                    cmp.select_prev_item({ behaviour = cmp.ConfirmBehavior.Replace })
+                    -- if cmp.visible() then
+                    --     cmp.select_prev_item()
+                    -- else
+                    --     cmp.complete()
+                    -- end
                 end,
 
             ['<C-n>'] =
                 function()
-                    if cmp.visible() then
-                        cmp.select_next_item()
-                    else
-                        cmp.complete()
-                    end
+                    cmp.select_next_item({ behaviour = cmp.ConfirmBehavior.Replace })
+                    -- if cmp.visible() then
+                    --     cmp.select_next_item()
+                    -- else
+                    --     cmp.complete()
+                    -- end
                 end,
             -- ['<C-c>'] = cmp.mapping.complete_common_string(),
             ['<C-i>'] = cmp.mapping.confirm({ select = true }),
@@ -107,8 +118,8 @@ return function()
         }),
         sources = cmp.config.sources({
             { name = 'path' },
-            { name = 'nvim_lsp', group_index = 2 },
-            { name = 'luasnip',  group_index = 1 }, -- For luasnip users.
+            { name = 'nvim_lsp', group_index = 2, keword_lengt = 1 },
+            { name = 'luasnip',  group_index = 1, keword_lengt = 1 }, -- For luasnip users.
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.
             -- { name = 'snippy' }, -- For snippy users.

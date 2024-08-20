@@ -3,7 +3,6 @@ vim.api.nvim_create_autocmd('FileType', {
     pattern = { 'markdown', 'md' },
 
     callback = function(args)
-        print("hell")
         vim.keymap.set("n", "<leader>mp", vim.cmd["MarkdownPreview"], {
             buffer = args.buf,
             desc = "MarkdownPreview"

@@ -14,12 +14,17 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 
 vim.opt.rtp:prepend(lazypath)
+
+local req_conf = function(mod)
+    return require("deuru.conf." .. mod)
+end
+
 local plugins = {
     {
         'nvim-telescope/telescope.nvim',
         -- tag = '0.1.6',
         dependencies = { 'nvim-lua/plenary.nvim' },
-        config = require('deuru.conf.telescope')
+        config = req_conf('telescope'),
     },
     {
         'nvim-telescope/telescope-fzf-native.nvim',
@@ -31,7 +36,7 @@ local plugins = {
         "catppuccin/nvim",
         name = "catppuccin",
         priority = 1000,
-        config = require('deuru.conf.colors'),
+        config = req_conf('colors'),
         init = function()
             vim.cmd.colorscheme("catppuccin-frappe")
         end
@@ -39,15 +44,15 @@ local plugins = {
     {
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
-        config = require('deuru.conf.treesitter')
+        config = req_conf('treesitter')
     },
     {
         'mbbill/undotree',
-        init = function() require('deuru.conf.undotree') end
+        init = function() req_conf('undotree') end
     },
     {
         'tpope/vim-fugitive',
-        config = require('deuru.conf.fugitive')
+        config = req_conf('fugitive')
     },
     {
         'VonHeikemen/lsp-zero.nvim',
@@ -58,6 +63,8 @@ local plugins = {
             -- Disable automatic setup, we are doing it manually
             vim.g.lsp_zero_extend_cmp = 0
             vim.g.lsp_zero_extend_lspconfig = 0
+
+            req_conf("lsp-zero-init")
         end
     },
 
@@ -76,7 +83,7 @@ local plugins = {
         'williamboman/mason.nvim',
         lazy = false,
         config = true,
-        init = function() require('deuru.conf.mason') end,
+        init = function() req_conf('mason') end,
     },
     {
         'hrsh7th/nvim-cmp',
@@ -84,7 +91,7 @@ local plugins = {
             'CmdlineEnter'
         },
         enabled = true,
-        config = require('deuru.conf.cmp'),
+        config = req_conf('cmp'),
         dependencies = {
             { 'L3MON4D3/LuaSnip',                    version = "v2.*", },
             { 'hrsh7th/cmp-nvim-lsp' },
@@ -106,7 +113,7 @@ local plugins = {
         dependencies = {
             { 'williamboman/mason-lspconfig.nvim' },
         },
-        config = require('deuru.conf.lsp-zero')
+        config = req_conf('lsp-zero')
     },
     {
         'windwp/nvim-autopairs',
@@ -121,14 +128,14 @@ local plugins = {
         dependencies = {
             {
                 'jose-elias-alvarez/null-ls.nvim',
-                init = function() require('deuru.conf.checkstyle-init') end,
+                init = function() req_conf('checkstyle-init') end,
                 enabled = true
             },
             { 'mhartington/formatter.nvim', lazy = true }
         },
         config = false,
         lazy = true,
-        init = function() require('deuru.conf.java-init') end,
+        init = function() req_conf('java-init') end,
     },
 
     {
@@ -148,27 +155,27 @@ local plugins = {
             "rcarriga/nvim-dap-ui",
             dependencies = { "nvim-neotest/nvim-nio" }
         },
-        init = function() require('deuru.conf.dap-init') end
+        init = function() req_conf('dap-init') end
     },
-    { 'Pocco81/auto-save.nvim',         config = require('deuru.conf.auto-save') },
+    { 'Pocco81/auto-save.nvim',         config = req_conf('auto-save') },
     {
         "iamcco/markdown-preview.nvim",
         run = function() vim.fn["mkdp#util#install"]() end,
-        init = function() require('deuru.conf.markdown-init') end,
+        init = function() req_conf('markdown-init') end,
         build = "cd app && npm install",
     },
     {
         'nvim-lualine/lualine.nvim',
         dependencies = { "nvim-tree/nvim-web-devicons" },
-        config = require('deuru.conf.lualine'),
+        config = req_conf('lualine'),
     },
 
     {
         'rest-nvim/rest.nvim',
         tag = "v1.2.1",
         dependencies = { "nvim-lua/plenary.nvim" },
-        config = require('deuru.conf.rest-nvim'),
-        init = function() require('deuru.conf.rest-nvim-init') end
+        config = req_conf('rest-nvim'),
+        init = function() req_conf('rest-nvim-init') end
     },
     {
         'kristijanhusak/vim-dadbod-ui',
@@ -186,7 +193,7 @@ local plugins = {
             'DBUIAddConnection',
             'DBUIFindBuffer',
         },
-        init = function() require('deuru.conf.dadbod-init') end
+        init = function() req_conf('dadbod-init') end
     },
     {
         'lukas-reineke/indent-blankline.nvim',
@@ -220,7 +227,7 @@ local plugins = {
     {
         "nanozuki/tabby.nvim",
         dependencies = 'nvim-tree/nvim-web-devicons',
-        init = function() require('deuru.conf.tabby-init') end
+        init = function() req_conf('tabby-init') end
     },
 
     {
@@ -238,6 +245,16 @@ local plugins = {
         -- Uncomment next line if you want to follow only stable versions
         -- version = "*"
     },
+    {
+        "lewis6991/gitsigns.nvim",
+        config = true,
+    },
+    {
+        'folke/todo-comments.nvim',
+        event = 'VimEnter',
+        dependencies = { 'nvim-lua/plenary.nvim' }
+    },
+    -- https://github.com/echasnovski/mini.nvim
 }
 
 require("lazy").setup(plugins)

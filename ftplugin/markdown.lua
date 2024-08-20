@@ -10,3 +10,4 @@ vim.keymap.set("n", "<C-s>", vim.cmd["MarkdownPreviewStop"], {
     buffer = 0,
     desc = "MarkdownPreviewStop"
 })
+vim.opt_local.conceallevel = 2

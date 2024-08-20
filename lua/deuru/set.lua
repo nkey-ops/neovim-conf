@@ -31,6 +31,13 @@ vim.opt.clipboard = 'unnamedplus'
 vim.opt.showtabline = 1
 
 vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
-vim.opt.scrollback=2000
-vim.opt.cursorline=true
-vim.opt.conceallevel=2
+vim.opt.scrollback = 2000
+vim.opt.cursorline = true
+
+vim.opt.showmode = false
+
+-- Sets how neovim will display certain whitespace characters in the editor.
+--  See `:help 'list'`
+--  and `:help 'listchars'`
+vim.opt.list = true
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }

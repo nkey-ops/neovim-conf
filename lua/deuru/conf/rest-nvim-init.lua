@@ -11,6 +11,12 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
     end
 })
 
+vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    pattern = 'rest_nvim_results',
+    callback = function()
+        vim.cmd("setlocal wrap")
+    end
+})
 
 -- Gets and Sets the found key2 as a context var with the name
 _G.gas_header = function(key1, key2, context, env_var_name)
@@ -36,7 +42,7 @@ _G.gas_header = function(key1, key2, context, env_var_name)
     local st = string.sub(line, s, e)
     context.set_env(env_var_name, st)
 
-    print(("Set env-var: '%s'='%s'"):format( env_var_name, st))
+    print(("Set env-var: '%s'='%s'"):format(env_var_name, st))
 end
 
 --TODO corner keys for empty tables
@@ -77,5 +83,5 @@ _G.gas_json = function(key, context, env_var_name)
     end
 
     context.set_env(env_var_name, body)
-    print(("Set env-var: '%s'='%s'"):format( env_var_name, body))
+    print(("Set env-var: '%s'='%s'"):format(env_var_name, body))
 end

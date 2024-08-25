@@ -3,77 +3,104 @@ vim.o.showtabline = 2
 
 local function tab_name(tab)
     local line = string.gsub(tab.name(), "%[..%]", "")
+
     if tab.is_current() then
         line = vim.fn.fnamemodify(vim.fn.getcwd(), ':t') .. "|" .. line
     end
     return line
 end
-local function tab_modified(tab)
-    wins = require("tabby.module.api").get_tab_wins(tab)
-    for i, x in pairs(wins) do
-        if vim.bo[vim.api.nvim_win_get_buf(x)].modified then
-            return ""
-        end
-    end
-    return ""
+
+local function tab_mark(tab)
+    local mark_key = vim.t[tab.id]["mark_key"]
+    return mark_key and mark_key .. " " or ""
 end
 
 local function lsp_diag(buf)
-    diagnostics = vim.diagnostic.get(buf)
+    local diagnostics = vim.diagnostic.get(buf)
     local count = { 0, 0, 0, 0 }
 
+    -- print("dia", vim.api.nvim_buf_get_name(buf))
     for _, diagnostic in ipairs(diagnostics) do
         count[diagnostic.severity] = count[diagnostic.severity] + 1
     end
     if count[1] > 0 then
-        return vim.bo[buf].modified and "" or ""
+        return 'severe'
     elseif count[2] > 0 then
-        return vim.bo[buf].modified and "" or ""
+        return 'warn'
+    elseif count[4] > 0 then
+        return 'info'
     end
-    return vim.bo[buf].modified and "" or ""
+    return 'modified'
 end
 
-local function get_modified(buf)
-    if vim.bo[buf].modified then
-        return ''
+local function tab_modified_and_lsp(tab)
+    local wins = require("tabby.module.api").get_tab_wins(tab)
+
+    local tab_status = 'normal'
+    local is_modifed = false
+
+    for _, win in pairs(wins) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        local buf_status = lsp_diag(buf)
+
+
+        if buf_status == 'severe' then
+            tab_status = 'severe'
+            is_modifed = vim.bo[buf].modified
+        elseif buf_status == 'warn' and tab_status ~= 'severe' then
+            tab_status = 'warn'
+            is_modifed = vim.bo[buf].modified
+        elseif buf_status == 'info' and tab_status ~= 'severe' and tab_status ~= 'warn' then
+            tab_status = 'info'
+            is_modifed = vim.bo[buf].modified
+        elseif tab_status == 'normal' and vim.bo[buf].modified then
+            is_modifed = vim.bo[buf].modified
+        end
+    end
+
+    if tab_status == 'severe' then
+        return is_modifed and "" or ""
+    elseif tab_status == 'warn' then
+        return is_modifed and "" or "⚠"
+    elseif tab_status == 'info' then
+        return is_modifed and "🅘" or "ⓘ"
     else
-        return ''
+        return is_modifed and "" or ""
     end
-end
-
-local function buffer_name(buf)
-    if string.find(buf, "NvimTree") then
-        return "NvimTree"
-    end
-    return buf
 end
 
 local theme = {
     fill = 'TabLineFill',
     -- Also you can do this: fill = { fg = '#f2e9de', bg = '#907aa9', style = 'italic' },
-    head = 'TabLine',
+    head = 'Folded',
     current_tab = 'TabLineSel',
     tab = 'TabLine',
     win = 'TabLine',
     tail = 'TabLine',
+    cus = { fg = '#f2e9de', bg = '#907aa9', style = 'italic' },
 }
 
 require('tabby').setup({
-    line = function(line)
+    option = {
+        lualine_theme = "auto",
+        buf_name = { mode = "tail" }
+    },
+
+    line   = function(line)
         return {
             {
                 { '  ', hl = theme.head },
                 line.sep('', theme.head, theme.fill),
+
             },
             line.tabs().foreach(function(tab)
                 local hl = tab.is_current() and theme.current_tab or theme.tab
                 return {
                     line.sep('', hl, theme.fill),
-                    tab.number(),
-                    "",
                     tab_name(tab),
                     "",
-                    tab_modified(tab.id),
+                    tab_mark(tab),
+                    tab_modified_and_lsp(tab.id),
                     line.sep('', hl, theme.fill),
                     hl = hl,
                     margin = ' ',

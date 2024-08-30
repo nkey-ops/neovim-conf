@@ -5,7 +5,6 @@ function File_exists(file_name)
     return f ~= nil
 end
 
-
 --
 -- print all line numbers and their contents
 local function add_dynamic_java_ali(file_name, root_dir)
@@ -45,8 +44,6 @@ function Add_java_alies()
     add_dynamic_java_ali(file_name, root_dir)
     print("Added alies to ", file_name)
 end
-
-Add_java_alies()
 
 function Exit_visual()
     local mode = vim.api.nvim_get_mode()['mode']

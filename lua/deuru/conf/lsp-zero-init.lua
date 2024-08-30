@@ -31,7 +31,7 @@ end
 local lsp_methods = function()
     builtin.lsp_document_symbols(
         {
-            symbols = { "method" },
+            symbols = { "method", "function" },
             symbol_type_width = 0,
             show_line = true
         })
@@ -119,7 +119,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
             buffer = ev.buf,
             callback = function(args)
                 if (not args.match:match('*.java')) then
+                    local_marks.update()
                     vim.lsp.buf.format()
+                    local_marks.restore()
                 end
             end
         })

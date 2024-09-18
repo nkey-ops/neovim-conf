@@ -5,21 +5,20 @@ local function tab_name(tab)
     local line = string.gsub(tab.name(), "%[..%]", "")
 
     if tab.is_current() then
-        line = vim.fn.fnamemodify(vim.fn.getcwd(), ':t') .. "|" .. line
+        line = string.format('[%s] %s', vim.fn.fnamemodify(vim.fn.getcwd(), ':t'), line)
     end
     return line
 end
 
 local function tab_mark(tab)
     local mark_key = vim.t[tab.id]["mark_key"]
-    return mark_key and mark_key .. " " or ""
+    return mark_key and string.format('[%s]', mark_key) or ''
 end
 
 local function lsp_diag(buf)
     local diagnostics = vim.diagnostic.get(buf)
     local count = { 0, 0, 0, 0 }
 
-    -- print("dia", vim.api.nvim_buf_get_name(buf))
     for _, diagnostic in ipairs(diagnostics) do
         count[diagnostic.severity] = count[diagnostic.severity] + 1
     end
@@ -98,7 +97,6 @@ require('tabby').setup({
                 return {
                     line.sep('', hl, theme.fill),
                     tab_name(tab),
-                    "",
                     tab_mark(tab),
                     tab_modified_and_lsp(tab.id),
                     line.sep('', hl, theme.fill),

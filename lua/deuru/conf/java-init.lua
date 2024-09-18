@@ -2,9 +2,11 @@ local local_marks = require("extended-marks.local")
 
 local mason_registry = require('mason-registry')
 local google_java_format_jar =
-    mason_registry
-    .get_package("google-java-format")
-    :get_install_path() .. "/google-java-format-*.jar"
+    vim.fn.glob(
+        mason_registry
+        .get_package("google-java-format")
+        :get_install_path() .. "/google-java-format-*.jar"
+    )
 
 require('formatter').setup {
     filetype = {
@@ -20,9 +22,10 @@ require('formatter').setup {
     }
 }
 
-local enable_auto_format = false
-local java_formats = { "google", "intellij" }
+local enable_auto_format = true
+local java_formats = { "google2", "google4", "intellij" }
 local java_format = java_formats[2]
+local java_shiftwidth = 4
 
 vim.api.nvim_create_user_command("EnableJavaAutoFormat",
     function(opts)
@@ -36,8 +39,13 @@ vim.api.nvim_create_user_command("EnableJavaAutoFormat",
 vim.api.nvim_create_user_command("SetJavaFormat",
     function(opts)
         local is_matched = false
-        for _, value in pairs(java_formats) do
-            if string.match(opts.args, value) then
+        for _, format in pairs(java_formats) do
+            if string.match(opts.args, format) then
+                if format:match("google2") then
+                    java_shiftwidth = 2
+                elseif format:match "google4" then
+                    java_shiftwidth = 4
+                end
                 is_matched = true
             end
         end
@@ -50,12 +58,17 @@ vim.api.nvim_create_user_command("SetJavaFormat",
 
 local format = function()
     assert(type(enable_auto_format) == 'boolean', "Should be boolean:", enable_auto_format)
-    if enable_auto_format then
-        if string.match(java_format, 'google') then
-            vim.cmd("FormatWrite java")
+    if enable_auto_format
+        and vim.tbl_isempty(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }))
+    then
+        local_marks.update()
+
+        if java_format:match('google.') then
+            vim.cmd("Format java")
         else
             vim.lsp.buf.format()
         end
+        local_marks.restore()
     end
 end
 
@@ -108,19 +121,9 @@ local attach_java_configs = function()
                     buffer = args.buf
                 }
             )
-            vim.keymap.set('n', "<leader>f",
-                function()
-                    local_marks.update()
-                    if string.match(java_format, 'google') then
-                        vim.cmd("FormatWrite java")
-                    else
-                        vim.lsp.buf.format()
-                    end
-                    local_marks.restore()
-                end,
-
-                { desc = "Java [F]ormat", buffer = args.buf }
-            )
+            -- vim.keymap.set('n', "<leader>f", function() format() end,
+            --     { desc = "Java [F]ormat", buffer = args.buf }
+            -- )
 
             vim.keymap.set("n", "<leader>jc",
                 "<cmd>JdtCompile<CR>",
@@ -159,12 +162,19 @@ local attach_java_configs = function()
                 { desc = "Java JdtUpdateDebugConf", silent = true, buffer = args.buf }
             )
 
-            vim.api.nvim_create_autocmd("BufWritePost", {
+            vim.api.nvim_create_autocmd("BufWritePre", {
                 pattern = "*.java",
                 callback = function()
+                    vim.opt_local.tabstop = java_shiftwidth
+                    vim.opt_local.softtabstop = java_shiftwidth
+                    vim.opt_local.shiftwidth = java_shiftwidth
                     format()
                 end
             })
+
+            vim.opt_local.tabstop = java_shiftwidth
+            vim.opt_local.softtabstop = java_shiftwidth
+            vim.opt_local.shiftwidth = java_shiftwidth
         end
     })
 end

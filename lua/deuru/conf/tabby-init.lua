@@ -75,7 +75,7 @@ local theme = {
     current_tab = 'TabLineSel',
     tab = 'TabLine',
     win = 'TabLine',
-    tail = 'TabLine',
+    tail = 'Normal',
     cus = { fg = '#f2e9de', bg = '#907aa9', style = 'italic' },
 }
 
@@ -89,17 +89,17 @@ require('tabby').setup({
         return {
             {
                 { '  ', hl = theme.head },
-                line.sep('', theme.head, theme.fill),
+                line.sep('', theme.head, theme.tail),
 
             },
             line.tabs().foreach(function(tab)
                 local hl = tab.is_current() and theme.current_tab or theme.tab
                 return {
-                    line.sep('', hl, theme.fill),
+                    line.sep('', hl, theme.tail),
                     tab_name(tab),
                     tab_mark(tab),
                     tab_modified_and_lsp(tab.id),
-                    line.sep('', hl, theme.fill),
+                    line.sep('', hl, theme.tail),
                     hl = hl,
                     margin = ' ',
                 }
@@ -108,3 +108,13 @@ require('tabby').setup({
         }
     end,
 })
+
+vim.api.nvim_set_keymap("n", "<leader>ta", ":$tabnew<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>tc", ":tabclose<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>to", ":tabonly<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>tn", ":tabn<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>tp", ":tabp<CR>", { noremap = true })
+-- move current tab to previous position
+vim.api.nvim_set_keymap("n", "<leader>tmp", ":-tabmove<CR>", { noremap = true })
+-- move current tab to next position
+vim.api.nvim_set_keymap("n", "<leader>tmn", ":+tabmove<CR>", { noremap = true })

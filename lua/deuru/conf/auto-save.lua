@@ -4,7 +4,7 @@ return function()
 
     require("auto-save").setup(
         {
-            enabled = true,          -- start auto-save when the plugin is loaded (i.e. when your package manager loads it)
+            enabled = false,         -- start auto-save when the plugin is loaded (i.e. when your package manager loads it)
             execution_message = {
                 message = function() -- message to print on save
                     return string.format("AutoSave: saved at %s. Delay %s sec. ", vim.fn.strftime("%H:%M:%S"),
@@ -42,4 +42,6 @@ return function()
                 after_saving = nil,          -- ran after doing the actual save
             }
         })
+
+    vim.cmd("ASToggle")
 end

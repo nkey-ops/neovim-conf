@@ -59,6 +59,7 @@ local plugins = {
         branch = 'v3.x',
         lazy = true,
         config = false,
+        enabled = false,
         init = function()
             -- Disable automatic setup, we are doing it manually
             vim.g.lsp_zero_extend_cmp = 0
@@ -157,7 +158,10 @@ local plugins = {
         },
         init = function() req_conf('dap-init') end
     },
-    { 'Pocco81/auto-save.nvim',         config = req_conf('auto-save') },
+    {
+        'Pocco81/auto-save.nvim',
+        config = req_conf('auto-save'),
+    },
     {
         "iamcco/markdown-preview.nvim",
         run = function() vim.fn["mkdp#util#install"]() end,
@@ -219,7 +223,33 @@ local plugins = {
     {
         -- "nkey-ops/extended-marks.nvim",
         dir = "/home/local/table/extended-marks.nvim/",
-        init = function() require('extended-marks') end,
+        config = function()
+            require('extended-marks').setup({
+                data_dir = vim.fn.glob("~/.cache/nvim/extended-marks"), -- full path
+                module = {
+                    locaL = {
+                        max_key_seq = 1,            -- valid from 1 to 30
+                        sign_column = 1,
+                        exhaustion_matcher = false, -- if max_key_seq is 1 this parameter will always be false
+                    },
+                    cwd = {
+                        max_key_seq = 5,
+                        exhaustion_matcher = false
+                    },
+                    tab = {
+                        max_key_seq = 1,
+                        exhaustion_matcher = false,
+                    },
+                }
+            })
+        end,
+        init = function()
+            local marks = require('extended-marks')
+            vim.keymap.set("n", "m", marks.set_mark)
+            vim.keymap.set("n", "`", marks.jump_to_mark)
+            vim.keymap.set("n", "M", marks.set_tab_mark)
+            vim.keymap.set("n", "'", marks.jump_to_tab_mark)
+        end,
     },
     {
         "tpope/vim-eunuch"

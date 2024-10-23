@@ -15,13 +15,15 @@ vim.api.nvim_create_autocmd("FileType", {
         "mysql",
         "plsql",
     },
-    callback = function()
+    callback = function(args)
         require("cmp").setup.buffer {
             sources = {
                 { name = "vim-dadbod-completion" }
             }
         }
+        vim.keymap.set('n', '<leader>r', ':normal vip<CR><PLUG>(DBUI_ExecuteQuery)', { buffer = buf })
     end,
 })
 vim.g.db_ui_use_nerd_fonts = 1
 vim.keymap.set("n", "<leader>du", "<cmd>DBUIToggle<CR>")
+vim.g.db_ui_execute_on_save = 0

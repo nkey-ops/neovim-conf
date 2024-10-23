@@ -3,6 +3,8 @@ return function()
 
     local cmp = require('cmp')
     local lspkind = require('lspkind')
+    local luasnip = require('luasnip')
+
 
     require('luasnip.loaders.from_vscode').lazy_load()
 
@@ -74,7 +76,6 @@ return function()
                 end
         },
 
-        -- lsp_zero.cmp_format({ details = true, max_width = 40 }),
         mapping = cmp.mapping.preset.insert({
             ['<A-y>'] = cmp.mapping.scroll_docs(-1),
             ['<A-e>'] = cmp.mapping.scroll_docs(1),
@@ -108,8 +109,12 @@ return function()
                 cmp.confirm({ select = true })
             end,
             -- luasnip mapping
-            -- ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-            -- ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+            ['<A-l>'] = function()
+                luasnip.expand_or_jump()
+            end,
+            ['<A-h>'] = function()
+                luasnip.jump(-1)
+            end
         }),
         sources = cmp.config.sources({
             { name = 'path' },

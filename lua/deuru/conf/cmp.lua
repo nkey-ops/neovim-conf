@@ -1,39 +1,8 @@
 return function()
-    print("called")
     vim.opt.pumheight = 10
 
-    local format_opts = {
-        ellipsis_char = '…',
-        max_label_width = 40,
-        min_label_width = 20
-    }
-
-    local function set_window_width(vim_item, opts)
-        assert(vim_item ~= nil and opts ~= nil and
-            opts.ellipsis_char ~= nil and
-            opts.max_label_width ~= nil and
-            opts.min_label_width ~= nil)
-
-        local label = vim_item.abbr
-        local truncated_label = vim.fn.strcharpart(label, 0, opts.max_label_width)
-
-        if truncated_label ~= label then
-            vim_item.abbr = truncated_label .. opts.ellipsis_char
-        elseif string.len(label) < opts.min_label_width then
-            local padding = string.rep(' ', opts.min_label_width - string.len(label))
-            vim_item.abbr = label .. padding
-        end
-        -- vim_item.menu = ''
-        vim_item.info = ''
-        return vim_item
-    end
-
-    local lsp_zero = require('lsp-zero')
     local cmp = require('cmp')
-    local cmp_action = lsp_zero.cmp_action()
     local lspkind = require('lspkind')
-
-    lsp_zero.extend_cmp({ use_luasnip = true })
 
     require('luasnip.loaders.from_vscode').lazy_load()
 
@@ -43,10 +12,8 @@ return function()
         require('nvim-autopairs.completion.cmp').on_confirm_done()
     )
 
-
     cmp.setup({
         snippet = {
-            -- REQUIRED - you must specify a snippet engin
             expand = function(args)
                 -- vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
                 require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
@@ -60,61 +27,89 @@ return function()
             documentation = cmp.config.window.bordered(),
         },
 
-        performance = {},
         view = {
             entries = { name = 'custom', selection_ordre = 'near_cursor' },
             docs = { auto_open = true }
         },
+        completion = {
+            autocomplete = false
+        },
+
+        sorting = {
+            comparators = {
+                -- using comparator that selects an item with the shortest length
+                function(e1, e2)
+                    local label1 = e1.completion_item.label
+                    local label2 = e2.completion_item.label
+
+                    local ls1 = label1:find('%(')
+                    local ls2 = label2:find('%(')
+
+                    if ls1 then
+                        label1 = label1:sub(0, ls1)
+                    end
+                    if ls2 then
+                        label2 = label2:sub(0, ls2)
+                    end
+
+                    return label1:len() < label2:len()
+                end
+            }
+        },
+
         preselect = cmp.PreselectMode.Item,
-
-
 
         formatting = {
             format =
                 function(entry, vim_item)
-                    local lspkind_format = lspkind.cmp_format({ mode = 'symbol', maxwidth = 50 })
-                    local lsp_zero_formatting = lsp_zero.cmp_format({ details = true })
+                    local lspkind_format = lspkind.cmp_format({ mode = 'symbol_text', maxwidth = 50 })
 
-                    vim_item = lsp_zero_formatting.format(entry, vim_item)
                     vim_item = lspkind_format(entry, vim_item)
-                    vim_item.menu = vim.fn.strcharpart(vim_item.menu, 0, 4) .. ']'
+
+                    local name = vim.fn.strcharpart(entry.source.name, 0, 4)
+                    vim_item.menu = string.format("[%s]", name)
+                    vim_item.kind = vim.fn.strcharpart(vim_item.kind, 0, 5)
 
                     return vim_item
                 end
         },
+
         -- lsp_zero.cmp_format({ details = true, max_width = 40 }),
         mapping = cmp.mapping.preset.insert({
-            ['<C-y>'] = cmp.mapping.scroll_docs(-1),
-            ['<C-e>'] = cmp.mapping.scroll_docs(1),
-            ['<C-u>'] = cmp.mapping.scroll_docs(-4),
-            ['<C-d>'] = cmp.mapping.scroll_docs(4),
-            ['<C-[>'] = cmp.mapping.abort(),
-            ['<C-p>'] =
-                function()
-                    cmp.select_prev_item({ behaviour = cmp.ConfirmBehavior.Replace })
-                    -- if cmp.visible() then
-                    --     cmp.select_prev_item()
-                    -- else
-                    --     cmp.complete()
-                    -- end
-                end,
+            ['<A-y>'] = cmp.mapping.scroll_docs(-1),
+            ['<A-e>'] = cmp.mapping.scroll_docs(1),
+            ['<A-u>'] = cmp.mapping.scroll_docs(-4),
+            ['<A-d>'] = cmp.mapping.scroll_docs(4),
 
-            ['<C-n>'] =
+            ['<C-[>'] = cmp.mapping.close(),
+
+            ['<A-p>'] =
                 function()
-                    cmp.select_next_item({ behaviour = cmp.ConfirmBehavior.Replace })
-                    -- if cmp.visible() then
-                    --     cmp.select_next_item()
-                    -- else
-                    --     cmp.complete()
-                    -- end
+                    if cmp.visible() then
+                        cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+                    else
+                        cmp.complete()
+                    end
                 end,
-            -- ['<C-c>'] = cmp.mapping.complete_common_string(),
-            ['<C-i>'] = cmp.mapping.confirm({ select = true }),
-            ['<CR>'] = vim.NIL,
-            ['<Tab>'] = vim.NIL,
+            ['<A-o>'] = function()
+                cmp.complete({ performance = { max_view_entries = 1 } })
+                cmp.confirm({ select = true })
+            end,
+            ['<A-n>'] =
+                function()
+                    -- cmp.select_next_item({ behaviour = cmp.ConfirmBehavior.Replace })
+                    if cmp.visible() then
+                        cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                    else
+                        cmp.complete({ select = true })
+                    end
+                end,
+            ['<A-i>'] = function()
+                cmp.confirm({ select = true })
+            end,
             -- luasnip mapping
-            ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-            ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+            -- ['<C-f>'] = cmp_action.luasnip_jump_forward(),
+            -- ['<C-b>'] = cmp_action.luasnip_jump_backward(),
         }),
         sources = cmp.config.sources({
             { name = 'path' },
@@ -124,7 +119,6 @@ return function()
             -- { name = 'ultisnips' }, -- For ultisnips users.
             -- { name = 'snippy' }, -- For snippy users.
         }
-        -- { name = 'buffer' }
         ),
     })
 
@@ -168,9 +162,7 @@ return function()
                     cmp.complete()
                 end
         },
-        ['<Tab>'] = { c = vim.NIL },
     })
-
 
     -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
     cmp.setup.cmdline({ '/', '?' }, {

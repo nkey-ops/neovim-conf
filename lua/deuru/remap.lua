@@ -78,6 +78,16 @@ vim.keymap.set("c", "<A-b>", "<C-Left>")
 vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>", { desc = "Run :messages" })
 
 
+vim.keymap.set({ 'n' }, '<Esc>', function()
+    local buffer = vim.fn.win_getid()
+
+    if vim.api.nvim_win_is_valid(buffer) and
+        vim.api.nvim_win_get_config(buffer).relative ~= '' then
+        vim.api.nvim_win_close(buffer, false)
+    end
+end, { desc = "Close floating window" })
+
+
 -- yunk current dir path
 vim.api.nvim_create_user_command("Cppath", function()
     local path = vim.fn.expand("%:p")

@@ -8,24 +8,33 @@ local google_java_format_jar =
         :get_install_path() .. "/google-java-format-*.jar"
     )
 
+local enable_auto_format = false
+local java_formats = { "google2", "google4", "intellij" }
+local java_format = java_formats[2]
+local aosp_style = false
+
 require('formatter').setup {
     filetype = {
         java = {
             function()
-                return {
-                    exe = 'java',
-                    args = { '-jar', google_java_format_jar, vim.api.nvim_buf_get_name(0) },
-                    stdin = true
-                }
+                if aosp_style then
+                    return {
+                        exe = 'java',
+                        args = { '-jar', google_java_format_jar, "-a", vim.api.nvim_buf_get_name(0) },
+                        stdin = true
+                    }
+                else
+                    return {
+                        exe = 'java',
+                        args = { '-jar', google_java_format_jar, vim.api.nvim_buf_get_name(0) },
+                        stdin = true
+                    }
+                end
             end
         }
     }
 }
 
-local enable_auto_format = true
-local java_formats = { "google2", "google4", "intellij" }
-local java_format = java_formats[2]
-local java_shiftwidth = 4
 
 vim.api.nvim_create_user_command("EnableJavaAutoFormat",
     function(opts)
@@ -42,9 +51,9 @@ vim.api.nvim_create_user_command("SetJavaFormat",
         for _, format in pairs(java_formats) do
             if string.match(opts.args, format) then
                 if format:match("google2") then
-                    java_shiftwidth = 2
+                    aosp_style = false
                 elseif format:match "google4" then
-                    java_shiftwidth = 4
+                    aosp_style = true
                 end
                 is_matched = true
             end
@@ -64,7 +73,7 @@ local format = function()
         local_marks.update()
 
         if java_format:match('google.') then
-            vim.cmd("Format java")
+            vim.cmd("FormatWriteLock java")
         else
             vim.lsp.buf.format()
         end
@@ -121,9 +130,6 @@ local attach_java_configs = function()
                     buffer = args.buf
                 }
             )
-            -- vim.keymap.set('n', "<leader>f", function() format() end,
-            --     { desc = "Java [F]ormat", buffer = args.buf }
-            -- )
 
             vim.keymap.set("n", "<leader>jc",
                 "<cmd>JdtCompile<CR>",
@@ -161,20 +167,6 @@ local attach_java_configs = function()
                 "<cmd>JdtUpdateDebugConf<CR>",
                 { desc = "Java JdtUpdateDebugConf", silent = true, buffer = args.buf }
             )
-
-            vim.api.nvim_create_autocmd("BufWritePre", {
-                pattern = "*.java",
-                callback = function()
-                    vim.opt_local.tabstop = java_shiftwidth
-                    vim.opt_local.softtabstop = java_shiftwidth
-                    vim.opt_local.shiftwidth = java_shiftwidth
-                    format()
-                end
-            })
-
-            vim.opt_local.tabstop = java_shiftwidth
-            vim.opt_local.softtabstop = java_shiftwidth
-            vim.opt_local.shiftwidth = java_shiftwidth
         end
     })
 end
@@ -198,3 +190,39 @@ vim.api.nvim_create_autocmd("FileType", {
         attach_java_configs()
     end
 })
+
+
+-- Logic responsible for fixing symbolic references to classes
+-- in java docs when using hover
+local strip = function(string)
+    assert(string ~= nil and type(string) == "string")
+
+    string = string:gsub("%[(.-)%]%(.-%%3C(.-)%%28(.-)%.class#.-%)", "[%1](%2.%3)");
+    string = string:gsub("%s\\%[", "[");
+    string = string:gsub("\\%]", "]");
+    return string
+end
+
+vim.lsp.handlers['textDocument/hover'] =
+    function(err, result, ctx, config)
+        local is_java = false
+        if (result ~= nil
+                and result.contents ~= nil
+                and result.contents[1] ~= nil
+                and result.contents[1].language ~= nil
+                and result.contents[1].language:match('java')) then
+            result.contents[2] = strip(result.contents[2]);
+            is_java = true
+        end
+
+        local buf, win_id =
+            vim.lsp.with(vim.lsp.handlers.hover, {})(err, result, ctx, config)
+
+        if is_java and buf ~= nil and vim.api.nvim_buf_is_valid(buf) and
+            string.match(
+                vim.api.nvim_get_option_value("filetype", { buf = buf }), "markdown") then
+            vim.api.nvim_set_option_value("filetype", "lsp_markdown", { buf = buf })
+        end
+
+        return buf, win_id
+    end

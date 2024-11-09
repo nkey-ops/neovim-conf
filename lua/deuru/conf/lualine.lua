@@ -1,5 +1,5 @@
 return function()
-    require("lualine").setup({
+    local config = {
         options = {
             icons_enabled = true,
             theme = 'auto',
@@ -45,6 +45,26 @@ return function()
         tabline = {},
         winbar = {},
         inactive_winbar = {},
-        extensions = {}
+        extensions = { "mason", "fugitive", "nvim-dap-ui" }
+    }
+
+
+    local theme = "auto"
+    vim.api.nvim_create_autocmd("ColorScheme", {
+        callback = function(args)
+            if args.match == "sorbet" then
+                theme = "ayu_dark"
+
+                config.options.theme = theme
+                require("lualine").setup(config)
+            elseif theme ~= "auto" then
+                theme = "auto"
+                config.options.theme = theme
+                require("lualine").setup(config)
+            end
+        end
     })
+
+
+    require("lualine").setup(config)
 end

@@ -40,4 +40,10 @@ vim.opt.showmode = false
 --  See `:help 'list'`
 --  and `:help 'listchars'`
 vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', eol = "↵" }
+
+-- NeoVim
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+
+-- vim.cmd("setlocal autoread | au CursorHold * checktime | call feedkeys('lh')")

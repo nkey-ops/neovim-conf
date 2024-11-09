@@ -77,6 +77,7 @@ vim.keymap.set("c", "<A-b>", "<C-Left>")
 
 vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>", { desc = "Run :messages" })
 
+vim.keymap.set("n", "/", "/\\v")
 
 vim.keymap.set({ 'n' }, '<Esc>', function()
     local buffer = vim.fn.win_getid()

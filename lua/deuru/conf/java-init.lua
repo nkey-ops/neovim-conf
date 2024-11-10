@@ -8,26 +8,35 @@ local google_java_format_jar =
         :get_install_path() .. "/google-java-format-*.jar"
     )
 
-local enable_auto_format = false
+local enable_auto_format = true
 local java_formats = { "google2", "google4", "intellij" }
 local java_format = java_formats[2]
-local aosp_style = false
 
 require('formatter').setup {
     filetype = {
         java = {
             function()
-                if aosp_style then
+                if java_format:match("intellij") then
                     return {
-                        exe = 'java',
-                        args = { '-jar', google_java_format_jar, "-a", vim.api.nvim_buf_get_name(0) },
-                        stdin = true
+                        exe = "idea format",
+                        args = { "-allowDefaults" },
+                        stdin = false,
                     }
-                else
+                elseif java_format:match("google2") then
                     return {
                         exe = 'java',
                         args = { '-jar', google_java_format_jar, vim.api.nvim_buf_get_name(0) },
                         stdin = true
+                    }
+                else
+                    return {
+                        exe = "google-java-format",
+                        args = {
+                            "--aosp",
+                            vim.api.nvim_buf_get_name(0),
+                            "--replace",
+                        },
+                        stdin = true,
                     }
                 end
             end
@@ -38,12 +47,9 @@ require('formatter').setup {
 
 vim.api.nvim_create_user_command("EnableJavaAutoFormat",
     function(opts)
-        assert(opts.args == "true" or opts.args == "false", "Can be true or false")
-        enable_auto_format = opts.args == "true" and true or false
-    end, {
-        nargs = 1,
-        complete = function() return { "true", "false" } end,
-    })
+        enable_auto_format = not enable_auto_format
+        print(string.format("JavaAutoFormat=%s", enable_auto_format))
+    end, {})
 
 vim.api.nvim_create_user_command("SetJavaFormat",
     function(opts)
@@ -51,13 +57,14 @@ vim.api.nvim_create_user_command("SetJavaFormat",
         for _, format in pairs(java_formats) do
             if string.match(opts.args, format) then
                 if format:match("google2") then
-                    aosp_style = false
+                    java_format = "google2"
                 elseif format:match "google4" then
-                    aosp_style = true
+                    java_format = "google4"
                 end
                 is_matched = true
             end
         end
+
         assert(is_matched, "Format should be one of:" .. vim.inspect(java_formats))
         java_format = opts.args
     end, {
@@ -67,20 +74,14 @@ vim.api.nvim_create_user_command("SetJavaFormat",
 
 local format = function()
     assert(type(enable_auto_format) == 'boolean', "Should be boolean:", enable_auto_format)
-    if enable_auto_format
-        and vim.tbl_isempty(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }))
+    if enable_auto_format and vim.tbl_isempty(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }))
     then
         local_marks.update()
-
-        if java_format:match('google.') then
-            vim.cmd("FormatWriteLock java")
-        else
-            vim.lsp.buf.format()
-        end
+        vim.cmd("FormatWrite")
         local_marks.restore()
     end
 end
-
+local formats = {}
 
 local attach_java_configs = function()
     vim.api.nvim_create_autocmd('User', {
@@ -100,6 +101,10 @@ local attach_java_configs = function()
                 { desc = "Java Import", silent = true, buffer = args.buf }
             )
 
+            vim.keymap.set('n', '<leader>f',
+                function() format() end,
+                { desc = "Java Format", silent = true, buffer = args.buf }
+            )
             vim.keymap.set({ 'n', 'v' }, '<leader>ev', function()
                     local mode = vim.api.nvim_get_mode()['mode']
                     if mode == 'v' or mode == 'V' then
@@ -167,6 +172,19 @@ local attach_java_configs = function()
                 "<cmd>JdtUpdateDebugConf<CR>",
                 { desc = "Java JdtUpdateDebugConf", silent = true, buffer = args.buf }
             )
+
+
+            vim.api.nvim_create_autocmd("BufWritePost", {
+                pattern = "*.java",
+                callback = function(args)
+                    if formats[args.buf] == nil then
+                        formats[args.buf] = true
+                        format()
+                    else
+                        formats[args.buf] = nil
+                    end
+                end
+            })
         end
     })
 end

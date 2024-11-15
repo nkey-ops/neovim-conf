@@ -1,6 +1,17 @@
 vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
 vim.o.showtabline = 2
 
+
+local function get_rgb(hl, is_fg)
+    assert(hl ~= nil)
+    assert(type(hl) == 'string')
+    assert(is_fg ~= nil)
+    assert(type(is_fg) == 'boolean')
+
+    local id = is_fg and "fg#" or "bg#"
+    return vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(hl)), id)
+end
+
 local function tab_name(tab)
     local line = string.gsub(tab.name(), "%[..%]", "")
 
@@ -57,48 +68,64 @@ local function tab_modified_and_lsp(tab)
         end
     end
 
+    local result
     if tab_status == 'severe' then
-        return is_modifed and "" or ""
+        result = {
+            is_modifed and "" or "",
+            hl = { fg = get_rgb("DiagnosticSignError", true) }
+        }
     elseif tab_status == 'warn' then
-        return is_modifed and "" or "⚠"
+        result = {
+            is_modifed and "" or "⚠",
+            hl = { fg = get_rgb("DiagnosticSignWarn", true) }
+        }
     elseif tab_status == 'info' then
-        return is_modifed and "🅘" or "ⓘ"
+        result = {
+            is_modifed and "🅘" or "ⓘ",
+            hl = { fg = get_rgb("DiagnosticSignInfo", true) }
+        }
     else
-        return is_modifed and "" or ""
+        result = {
+            is_modifed and "" or "",
+            hl = {}
+        }
     end
+
+    return result
 end
 
 local theme = {
     fill = 'TabLineFill',
     -- Also you can do this: fill = { fg = '#f2e9de', bg = '#907aa9', style = 'italic' },
-    head = 'Folded',
-    current_tab = 'TabLineSel',
-    tab = 'TabLine',
-    win = 'TabLine',
+    current_tab = 'Substitute',
+    inactive_tab = 'TabLine',
     tail = 'Normal',
-    cus = { fg = '#f2e9de', bg = '#907aa9', style = 'italic' },
 }
 
 require('tabby').setup({
     option = {
         lualine_theme = "auto",
         buf_name = { mode = "tail" }
+
     },
 
     line   = function(line)
         return {
             {
-                { '  ', hl = theme.head },
-                line.sep('', theme.head, theme.tail),
+                { '  ', hl = theme.current_tab },
+                line.sep('', theme.current_tab, theme.tail),
 
             },
             line.tabs().foreach(function(tab)
-                local hl = tab.is_current() and theme.current_tab or theme.tab
+                local hl = tab.is_current() and theme.current_tab or theme.inactive_tab
+                local tab_sign = tab_modified_and_lsp(tab.id)
+                tab_sign.hl.bg = get_rgb(hl, false)
+
                 return {
                     line.sep('', hl, theme.tail),
                     tab_name(tab),
                     tab_mark(tab),
-                    tab_modified_and_lsp(tab.id),
+                    tab_sign,
                     line.sep('', hl, theme.tail),
                     hl = hl,
                     margin = ' ',
@@ -108,6 +135,7 @@ require('tabby').setup({
         }
     end,
 })
+
 
 vim.api.nvim_set_keymap("n", "<leader>ta", ":$tabnew<CR>", { noremap = true })
 vim.api.nvim_set_keymap("n", "<leader>to", ":tabonly<CR>", { noremap = true })

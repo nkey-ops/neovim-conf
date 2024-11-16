@@ -225,7 +225,7 @@ local plugins = {
         dir = "/home/local/table/extended-marks.nvim/",
         config = function()
             require('extended-marks').setup({
-                data_dir = vim.fn.glob("~/.cache/nvim/extended-marks"), -- full path
+                data_dir = vim.fn.glob("~/.cache/nvim"), -- path where 'extended-marks' dir will be created
                 module = {
                     locaL = {
                         max_key_seq = 1,            -- valid from 1 to 30

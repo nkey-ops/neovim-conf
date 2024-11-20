@@ -38,7 +38,7 @@ local plugins = {
         priority = 1000,
         config = req_conf('colors'),
         init = function()
-            vim.cmd.colorscheme("catppuccin-frappe")
+            vim.cmd.colorscheme("catppuccin-mocha")
         end
     },
     {
@@ -114,7 +114,8 @@ local plugins = {
         dependencies = {
             { 'williamboman/mason-lspconfig.nvim' },
         },
-        config = req_conf('lsp-zero')
+        config = req_conf('lsp'),
+        init = function() req_conf('lsp-init') end
     },
     {
         'windwp/nvim-autopairs',
@@ -225,20 +226,17 @@ local plugins = {
         dir = "/home/local/table/extended-marks.nvim/",
         config = function()
             require('extended-marks').setup({
-                data_dir = vim.fn.glob("~/.cache/nvim"), -- path where 'extended-marks' dir will be created
+                data_dir = vim.fn.glob("~/.cache/nvim/"), -- path where 'extended-marks' dir will be created
                 module = {
                     locaL = {
-                        max_key_seq = 1,            -- valid from 1 to 30
+                        max_key_seq = 1, -- valid from 1 to 30
                         sign_column = 1,
-                        exhaustion_matcher = false, -- if max_key_seq is 1 this parameter will always be false
                     },
                     cwd = {
                         max_key_seq = 5,
-                        exhaustion_matcher = false
                     },
                     tab = {
                         max_key_seq = 1,
-                        exhaustion_matcher = false,
                     },
                 }
             })

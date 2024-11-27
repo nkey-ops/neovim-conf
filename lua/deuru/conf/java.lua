@@ -84,19 +84,6 @@ return function()
                     includeAccessors = true,
                     includeDecompiledSources = true,
                 },
-
-                --        /**
-                --         * Enable/disable the signature help,
-                --         * default is false
-                --         */
-                --        signatureHelp?: SignatureHelpOption;
-                --        sources?: SourcesOption;
-                --          symbols = {
-                --            includeSourceMethodDeclarations = false
-                --          },
-                --        templates?: TemplatesOption;
-                --        trace?: TraceOptions;
-                --        edit?: EditOption;
             },
         },
         completion = {
@@ -153,7 +140,9 @@ return function()
                     }
                 }
             }
-        } -- jol_path = '/opt/jol/jol-cli-0.9-full.jar'
+        }, -- jol_path = '/opt/jol/jol-cli-0.9-full.jar'
         -- require('cmp_nvim_lsp').default_capabilities()
+
+
     })
 end

@@ -112,7 +112,7 @@ require('tabby').setup({
     line   = function(line)
         return {
             {
-                { '  ', hl = theme.current_tab },
+                { '  ', hl = theme.current_tab },
                 line.sep('', theme.current_tab, theme.tail),
 
             },

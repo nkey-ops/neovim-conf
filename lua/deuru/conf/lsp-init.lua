@@ -221,9 +221,7 @@ end
 -- in java docs when using hover
 M.strip = function(contents)
     assert(contents ~= nil and type(contents) == "table")
-    vim.api.nvim_get_current_buf()
 
-    P(vim.bo.filetype)
     if not vim.bo['filetype']:match("java") then
         return
     end

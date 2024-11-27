@@ -8,7 +8,7 @@ local google_java_format_jar =
         :get_install_path() .. "/google-java-format-*.jar"
     )
 
-local enable_auto_format = true
+local enable_auto_format = false
 local java_formats = { "google2", "google4", "intellij" }
 local java_format = java_formats[2]
 
@@ -102,7 +102,11 @@ local attach_java_configs = function()
             )
 
             vim.keymap.set('n', '<leader>f',
-                function() format() end,
+                function()
+                    local_marks.update()
+                    vim.cmd("FormatWrite")
+                    local_marks.restore()
+                end,
                 { desc = "Java Format", silent = true, buffer = args.buf }
             )
             vim.keymap.set({ 'n', 'v' }, '<leader>ev', function()

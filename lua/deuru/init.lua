@@ -229,14 +229,14 @@ local plugins = {
                 data_dir = vim.fn.glob("~/.cache/nvim/"), -- path where 'extended-marks' dir will be created
                 module = {
                     locaL = {
-                        max_key_seq = 1, -- valid from 1 to 30
+                        key_length = 1, -- valid from 1 to 30
                         sign_column = 1,
                     },
                     cwd = {
-                        max_key_seq = 5,
+                        key_length = 5,
                     },
                     tab = {
-                        max_key_seq = 1,
+                        key_length = 1,
                     },
                 }
             })

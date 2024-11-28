@@ -1,9 +1,8 @@
---- line 353 ~/.local/share/nvim/lazy/telescope.nvim/lua/telescope/utils.lua comment out
+--- line 363 ~/.local/share/nvim/lazy/telescope.nvim/lua/telescope/utils.lua comment out
 return function()
     local telescope = require("telescope")
     local builtin = require('telescope.builtin')
     local actions = require("telescope.actions")
-    local local_marks = require('extended-marks.local')
 
     local fzf_opts = {
         fuzzy = true,                   -- false will only do exact matching
@@ -13,16 +12,46 @@ return function()
         -- the default case_mode is "smart_case"
     }
 
+    local string_byte, string_sub = string.byte, string.sub
+    -- insane speed of a symbols lookup comparing to lua patterns
+    local function strip_jdt_path(path)
+        local tbl = { string_byte(path, 1, #path) } -- Note: This is about 15% faster than calling string.byte for every character.
+
+        if #path < 17
+            or tbl[1] ~= 106
+            or tbl[2] ~= 100
+            or tbl[3] ~= 116 then -- not 'jdt'
+            return path
+        end
+
+        -- jdt://contents/java.base/java.lang/StringUTF16.class?=main
+        local last_slash
+        local last_dollar_sign
+        for i = 17, #tbl do
+            c = tbl[i] -- Note: produces char codes instead of chars.
+            if c == 47 then
+                last_slash = i
+            end
+            if c == 36 then
+                last_dollar_sign = i
+            end
+
+            if c == 63 then
+                break
+            end
+        end
+
+        if not last_slash then return path end
+        return string_sub(path, 16, last_dollar_sign and last_dollar_sign - 1 or last_slash - 1)
+    end
+
     telescope.setup {
         defaults = {
             layout_strategy = 'vertical',
             layout_config = { height = 0.95 },
             cache_picker = { 1, 100 },
             path_display = function(_, path)
-                if path:match("jdt://.*") then
-                    path = path:gsub("jdt://contents/(.-)%?.*", "%1");
-                end
-                return path
+                return strip_jdt_path(path)
             end,
             -- tiebreak = function(current_entry, existing_entry, _)
             --     return current_entry.value:len() < existing_entry.value:len()

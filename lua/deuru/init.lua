@@ -177,7 +177,6 @@ local plugins = {
 
     {
         'rest-nvim/rest.nvim',
-        tag = "v1.2.1",
         dependencies = { "nvim-lua/plenary.nvim" },
         config = req_conf('rest-nvim'),
         init = function() req_conf('rest-nvim-init') end

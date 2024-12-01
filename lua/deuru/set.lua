@@ -42,8 +42,8 @@ vim.opt.showmode = false
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', eol = "↵" }
 
--- NeoVim
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
+vim.opt.shellcmdflag = "-ic"
 
 -- vim.cmd("setlocal autoread | au CursorHold * checktime | call feedkeys('lh')")

@@ -1,25 +1,7 @@
-local telescope = require("telescope.builtin")
-
-local builtin = require('telescope.builtin')
 local local_marks = require('extended-marks.local')
 
-local M = {}
-
--- Global mappings.
--- See `:help vim.diagnostic.*` for documentation on any of the below functions
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float,
-    { desc = "Diagnostic Open Float Window" })
-vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1 }) end,
-    { desc = "Diagnostic Go to the Prev Error" })
-vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1 }) end,
-    { desc = "Diagnostic Go to the Next Error" })
-vim.keymap.set('n', '[e', function() vim.diagnostic.jump({ count = -1, severity = "ERROR" }) end,
-    { desc = "Diagnostic Go to the Prev Error" })
-vim.keymap.set('n', ']e', function() vim.diagnostic.jump({ count = 1, severity = "ERROR" }) end,
-    { desc = "Diagnostic Go to the Next Error" })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist,
-    { desc = "Diagnostic Open Local List of Errors" })
-
+local telescope = require("telescope.builtin")
+local builtin = require('telescope.builtin')
 
 local references = function() telescope.lsp_references({}) end
 local implementations = function() telescope.lsp_implementations({}) end
@@ -27,6 +9,31 @@ local definitions = function() telescope.lsp_type_definitions({}) end
 local lsp_all_symbols = function()
     builtin.lsp_document_symbols({ show_line = true })
 end
+
+local M = {}
+
+-- Global mappings.
+-- See `:help vim.diagnostic.*` for documentation on any of the below functions
+
+local diag_prev = function() vim.diagnostic.jump({ count = -1 }) end
+local diag_next = function() vim.diagnostic.jump({ count = 1 }) end
+local diag_error_prev = function() vim.diagnostic.jump({ count = -1, severity = "ERROR" }) end
+local diag_error_next = function() vim.diagnostic.jump({ count = 1, severity = "ERROR" }) end
+
+local set = vim.keymap.set
+
+set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Diagnostic Open Float Window" })
+set('n', '[dd', diag_prev, { desc = "Diagnostic Go to the Prev Diagnostic" })
+set('n', ']dd', diag_next, { desc = "Diagnostic Go to the Next Diagnostic" })
+set('n', '[de', diag_error_prev, { desc = "Diagnostic Go to the Prev Diagnostic Error" })
+set('n', ']de', diag_error_next, { desc = "Diagnostic Go to the Next Diagnostic Error" })
+set('n', '<leader>q', vim.diagnostic.setloclist, { desc = "Diagnostic Open Local List of Errors" })
+
+
+local toggle_diagnos = function() vim.diagnostic.enable(not vim.diagnostic.is_enabled()) end
+local hover = function() M.hover(nil, function(content) M.strip(content) end) end
+local print_workspace = function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end
+
 local lsp_fields = function()
     builtin.lsp_document_symbols({
         symbols = { "field", "constant" },
@@ -68,50 +75,42 @@ local lsp_dynamic_classes = function()
         })
 end
 
--- Use LspAttach autocommand to only map the following keys
--- after the language server attaches to the current buffer
 vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('UserLspConfig', {}),
     callback = function(ev)
-        -- Enable completion triggered by <c-x><c-o>
         vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
-        vim.bo[ev.buf].omnifunc = nil
 
-        -- Buffer local mappings.
-        -- See `:help vim.lsp.*` for documentation on any of the below functions
         local opts = { buffer = ev.buf }
 
-        vim.keymap.set('n', '<leader>dd', function() vim.diagnostic.enable(false) end)
-        vim.keymap.set('n', '<leader>ed', vim.diagnostic.enable)
-        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-        vim.keymap.set('n', 'gd', vim.lsp.buf.definition)
-        vim.keymap.set('n', 'K', function() M.hover(nil, function(content) M.strip(content) end) end, opts)
-        vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+        set('n', '<leader>dd', toggle_diagnos, opts)
+        set('n', 'gD', vim.lsp.buf.declaration, opts)
+        set('n', 'gd', vim.lsp.buf.definition)
+        set('n', 'K', hover, opts)
+        set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
 
-        vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
-        vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
-        vim.keymap.set('n', '<leader>wl', function()
-            print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-        end, opts)
-        vim.keymap.set('n', '<leader>gd', vim.lsp.buf.type_definition, opts)
-        vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+        set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
+        set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
+        set('n', '<leader>wl', print_workspace, opts)
+        set('n', '<leader>gd', vim.lsp.buf.type_definition, opts)
+        set('n', '<leader>rn', vim.lsp.buf.rename, opts)
 
-        vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, opts)
-        vim.keymap.set('n', 'gi', implementations, opts)
-        vim.keymap.set('n', 'gr', references, opts)
+        set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, opts)
+        set('n', 'gi', implementations, opts)
+        set('n', 'gr', references, opts)
 
-        vim.keymap.set('n', '<A-s>a', lsp_all_symbols, { desc = "Telescope: List [A]ll [S]ymbols" })
-        vim.keymap.set('n', '<A-s>f', lsp_fields, { desc = "Telescope: List [F]ields" })
-        vim.keymap.set('n', '<A-s>m', lsp_methods, { desc = "Telescope: List [M]ethods" })
-        vim.keymap.set('n', '<A-s>c', lsp_classes, { desc = "Telescope: List [C]lasses" })
-        vim.keymap.set('n', '<A-s>t', lsp_constructors, { desc = "Telescope: List Cons[t]ructors" })
-        vim.keymap.set('n', "<A-w>", lsp_dynamic_classes, { desc = "Telescope: Search Dynamically [W]orkspace Symbols" })
+        set('n', '<A-s>a', lsp_all_symbols, { desc = "Telescope: List [A]ll [S]ymbols" })
+        set('n', '<A-s>f', lsp_fields, { desc = "Telescope: List [F]ields" })
+        set('n', '<A-s>m', lsp_methods, { desc = "Telescope: List [M]ethods" })
+        set('n', '<A-s>c', lsp_classes, { desc = "Telescope: List [C]lasses" })
+        set('n', '<A-s>t', lsp_constructors, { desc = "Telescope: List Cons[t]ructors" })
+        set('n', "<A-w>", lsp_dynamic_classes, { desc = "Telescope: Search Dynamically [W]orkspace Symbols" })
 
         vim.api.nvim_create_autocmd('User', {
             pattern = 'UserLspConfigAttached',
             command = ''
         })
         vim.cmd('do User UserLspConfigAttached')
+
 
         vim.api.nvim_create_autocmd("BufWritePre", {
             buffer = ev.buf,

@@ -221,23 +221,21 @@ local plugins = {
         end
     },
     {
-        -- "nkey-ops/extended-marks.nvim",
-        dir = "/home/local/table/extended-marks.nvim/",
+        "nkey-ops/extended-marks.nvim",
+        -- dir = "/home/local/table/extended-marks.nvim/",
         config = function()
             require('extended-marks').setup({
                 data_dir = vim.fn.glob("~/.cache/nvim/"), -- path where 'extended-marks' dir will be created
-                module = {
-                    locaL = {
-                        key_length = 1, -- valid from 1 to 30
-                        sign_column = 1,
-                    },
-                    cwd = {
-                        key_length = 5,
-                    },
-                    tab = {
-                        key_length = 1,
-                    },
-                }
+                locaL = {
+                    key_length = 1,                       -- valid from 1 to 30
+                    sign_column = 1,
+                },
+                cwd = {
+                    key_length = 5,
+                },
+                tab = {
+                    key_length = 1,
+                },
             })
         end,
         init = function()

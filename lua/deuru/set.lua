@@ -36,9 +36,6 @@ vim.opt.cursorline = true
 
 vim.opt.showmode = false
 
--- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', eol = "↵" }
 
@@ -46,4 +43,5 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.shellcmdflag = "-ic"
 
--- vim.cmd("setlocal autoread | au CursorHold * checktime | call feedkeys('lh')")
+vim.keymap.set("i", "<C-I>", "<C-I>")
+vim.keymap.set("i", "<Tab>", "<Tab>")

@@ -5,7 +5,6 @@ return function()
     local lspkind = require('lspkind')
     local luasnip = require('luasnip')
 
-
     require('luasnip.loaders.from_vscode').lazy_load()
 
     -- If you want insert `(` after select function or method item
@@ -77,26 +76,28 @@ return function()
         },
 
         mapping = cmp.mapping.preset.insert({
-            ['<A-y>'] = cmp.mapping.scroll_docs(-1),
-            ['<A-e>'] = cmp.mapping.scroll_docs(1),
-            ['<A-u>'] = cmp.mapping.scroll_docs(-4),
-            ['<A-d>'] = cmp.mapping.scroll_docs(4),
-
+            -- ['<A-y>'] = cmp.mapping.scroll_docs(-1),
+            -- ['<A-e>'] = cmp.mapping.scroll_docs(1),
+            -- ['<A-u>'] = cmp.mapping.scroll_docs(-4),
+            -- ['<A-d>'] = cmp.mapping.scroll_docs(4),
+            --
             ['<C-[>'] = cmp.mapping.close(),
 
-            ['<A-p>'] =
+            ['<C-p>'] =
                 function()
                     if cmp.visible() then
                         cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
                     else
-                        cmp.complete()
+                        cmp.complete({ select = true })
                     end
                 end,
-            ['<A-o>'] = function()
+
+            ['<C-i>'] = function()
                 cmp.complete({ performance = { max_view_entries = 1 } })
                 cmp.confirm({ select = true })
             end,
-            ['<A-n>'] =
+            ['<Tab>'] = vim.NIL,
+            ['<C-n>'] =
                 function()
                     -- cmp.select_next_item({ behaviour = cmp.ConfirmBehavior.Replace })
                     if cmp.visible() then
@@ -105,21 +106,21 @@ return function()
                         cmp.complete({ select = true })
                     end
                 end,
-            ['<A-i>'] = function()
+            ['<C-y>'] = function()
                 cmp.confirm({ select = true })
             end,
             -- luasnip mapping
-            ['<A-l>'] = function()
-                luasnip.expand_or_jump()
-            end,
-            ['<A-h>'] = function()
-                luasnip.jump(-1)
-            end
+            -- ['<C-l>'] = function()
+            --     luasnip.expand_or_jump()
+            -- end,
+            -- ['<C-h>'] = function()
+            --     luasnip.jump(-1)
+            -- end
         }),
         sources = cmp.config.sources({
             { name = 'path' },
-            { name = 'nvim_lsp', group_index = 2, keword_lengt = 1 },
-            { name = 'luasnip',  group_index = 1, keword_lengt = 1 }, -- For luasnip users.
+            { name = 'nvim_lsp', group_index = 2, keword_length = 1 },
+            { name = 'luasnip',  group_index = 1, keword_length = 1 }, -- For luasnip users.
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.
             -- { name = 'snippy' }, -- For snippy users.
@@ -128,13 +129,13 @@ return function()
     })
 
     -- Set configuration for specific filetype.
-    cmp.setup.filetype('gitcommit', {
-        sources = cmp.config.sources({
-            { name = 'git' }, -- You can specify the `git` source if [you were installed it](https://github.com/petertriho/cmp-git).
-        }, {
-            { name = 'buffer' },
-        })
-    })
+    -- cmp.setup.filetype('gitcommit', {
+    --     sources = cmp.config.sources({
+    --         { name = 'git' }, -- You can specify the `git` source if [you were installed it](https://github.com/petertriho/cmp-git).
+    --     }, {
+    --         { name = 'buffer' },
+    --     })
+    -- })
 
     local cmdline_mapping = cmp.mapping.preset.cmdline({
         ['<C-y>'] = {
@@ -179,6 +180,9 @@ return function()
     -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
     cmp.setup.cmdline(':', {
         mapping = cmdline_mapping,
+        completion = {
+            autocomplete = { cmp.TriggerEvent.TextChanged }
+        },
         sources = cmp.config.sources({
             { name = 'path' }
         }, {

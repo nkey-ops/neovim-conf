@@ -1,7 +1,6 @@
 vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
 vim.o.showtabline = 2
 
-
 local function get_rgb(hl, is_fg)
     assert(hl ~= nil)
     assert(type(hl) == 'string')
@@ -81,7 +80,7 @@ local function tab_modified_and_lsp(tab)
         }
     elseif tab_status == 'info' then
         result = {
-            is_modifed and "🅘" or "ⓘ",
+            is_modifed and "🔍" or "🔍",
             hl = { fg = get_rgb("DiagnosticSignInfo", true) }
         }
     else
@@ -128,7 +127,6 @@ require('tabby').setup({
                     tab_sign,
                     line.sep('', hl, theme.tail),
                     hl = hl,
-                    margin = ' ',
                 }
             end),
             hl = theme.fill,

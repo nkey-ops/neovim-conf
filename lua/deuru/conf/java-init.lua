@@ -34,6 +34,7 @@ require('formatter').setup {
                         args = {
                             "--aosp",
                             vim.api.nvim_buf_get_name(0),
+
                             "--replace",
                         },
                         stdin = true,
@@ -212,3 +213,16 @@ vim.api.nvim_create_autocmd("FileType", {
         attach_java_configs()
     end
 })
+
+function Exit_visual()
+    local mode = vim.api.nvim_get_mode()['mode']
+    if mode ~= 'v' and mode ~= 'V' then
+        error("Exit_visual(): Can't exit visual mode because it isn't in visual mode")
+        return
+    end
+
+    vim.api.nvim_feedkeys(
+        vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
+        "x", false
+    )
+end

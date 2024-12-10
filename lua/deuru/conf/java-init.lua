@@ -1,5 +1,6 @@
 local local_marks = require("extended-marks.local")
 
+local jdtls = require("jdtls")
 local mason_registry = require('mason-registry')
 local google_java_format_jar =
     vim.fn.glob(
@@ -11,6 +12,8 @@ local google_java_format_jar =
 local enable_auto_format = false
 local java_formats = { "google2", "google4", "intellij" }
 local java_format = java_formats[2]
+
+local set = vim.keymap.set
 
 require('formatter').setup {
     filetype = {
@@ -73,7 +76,9 @@ vim.api.nvim_create_user_command("SetJavaFormat",
         complete = function() return java_formats end,
     })
 
-local format = function()
+local M = {}
+
+local auto_format = function()
     assert(type(enable_auto_format) == 'boolean', "Should be boolean:", enable_auto_format)
     if enable_auto_format and vim.tbl_isempty(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }))
     then
@@ -82,7 +87,61 @@ local format = function()
         local_marks.restore()
     end
 end
+
+local format = function()
+    local_marks.update()
+    vim.cmd("FormatWrite")
+    local_marks.restore()
+end
+
+local extract_var = function()
+    local mode = vim.api.nvim_get_mode()['mode']
+    if mode == 'v' or mode == 'V' then
+        M.exit_visual()
+        jdtls.extract_variable({ visual = true })
+    else
+        jdtls.extract_variable()
+    end
+end
+
+local extract_meth = function()
+    local mode = vim.api.nvim_get_mode()['mode']
+    if mode == 'v' or mode == 'V' then
+        M.exit_visual()
+        jdtls.extract_method({ visual = true })
+    else
+        jdtls.extract_method()
+    end
+end
 local formats = {}
+
+local create_getter = function()
+    M.perform_action("Generate Getter for.*")
+end
+
+local add_doc = function()
+    M.perform_action("Add Javadoc.*")
+end
+
+local assign_param_to_new_field = function()
+    M.perform_action("Assign parameter to new field")
+end
+
+local create_local_var = function()
+    M.perform_action("Create local variable.*")
+end
+
+local to_string = function()
+    M.perform_action("Generate toString.*")
+end
+
+local surround_try_catch = function()
+    M.perform_action("Surround with try/catch")
+end
+
+local ext = function(opts, extra)
+    return vim.tbl_extend('error', opts, extra)
+end
 
 local attach_java_configs = function()
     vim.api.nvim_create_autocmd('User', {
@@ -95,89 +154,27 @@ local attach_java_configs = function()
                 return
             end
 
-            local jdtls = require("jdtls")
-            -- Keymaps
-            vim.keymap.set('n', '<leader>o',
-                function() jdtls.organize_imports() end,
-                { desc = "Java Import", silent = true, buffer = args.buf }
-            )
+            local opts = { silent = true, buffer = args.buf }
 
-            vim.keymap.set('n', '<leader>f',
-                function()
-                    local_marks.update()
-                    vim.cmd("FormatWrite")
-                    local_marks.restore()
-                end,
-                { desc = "Java Format", silent = true, buffer = args.buf }
-            )
-            vim.keymap.set({ 'n', 'v' }, '<leader>ev', function()
-                    local mode = vim.api.nvim_get_mode()['mode']
-                    if mode == 'v' or mode == 'V' then
-                        Exit_visual()
-                        jdtls.extract_variable({ visual = true })
-                    else
-                        jdtls.extract_variable()
-                    end
-                end,
-                {
-                    desc = "Java [E]xtract [V]ariable",
-                    silent = true,
-                    buffer = args.buf
-                }
-            )
-            vim.keymap.set({ 'n', 'v' }, '<leader>em', function()
-                    local mode = vim.api.nvim_get_mode()['mode']
-                    if mode == 'v' or mode == 'V' then
-                        Exit_visual()
-                        jdtls.extract_method({ visual = true })
-                    else
-                        jdtls.extract_method()
-                    end
-                end,
-                {
-                    desc = "Java [E]xtract [M]ethod",
-                    silent = true,
-                    buffer = args.buf
-                }
-            )
+            set('n', '<leader>o', jdtls.organize_imports, ext(opts, { desc = "Java Import" }))
+            set('n', '<leader>f', format, ext(opts, { desc = "Java Format" }))
+            set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, { desc = "Java [E]xtract [V]ariable" }))
+            set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, { desc = "Java [E]xtract [M]ethod" }))
+            set("n", "<leader>jc", "<cmd>JdtCompile<CR>", ext(opts, { desc = "Java JdtCompile" }))
+            set('n', '<leader>jo', jdtls.jol, ext(opts, { desc = "Java [Jo]l" }))
+            set("n", "<leader>tt", jdtls.test_class, ext(opts, { desc = "Java Test Class" }))
+            set("n", "<leader>tm", jdtls.test_nearest_method, ext(opts, { desc = "Java [T]est Nearest [M]ethod", }))
+            set("n", "<leader>tp", jdtls.pick_test, ext(opts, { desc = "Java [P]ick [T]est" }))
+            -- set("n", "<leader>tg", jdtls.generate, ext(opts, { desc = "Java [G]enerate [T]est" }))
+            -- set("n", "<leader>tb", jdtls.goto_subjects, ext(opts, { desc = "Java [G]o to subjects" }))
+            set("n", "<leader>ud", "<cmd>JdtUpdateDebugConf<CR>", ext(opts, { desc = "Java JdtUpdateDebugConf" }))
 
-            vim.keymap.set("n", "<leader>jc",
-                "<cmd>JdtCompile<CR>",
-                { desc = "Java JdtCompile", silent = true, buffer = args.buf }
-            )
-            vim.keymap.set('n', '<leader>jo',
-                function() jdtls.jol() end,
-                { desc = "Java [Jo]l", silent = true, buffer = args.buf }
-            )
-            vim.keymap.set("n", "<leader>tt",
-                function() jdtls.test_class({}) end,
-                { desc = "Java Test Class", silent = true, buffer = args.buf }
-            )
-            vim.keymap.set("n", "<leader>tm",
-                function() jdtls.test_nearest_method({}) end,
-                {
-                    desc = "Java [T]est Nearest [M]ethod",
-                    silent = true,
-                    buffer = args.buf
-                }
-            )
-            vim.keymap.set("n", "<leader>tp",
-                function() jdtls.pick_test({}) end,
-                { desc = "Java [P]ick [T]est", silent = true, buffer = args.buf }
-            )
-            vim.keymap.set("n", "<leader>tg",
-                function() jdtls.tests.generate({}) end,
-                { desc = "Java [G]enerate [T]est", silent = true, buffer = args.buf }
-            )
-            vim.keymap.set("n", "<leader>tb",
-                function() jdtls.tests.goto_subjects() end,
-                { desc = "Java [G]o to subjects", silent = true, buffer = args.buf }
-            )
-            vim.keymap.set("n", "<leader>ud",
-                "<cmd>JdtUpdateDebugConf<CR>",
-                { desc = "Java JdtUpdateDebugConf", silent = true, buffer = args.buf }
-            )
-
+            set("n", "<leader>ccg", create_getter, opts)
+            set("n", "<leader>cd", add_doc, opts)
+            set("n", "<leader>cpn", assign_param_to_new_field, opts)
+            set("n", "<leader>ccl", create_local_var, opts)
+            set("n", "<leader>cts", to_string, opts)
+            set("n", "<leader>csc", surround_try_catch, opts)
 
             vim.api.nvim_create_autocmd("BufWritePost", {
                 pattern = "*.java",
@@ -214,7 +211,7 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 })
 
-function Exit_visual()
+function M.exit_visual()
     local mode = vim.api.nvim_get_mode()['mode']
     if mode ~= 'v' and mode ~= 'V' then
         error("Exit_visual(): Can't exit visual mode because it isn't in visual mode")
@@ -225,4 +222,26 @@ function Exit_visual()
         vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
         "x", false
     )
+end
+
+function M.perform_action(action_pattern)
+    vim.lsp.buf.code_action({
+        apply = true,
+        filter = function(action)
+            return M.filter(action, action_pattern)
+        end
+    })
+end
+
+function M.filter(action, goal_action)
+    assert(action)
+    assert(goal_action)
+
+    local title = action.title
+    if title and type(title) == 'string'
+        and title:match(goal_action) then
+        return true
+    end
+
+    return false;
 end

@@ -241,7 +241,11 @@ local plugins = {
         init = function()
             local marks = require('extended-marks')
             vim.keymap.set("n", "m", marks.set_mark)
-            vim.keymap.set("n", "`", marks.jump_to_mark)
+            vim.keymap.set("n", "`",
+                function()
+                    marks.jump_to_mark()
+                    vim.api.nvim_command(":normal! zt")
+                end)
             vim.keymap.set("n", "M", marks.set_tab_mark)
             vim.keymap.set("n", "'", marks.jump_to_tab_mark)
         end,
@@ -280,6 +284,10 @@ local plugins = {
         dependencies = { 'nvim-lua/plenary.nvim' }
     },
     -- https://github.com/echasnovski/mini.nvim
+    {
+        'AckslD/messages.nvim',
+        config = function() require("messages").setup() end,
+    }
 }
 
 require("lazy").setup(plugins)

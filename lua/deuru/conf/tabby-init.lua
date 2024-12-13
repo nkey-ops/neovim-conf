@@ -22,7 +22,7 @@ end
 
 local function tab_mark(tab)
     local mark_key = vim.t[tab.id]["mark_key"]
-    return mark_key and string.format('[%s]', mark_key) or ''
+    return mark_key and string.format('[%s]', mark_key) or '|'
 end
 
 local function lsp_diag(buf)
@@ -112,7 +112,7 @@ require('tabby').setup({
         return {
             {
                 { '  ', hl = theme.current_tab },
-                line.sep('', theme.current_tab, theme.tail),
+                line.sep('', theme.current_tab, theme.tail),
 
             },
             line.tabs().foreach(function(tab)
@@ -121,11 +121,15 @@ require('tabby').setup({
                 tab_sign.hl.bg = get_rgb(hl, false)
 
                 return {
-                    line.sep('', hl, theme.tail),
+                    line.sep('', hl, theme.tail),
+                    ' ',
                     tab_name(tab),
+                    ' ',
                     tab_mark(tab),
+                    ' ',
                     tab_sign,
-                    line.sep('', hl, theme.tail),
+                    line.sep('', hl, theme.tail),
+                    -- margin = ' ',
                     hl = hl,
                 }
             end),

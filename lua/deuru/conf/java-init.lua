@@ -119,6 +119,10 @@ local create_getter = function()
     M.perform_action("Generate Getter for.*")
 end
 
+local create_field = function()
+    M.perform_action("Create field .*")
+end
+
 local add_doc = function()
     M.perform_action("Add Javadoc.*")
 end
@@ -137,6 +141,14 @@ end
 
 local surround_try_catch = function()
     M.perform_action("Surround with try/catch")
+end
+
+local add_throws = function()
+    M.perform_action("Add throws declaration")
+end
+
+local add_unimplemented_methods = function()
+    M.perform_action("Add unimplemented methods")
 end
 
 local ext = function(opts, extra)
@@ -161,7 +173,13 @@ local attach_java_configs = function()
             set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, { desc = "Java [E]xtract [V]ariable" }))
             set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, { desc = "Java [E]xtract [M]ethod" }))
             set("n", "<leader>jc", "<cmd>JdtCompile<CR>", ext(opts, { desc = "Java JdtCompile" }))
-            set('n', '<leader>jo', jdtls.jol, ext(opts, { desc = "Java [Jo]l" }))
+
+            set('n', '<leader>jot', function() jdtls.jol("estimates") end, ext(opts, { desc = "Java [Jo]l Es[t]imates" }))
+            set('n', '<leader>jof', function() jdtls.jol("footprint") end, ext(opts, { desc = "Java [Jo]l [F]ootprint" }))
+            set('n', '<leader>joe', function() jdtls.jol("externals") end, ext(opts, { desc = "Java [Jo]l [E]xternals" }))
+            set('n', '<leader>joi', function() jdtls.jol("internals") end, ext(opts, { desc = "Java [Jo]l [I]nternals" }))
+            set('n', '<leader>jap', jdtls.javap, ext(opts, { desc = "Java [Ja]va[p]" }))
+
             set("n", "<leader>tt", jdtls.test_class, ext(opts, { desc = "Java Test Class" }))
             set("n", "<leader>tm", jdtls.test_nearest_method, ext(opts, { desc = "Java [T]est Nearest [M]ethod", }))
             set("n", "<leader>tp", jdtls.pick_test, ext(opts, { desc = "Java [P]ick [T]est" }))
@@ -170,18 +188,22 @@ local attach_java_configs = function()
             set("n", "<leader>ud", "<cmd>JdtUpdateDebugConf<CR>", ext(opts, { desc = "Java JdtUpdateDebugConf" }))
 
             set("n", "<leader>ccg", create_getter, opts)
+            set("n", "<leader>ccf", create_field, opts)
             set("n", "<leader>cd", add_doc, opts)
-            set("n", "<leader>cpn", assign_param_to_new_field, opts)
+            set("n", "<leader>cpn", assign_param_to_new_field,
+                ext(opts, { desc = "Java: Assgin constructor param to a field" }))
             set("n", "<leader>ccl", create_local_var, opts)
             set("n", "<leader>cts", to_string, opts)
             set("n", "<leader>csc", surround_try_catch, opts)
+            set("n", "<leader>cat", add_throws, opts)
+            set("n", "<leader>cim", add_unimplemented_methods, opts)
 
             vim.api.nvim_create_autocmd("BufWritePost", {
                 pattern = "*.java",
                 callback = function(args)
                     if formats[args.buf] == nil then
                         formats[args.buf] = true
-                        format()
+                        auto_format()
                     else
                         formats[args.buf] = nil
                     end

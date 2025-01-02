@@ -34,7 +34,10 @@ require('mason-lspconfig').setup({
     },
     handlers = {
         marksman = require('lspconfig').marksman.setup({}),
-        limminx = require("lspconfig").lemminx.setup({}),
+        limminx = require("lspconfig").lemminx.setup({
+            -- eclipse-lemminx/lemminx.git
+            cmd = { 'java', '-jar', 'addons/org.eclipse.lemminx-uber.jar' },
+        }),
         jdtls = nil,
         jsonls = require('lspconfig').jsonls.setup({}),
         yamlss = require('lspconfig').yamlls.setup({}),

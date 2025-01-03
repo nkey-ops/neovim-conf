@@ -24,9 +24,7 @@ require('formatter').setup {
         java = {
             function()
                 local lines = nil
-
                 local mode = vim.api.nvim_get_mode()['mode']
-                P(mode)
 
                 if mode == 'v' or mode == 'V' or mode == '\22' then
                     local startLine = vim.fn.getpos("v")[2]
@@ -34,8 +32,6 @@ require('formatter').setup {
                     lines = string.format("--lines %s:%s", startLine, endLine)
                     M.exit_visual()
                 end
-                P(lines)
-
 
                 if java_format:match("google2") then
                     return {
@@ -153,6 +149,10 @@ local create_method = function()
     M.perform_action("Create method .*")
 end
 
+local convert_to_static_import = function()
+    M.perform_action("Convert to static import (repl.*")
+end
+
 local add_doc = function()
     M.perform_action("Add Javadoc.*")
 end
@@ -185,11 +185,13 @@ local ext = function(opts, extra)
     return vim.tbl_extend('error', opts, extra)
 end
 
-local attach_java_configs = function()
+local attach_java_configs = function(buf)
     vim.api.nvim_create_autocmd('User', {
         group = vim.api.nvim_create_augroup('JavaLsp', {}),
         desc = "Creats buffer local settings for files with the '*.java' extension",
-        pattern = 'UserLspConfigAttached',
+        -- pattern = 'UserLspConfigAttached',
+        buffer = buf,
+        once = true,
 
         callback = function(args)
             if not string.match(vim.api.nvim_buf_get_name(args.buf), '%.java$') then
@@ -220,6 +222,7 @@ local attach_java_configs = function()
             set("n", "<leader>ccg", create_getter, opts)
             set("n", "<leader>ccf", create_field, opts)
             set("n", "<leader>ccm", create_method, opts)
+            set("n", "<leader>ccs", convert_to_static_import, opts)
             set("n", "<leader>cd", add_doc, opts)
             set("n", "<leader>cpn", assign_param_to_new_field,
                 ext(opts, { desc = "Java: Assgin constructor param to a field" }))
@@ -230,17 +233,17 @@ local attach_java_configs = function()
             set("n", "<leader>cum", add_unimplemented_methods,
                 ext(opts, { desc = "Java Add [U]nimplemented [M]ethods" }))
 
-            vim.api.nvim_create_autocmd("BufWritePost", {
-                pattern = "*.java",
-                callback = function(args)
-                    if formats[args.buf] == nil then
-                        formats[args.buf] = true
-                        auto_format()
-                    else
-                        formats[args.buf] = nil
-                    end
-                end
-            })
+            -- vim.api.nvim_create_autocmd("BufWritePost", {
+            --     pattern = "*.java",
+            --     callback = function(args)
+            --         if formats[args.buf] == nil then
+            --             formats[args.buf] = true
+            --             auto_format()
+            --         else
+            --             formats[args.buf] = nil
+            --         end
+            --     end
+            -- })
         end
     })
 end
@@ -260,8 +263,8 @@ vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup('JavaLspSettings', { clear = false }),
     once = true,
 
-    callback = function()
-        attach_java_configs()
+    callback = function(args)
+        attach_java_configs(args.buf)
     end
 })
 

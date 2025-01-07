@@ -85,6 +85,8 @@ vim.api.nvim_create_user_command("SetJavaFormat",
                     java_format = "google2"
                 elseif format:match "google4" then
                     java_format = "google4"
+                elseif format:match "5pos" then
+                    vim.opt.expandtab = false
                 end
                 is_matched = true
             end

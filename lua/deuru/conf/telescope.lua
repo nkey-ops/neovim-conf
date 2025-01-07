@@ -24,7 +24,6 @@ return function()
             return path
         end
 
-        -- jdt://contents/java.base/java.lang/StringUTF16.class?=main
         local last_slash
         local last_dollar_sign
         for i = 17, #tbl do

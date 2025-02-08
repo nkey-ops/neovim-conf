@@ -131,7 +131,7 @@ local plugins = {
             {
                 'jose-elias-alvarez/null-ls.nvim',
                 init = function() req_conf('checkstyle-init') end,
-                enabled = true
+                enabled = false
             },
             { 'mhartington/formatter.nvim', lazy = true }
         },
@@ -162,12 +162,6 @@ local plugins = {
     {
         'Pocco81/auto-save.nvim',
         config = req_conf('auto-save'),
-    },
-    {
-        "iamcco/markdown-preview.nvim",
-        run = function() vim.fn["mkdp#util#install"]() end,
-        init = function() req_conf('markdown-init') end,
-        build = "cd app && npm install",
     },
     {
         'nvim-lualine/lualine.nvim',
@@ -221,8 +215,9 @@ local plugins = {
         end
     },
     {
-        "nkey-ops/extended-marks.nvim",
-        -- dir = "/home/local/table/extended-marks.nvim/",
+        -- "nkey-ops/extended-marks.nvim",
+        dir = "/home/local/table/extended-marks.nvim/",
+        enabled = true,
         config = function()
             require('extended-marks').setup({
                 data_dir = vim.fn.glob("~/.cache/nvim/"), -- path where 'extended-marks' dir will be created
@@ -260,14 +255,6 @@ local plugins = {
     },
 
     {
-        "epwalsh/obsidian.nvim",
-        version = "*",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-        },
-        config = require("deuru.conf.obsidian")
-    },
-    {
         "danymat/neogen",
         config = true,
         enabled = false,
@@ -287,6 +274,33 @@ local plugins = {
     {
         'AckslD/messages.nvim',
         config = function() require("messages").setup() end,
+    },
+
+    -- MARKDONW SHENANIGANS
+    {
+        "iamcco/markdown-preview.nvim",
+        run = function() vim.fn["mkdp#util#install"]() end,
+        init = function() req_conf('markdown-init') end,
+        build = "cd app && npm install",
+    },
+    {
+        "epwalsh/obsidian.nvim",
+        version = "*",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+        },
+        config = require("deuru.conf.obsidian")
+    },
+    {
+        'MeanderingProgrammer/render-markdown.nvim',
+        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+        dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+        ---@module 'render-markdown'
+        ---@type render.md.UserConfig
+        opts = {
+            indent = { enabled = true, skip_heading = true }
+        },
     }
 }
 

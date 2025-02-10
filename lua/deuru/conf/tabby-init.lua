@@ -13,16 +13,12 @@ end
 
 local function tab_name(tab)
     local line = string.gsub(tab.name(), "%[..%]", "")
-
-    if tab.is_current() then
-        line = string.format('[%s] %s', vim.fn.fnamemodify(vim.fn.getcwd(), ':t'), line)
-    end
     return line
 end
 
 local function tab_mark(tab)
     local mark_key = vim.t[tab.id]["mark_key"]
-    return mark_key and string.format('[%s]', mark_key) or '|'
+    return mark_key and string.format('[%s]', mark_key) or ''
 end
 
 local function lsp_diag(buf)
@@ -90,6 +86,7 @@ local function tab_modified_and_lsp(tab)
         }
     end
 
+    result[1] = result[1] .. ' '
     return result
 end
 
@@ -109,10 +106,11 @@ require('tabby').setup({
     },
 
     line   = function(line)
+        local current_tab_number = vim.api.nvim_tabpage_get_number(vim.api.nvim_get_current_tabpage())
         return {
             {
                 { '  ', hl = theme.current_tab },
-                line.sep('', theme.current_tab, theme.tail),
+                line.sep(vim.api.nvim_get_current_tabpage() == 1 and '' or '', theme.current_tab, theme.tail),
 
             },
             line.tabs().foreach(function(tab)
@@ -120,30 +118,40 @@ require('tabby').setup({
                 local tab_sign = tab_modified_and_lsp(tab.id)
                 tab_sign.hl.bg = get_rgb(hl, false)
 
+                local start_sign = tab.is_current() and '' or ''
+                local end_sign = tab.number() - current_tab_number == -1 and '' or ''
+
                 return {
-                    line.sep('', hl, theme.tail),
+                    line.sep(start_sign, hl, theme.tail),
                     ' ',
                     tab_name(tab),
                     ' ',
                     tab_mark(tab),
                     ' ',
                     tab_sign,
-                    line.sep('', hl, theme.tail),
+                    line.sep(end_sign, hl, theme.tail),
                     -- margin = ' ',
                     hl = hl,
                 }
             end),
-            hl = theme.fill,
+            line.sep('%=s', theme.tail, theme.tail),
+            {
+                line.sep('', theme.current_tab, theme.tail),
+                {
+                    string.format(" [%s] ", vim.fn.fnamemodify(vim.fn.getcwd(), ':t')),
+                    hl = theme.current_tab
+                },
+            }
         }
     end,
 })
 
 
 vim.api.nvim_set_keymap("n", "<leader>ta", ":$tabnew<CR>", { noremap = true })
-vim.api.nvim_set_keymap("n", "<leader>to", ":tabonly<CR>", { noremap = true })
-vim.api.nvim_set_keymap("n", "<leader>tn", ":tabn<CR>", { noremap = true })
-vim.api.nvim_set_keymap("n", "<leader>tp", ":tabp<CR>", { noremap = true })
+-- vim.api.nvim_set_keymap("n", "<leader>to", ":tabonly<CR>", { noremap = true })
+-- vim.api.nvim_set_keymap("n", "<leader>tn", ":tabn<CR>", { noremap = true })
+-- vim.api.nvim_set_keymap("n", "<leader>tp", ":tabp<CR>", { noremap = true })
 -- move current tab to previous position
-vim.api.nvim_set_keymap("n", "<leader>tmp", ":-tabmove<CR>", { noremap = true })
+-- vim.api.nvim_set_keymap("n", "<leader>tmp", ":-tabmove<CR>", { noremap = true })
 -- move current tab to next position
-vim.api.nvim_set_keymap("n", "<leader>tmn", ":+tabmove<CR>", { noremap = true })
+-- vim.api.nvim_set_keymap("n", "<leader>tmn", ":+tabmove<CR>", { noremap = true })

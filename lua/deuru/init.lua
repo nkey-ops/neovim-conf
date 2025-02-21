@@ -280,8 +280,11 @@ local plugins = {
     {
         "iamcco/markdown-preview.nvim",
         run = function() vim.fn["mkdp#util#install"]() end,
-        init = function() req_conf('markdown-init') end,
         build = "cd app && npm install",
+        ft = { "markdown", "md" },
+        keys = {
+            { "<leader>pt", "<cmd>MarkdownPreviewToggle<cr>", ft = { "markdown", "md" }, desc = "Markdown: [P]review [T]oggle" }
+        }
     },
     {
         "epwalsh/obsidian.nvim",
@@ -293,14 +296,14 @@ local plugins = {
     },
     {
         'MeanderingProgrammer/render-markdown.nvim',
-        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
-        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
         dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-        ---@module 'render-markdown'
-        ---@type render.md.UserConfig
+        ft = { "markdown", "md" },
         opts = {
             indent = { enabled = true, skip_heading = true }
         },
+        keys = {
+            { "<leader>rt", '<cmd>RenderMarkdown toggle<cr>', ft = { "markdown", "md" }, desc = "Markdown: [R]ender [T]oggle" }
+        }
     }
 }
 

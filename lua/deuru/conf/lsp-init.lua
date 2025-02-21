@@ -52,7 +52,7 @@ end
 local lsp_classes = function()
     builtin.lsp_document_symbols(
         {
-            symbols = { "class" },
+            symbols = { "class", "interface", "enummeration" },
             symbol_type_width = 0,
             show_line = true
         })

@@ -16,7 +16,7 @@ for _, package_name in ipairs(packages) do
         print("Not Installed", package_name)
         local package = mason_registry.get_package(package_name)
         Package.install(package, {})
-        print("Added to Installention queue", package_name)
+        print("Added to Installentiou queue", package_name)
     end
 end
 
@@ -36,7 +36,7 @@ require('mason-lspconfig').setup({
         marksman = require('lspconfig').marksman.setup({}),
         limminx = require("lspconfig").lemminx.setup({
             -- eclipse-lemminx/lemminx.git
-            cmd = { 'java', '-jar', 'addons/org.eclipse.lemminx-uber.jar' },
+            cmd = { 'java', '-jar', vim.fn.glob('~/.config/dotfiles/nvim/addons/org.eclipse.lemminx-uber.jar') },
         }),
         jdtls = nil,
         jsonls = require('lspconfig').jsonls.setup({}),

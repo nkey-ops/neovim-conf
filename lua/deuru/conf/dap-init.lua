@@ -42,15 +42,15 @@ map.set('n', '<leader>dbr', dap.clear_breakpoints, --[[-]] { desc = "Debug: [B]r
 -- Frames
 map.set('n', '<leader>dfp', dap.up, --[[----------------]] { desc = "Debug: [F]rame [P]revious" })
 map.set('n', '<leader>dfn', dap.down, --[[--------------]] { desc = "Debug: [F]rame [N]ew" })
-map.set('n', '<leader>duf', dap.focus_frame, --[[-------]] { desc = "Debug: [U]I [F]rames" })
 map.set('n', '<leader>dfr', dap.restart_frame, --[[-----]] { desc = "Debug: [F]rame [R]estart" })
+map.set('n', '<leader>dff', dap.focus_frame, --[[-------]] { desc = "Debug: [F]rame [F]ocus" })
 -- UI
-map.set('n', '<leader>dut', dapui.toggle, --[[-----------]] { desc = "Debug: UI [T]oggle" })
-map.set('n', '<leader>dus', function() dapui.toggle(1) end, { desc = "Debug: UI [S]ide Bar" })
-map.set('n', '<leader>duc', function() dapui.toggle(2) end, { desc = "Debug: UI [C]onsole" })
-map.set('n', '<leader>dur', function() dapui.toggle(3) end, { desc = "Debug: UI [R]epl" })
-map.set('n', '<leader>duf', float_frames, --[[-----------]] { desc = "Debug: UI [F]loating [F]rames" })
-map.set('n', '<leader>dus', float_scopes, --[[-----------]] { desc = "Debug: UI [F]loating [S]copes" })
+map.set('n', '<leader>dut', dapui.toggle, --[[-----------]] { desc = "Debug: [U]I [T]oggle" })
+map.set('n', '<leader>dus', function() dapui.toggle(1) end, { desc = "Debug: [U]I [S]ide Bar" })
+map.set('n', '<leader>duc', function() dapui.toggle(2) end, { desc = "Debug: [U]I [C]onsole" })
+map.set('n', '<leader>dur', function() dapui.toggle(3) end, { desc = "Debug: [U]I [R]epl" })
+map.set('n', '<leader>duf', float_frames, --[[-----------]] { desc = "Debug: [U]I Floating [F]rames" })
+map.set('n', '<leader>dup', float_scopes, --[[-----------]] { desc = "Debug: [U]I Floating Sco[p]es" })
 
 map.set({ 'n', 'v' }, '<leader>dh', widgets.hover, --[[--]] { desc = "Debug: [H]over" })
 map.set({ 'n', 'v' }, '<leader>dp', widgets.preview, --[[]] { desc = "Debug: [P]review" })

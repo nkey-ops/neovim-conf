@@ -70,8 +70,8 @@ require('formatter').setup {
 }
 
 
-vim.api.nvim_create_user_command("EnableJavaAutoFormat",
-    function(opts)
+vim.api.nvim_create_user_command("JavaAutoFormat",
+    function()
         enable_auto_format = not enable_auto_format
         print(string.format("JavaAutoFormat=%s", enable_auto_format))
     end, {})
@@ -83,8 +83,10 @@ vim.api.nvim_create_user_command("SetJavaFormat",
             if string.match(opts.args, format) then
                 if format:match("google2") then
                     java_format = "google2"
+                    vim.opt.expandtab = true
                 elseif format:match "google4" then
                     java_format = "google4"
+                    vim.opt.expandtab = true
                 elseif format:match "5pos" then
                     vim.opt.expandtab = false
                 end
@@ -100,22 +102,20 @@ vim.api.nvim_create_user_command("SetJavaFormat",
     })
 
 
-local auto_format = function()
-    assert(type(enable_auto_format) == 'boolean', "Should be boolean:", enable_auto_format)
-    if enable_auto_format and vim.tbl_isempty(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }))
-    then
-        local_marks.update()
-        vim.cmd("FormatWrite")
-        local_marks.restore()
-    end
-end
-
 local format = function()
     local_marks.update()
-
-    vim.cmd("FormatWrite")
-
+    vim.cmd("Format")
     local_marks.restore()
+end
+
+local auto_format = function()
+    assert(type(enable_auto_format) == 'boolean', "Should be boolean:", enable_auto_format)
+    if enable_auto_format and
+        vim.tbl_isempty(
+            vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }))
+    then
+        format()
+    end
 end
 
 local extract_var = function()
@@ -151,18 +151,28 @@ local create_method = function()
     M.perform_action("Create method .*")
 end
 
-local convert_to_static_import = function()
+local to_static_import = function()
     M.perform_action("Convert to static import (repl.*")
 end
 
-local add_doc = function()
+local create_doc = function()
     M.perform_action("Add Javadoc.*")
 end
 
-local assign_param_to_new_field = function()
+local assign_const_param = function()
     M.perform_action("Assign parameter to new field")
 end
 
+local add_param_to_constr = function()
+    M.perform_action("Change constructor .-: Add parameter.*")
+end
+
+local create_constructor = function()
+    M.perform_action("Create constructor.*")
+end
+local change_constructor = function()
+    M.perform_action("Change constructor.*: Add param.*")
+end
 local create_local_var = function()
     M.perform_action("Create local variable.*")
 end
@@ -179,76 +189,79 @@ local add_throws = function()
     M.perform_action("Add throws declaration")
 end
 
-local add_unimplemented_methods = function()
+local add_unimp_methods = function()
     M.perform_action("Add unimplemented methods")
 end
 
-local ext = function(opts, extra)
-    return vim.tbl_extend('error', opts, extra)
+local ext = function(opts, desc, extra)
+    assert(opts)
+    assert(type(opts) == 'table')
+
+    if (desc) then
+        vim.tbl_extend('error', opts, { desc = desc })
+    end
+
+    if (extra) then
+        vim.tbl_extend('error', opts, extra)
+    end
 end
 
-local attach_java_configs = function(buf)
-    vim.api.nvim_create_autocmd('User', {
-        group = vim.api.nvim_create_augroup('JavaLsp', {}),
-        desc = "Creats buffer local settings for files with the '*.java' extension",
-        -- pattern = 'UserLspConfigAttached',
-        buffer = buf,
-        once = true,
+vim.api.nvim_create_autocmd('User', {
+    group = vim.api.nvim_create_augroup('JavaLspSettings', { clear = false }),
+    pattern = 'UserLspConfigAttached',
+    desc = "Creats buffer local settings for files with the '*.java' extension",
 
-        callback = function(args)
-            if not string.match(vim.api.nvim_buf_get_name(args.buf), '%.java$') then
-                return
-            end
-
-            local opts = { silent = true, buffer = args.buf }
-
-            set('n', '<leader>o', jdtls.organize_imports, ext(opts, { desc = "Java Import" }))
-            set({ 'n', 'v' }, '<leader>f', format, ext(opts, { desc = "Java Format" }))
-            set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, { desc = "Java [E]xtract [V]ariable" }))
-            set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, { desc = "Java [E]xtract [M]ethod" }))
-            set("n", "<leader>jc", "<cmd>JdtCompile<CR>", ext(opts, { desc = "Java JdtCompile" }))
-
-            set('n', '<leader>jot', function() jdtls.jol("estimates") end, ext(opts, { desc = "Java [Jo]l Es[t]imates" }))
-            set('n', '<leader>jof', function() jdtls.jol("footprint") end, ext(opts, { desc = "Java [Jo]l [F]ootprint" }))
-            set('n', '<leader>joe', function() jdtls.jol("externals") end, ext(opts, { desc = "Java [Jo]l [E]xternals" }))
-            set('n', '<leader>joi', function() jdtls.jol("internals") end, ext(opts, { desc = "Java [Jo]l [I]nternals" }))
-            set('n', '<leader>jap', jdtls.javap, ext(opts, { desc = "Java [Ja]va[p]" }))
-
-            set("n", "<leader>tt", jdtls.test_class, ext(opts, { desc = "Java Test Class" }))
-            set("n", "<leader>tm", jdtls.test_nearest_method, ext(opts, { desc = "Java [T]est Nearest [M]ethod", }))
-            set("n", "<leader>tp", jdtls.pick_test, ext(opts, { desc = "Java [P]ick [T]est" }))
-            -- set("n", "<leader>tg", jdtls.generate, ext(opts, { desc = "Java [G]enerate [T]est" }))
-            -- set("n", "<leader>tb", jdtls.goto_subjects, ext(opts, { desc = "Java [G]o to subjects" }))
-            set("n", "<leader>ud", "<cmd>JdtUpdateDebugConf<CR>", ext(opts, { desc = "Java JdtUpdateDebugConf" }))
-
-            set("n", "<leader>ccg", create_getter, opts)
-            set("n", "<leader>ccf", create_field, opts)
-            set("n", "<leader>ccm", create_method, opts)
-            set("n", "<leader>ccs", convert_to_static_import, opts)
-            set("n", "<leader>cd", add_doc, opts)
-            set("n", "<leader>cpn", assign_param_to_new_field,
-                ext(opts, { desc = "Java: Assgin constructor param to a field" }))
-            set("n", "<leader>ccl", create_local_var, opts)
-            set("n", "<leader>cts", to_string, opts)
-            set("n", "<leader>csc", surround_try_catch, opts)
-            set("n", "<leader>cat", add_throws, opts)
-            set("n", "<leader>cum", add_unimplemented_methods,
-                ext(opts, { desc = "Java Add [U]nimplemented [M]ethods" }))
-
-            -- vim.api.nvim_create_autocmd("BufWritePost", {
-            --     pattern = "*.java",
-            --     callback = function(args)
-            --         if formats[args.buf] == nil then
-            --             formats[args.buf] = true
-            --             auto_format()
-            --         else
-            --             formats[args.buf] = nil
-            --         end
-            --     end
-            -- })
+    callback = function(args)
+        if (not vim.bo[args.buf].filetype:match("java")) then
+            return
         end
-    })
-end
+
+        local opts = { silent = true, buffer = args.buf }
+
+        set('n', '<leader>o', jdtls.organize_imports, ext(opts, { desc = "Java Import" }))
+        set({ 'n', 'v' }, '<leader>f', format, ext(opts, --[[-]] { desc = "Java Format" }))
+        set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, { desc = "Java [E]xtract [V]ariable" }))
+        set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, { desc = "Java [E]xtract [M]ethod" }))
+        set("n", "<leader>jc", "<cmd>JdtCompile<CR>", ext(opts, { desc = "Java JdtCompile" }))
+
+        set('n', '<leader>jot', function() jdtls.jol("estimates") end, ext(opts, "Java [Jo]l Es[t]imates"))
+        set('n', '<leader>jof', function() jdtls.jol("footprint") end, ext(opts, "Java [Jo]l [F]ootprint"))
+        set('n', '<leader>joe', function() jdtls.jol("externals") end, ext(opts, "Java [Jo]l [E]xternals"))
+        set('n', '<leader>joi', function() jdtls.jol("internals") end, ext(opts, "Java [Jo]l [I]nternals"))
+        set('n', '<leader>jap', jdtls.javap, ext(opts, { desc = "Java [Ja]va[p]" }))
+
+        set("n", "<leader>tt", jdtls.test_class, ext(opts, { desc = "Java Test Class" }))
+        set("n", "<leader>tm", jdtls.test_nearest_method, ext(opts, { desc = "Java [T]est Nearest [M]ethod", }))
+        set("n", "<leader>tp", jdtls.pick_test, ext(opts, { desc = "Java [P]ick [T]est" }))
+        -- set("n", "<leader>tg", jdtls.generate, ext(opts, { desc = "Java [G]enerate [T]est" }))
+        -- set("n", "<leader>tb", jdtls.goto_subjects, ext(opts, { desc = "Java [G]o to subjects" }))
+        set("n", "<leader>ud", "<cmd>JdtUpdateDebugConf<CR>", ext(opts, { desc = "Java JdtUpdateDebugConf" }))
+
+        -- Code Actions
+        set("n", "<leader>ccg", create_getter, --[[------]] ext(opts, "Java: CA: [C]reate [G]etter"))
+        set("n", "<leader>ccl", create_local_var, --[[---]] ext(opts, "Java: CA: [C]reate [L]ocal Var"))
+        set("n", "<leader>ccf", create_field, --[[-------]] ext(opts, "Java: CA: [C]reate [F]ield"))
+        set("n", "<leader>ccm", create_method, --[[------]] ext(opts, "Java: CA: [C]reate [M]ethod"))
+        set("n", "<leader>ccc", create_constructor, --[[-]] ext(opts, "Java: CA: [C]reate [C]onstructor"))
+        set("n", "<leader>cuc", change_constructor, --[[-]] ext(opts, "Java: CA: [C]hange [C]onstructor - Add Param"))
+        set("n", "<leader>cad", create_doc, --[[---------]] ext(opts, "Java: CA: [C]reate Java [D]oc"))
+        set("n", "<leader>ccs", to_static_import, --[[---]] ext(opts, "Java: CA: Convert to Static Import"))
+        set("n", "<leader>cpn", assign_const_param, --[[-]] ext(opts, "Java: CA: Assign Constructor Param"))
+        set("n", "<leader>cap", add_param_to_constr, --[[]] ext(opts, "Java: CA: Add Param To Constr"))
+        set("n", "<leader>cts", to_string, --[[----------]] ext(opts, "Java: CA: Create ToString Method"))
+        set("n", "<leader>csc", surround_try_catch, --[[-]] ext(opts, "Java: CA: [S]urround with Try [C]atch"))
+        set("n", "<leader>cat", add_throws, --[[---------]] ext(opts, "Java: CA: Add Throws"))
+        set("n", "<leader>cum", add_unimp_methods, --[[--]] ext(opts, "Java: CA: Add [U]nimp [M]ethods"))
+    end
+})
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+    pattern = "java",
+    callback = function(args)
+        P("auotfomrm")
+        auto_format()
+    end
+})
 
 vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
     group = vim.api.nvim_create_augroup('JavaLspSettings', { clear = false }),
@@ -257,16 +270,6 @@ vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
     callback = function(args)
         vim.bo[args.buf].buftype = "help"
         vim.bo[args.buf].buflisted = false
-    end
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = "java",
-    group = vim.api.nvim_create_augroup('JavaLspSettings', { clear = false }),
-    once = true,
-
-    callback = function(args)
-        attach_java_configs(args.buf)
     end
 })
 

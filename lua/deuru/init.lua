@@ -135,9 +135,17 @@ local plugins = {
             },
             { 'mhartington/formatter.nvim', lazy = true }
         },
-        config = false,
+        ft = { "java", "class" },
+        config = function()
+            vim.api.nvim_create_autocmd('filetype', {
+                pattern = "java",
+                callback = function()
+                    require("jdtls").start_or_attach(req_conf("java2")())
+                end
+            })
+        end,
         lazy = true,
-        init = function() req_conf('java-init') end,
+        init = function() req_conf("java-init") end,
     },
 
     {
@@ -172,6 +180,7 @@ local plugins = {
     {
         'rest-nvim/rest.nvim',
         dependencies = { "nvim-lua/plenary.nvim" },
+        ft = 'http',
         config = req_conf('rest-nvim'),
         init = function() req_conf('rest-nvim-init') end
     },
@@ -218,21 +227,20 @@ local plugins = {
         -- "nkey-ops/extended-marks.nvim",
         dir = "/home/local/table/extended-marks.nvim/",
         enabled = true,
-        config = function()
-            require('extended-marks').setup({
-                data_dir = vim.fn.glob("~/.cache/nvim/"), -- path where 'extended-marks' dir will be created
-                Local = {
-                    key_length = 3,                       -- valid from 1 to 30
-                    sign_column = 1,
-                },
-                Cwd = {
-                    key_length = 5,
-                },
-                Tab = {
-                    key_length = 1,
-                },
-            })
-        end,
+        opts = {
+            -- path where 'extended-marks' dir will be created
+            data_dir = "~/.cache/nvim",
+            Local = {
+                key_length = 3, -- valid from 1 to 30
+                sign_column = 1,
+            },
+            Cwd = {
+                key_length = 5,
+            },
+            Tab = {
+                key_length = 1,
+            },
+        },
         init = function()
             local marks = require('extended-marks')
             vim.keymap.set("n", "m", marks.set_mark)
@@ -296,15 +304,23 @@ local plugins = {
     },
     {
         'MeanderingProgrammer/render-markdown.nvim',
-        dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+        dependencies = {
+            'nvim-treesitter/nvim-treesitter',
+            'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
         ft = { "markdown", "md" },
         opts = {
             indent = { enabled = true, skip_heading = true }
         },
         keys = {
-            { "<leader>rt", '<cmd>RenderMarkdown toggle<cr>', ft = { "markdown", "md" }, desc = "Markdown: [R]ender [T]oggle" }
+            {
+                "<leader>rt",
+                '<cmd>RenderMarkdown toggle<cr>',
+                ft = { "markdown", "md" },
+                desc = "Markdown: [R]ender [T]oggle"
+            }
         }
-    }
+    },
+
 }
 
 require("lazy").setup(plugins)

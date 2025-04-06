@@ -59,6 +59,8 @@ vim.keymap.set("n", "<leader>dsc", "<cmd>set nospell<CR>",
 
 vim.keymap.set('t', '<Esc>', "<C-\\><C-n>",
     { desc = "Exit terminal" })
+vim.keymap.set('t', '<C-[>', "<C-\\><C-n>",
+    { desc = "Exit terminal" })
 vim.keymap.set("n", "<leader>tc",
     ":split<CR>" ..
     ":let $VIM_DIR=expand('%:h')<CR>" ..

@@ -70,12 +70,12 @@ vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>",
     { desc = "Open Terminal window at the root directory" });
 
 -- Vim Like Cmd Navigation
-vim.keymap.set("c", "<A-h>", "<Left>")
-vim.keymap.set("c", "<A-l>", "<Right>")
-vim.keymap.set("c", "<A-j>", "<Down>")
-vim.keymap.set("c", "<A-k>", "<Up>")
-vim.keymap.set("c", "<A-w>", "<C-Right>")
-vim.keymap.set("c", "<A-b>", "<C-Left>")
+vim.keymap.set({ "c", "t" }, "<A-h>", "<Left>")
+vim.keymap.set({ "c", "t" }, "<A-l>", "<Right>")
+vim.keymap.set({ "c", "t" }, "<A-j>", "<Down>")
+vim.keymap.set({ "c", "t" }, "<A-k>", "<Up>")
+vim.keymap.set({ "c", "t" }, "<A-w>", "<C-Right>")
+vim.keymap.set({ "c", "t" }, "<A-b>", "<C-Left>")
 
 vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>", { desc = "Run :messages" })
 

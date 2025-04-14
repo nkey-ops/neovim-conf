@@ -115,7 +115,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
         vim.api.nvim_create_autocmd("BufWritePre", {
             buffer = ev.buf,
             callback = function(args)
-                if (not args.match:match('*.java')) then
+                if (not vim.bo[args.buf].filetype:match("java")) then
                     local_marks.update()
                     vim.lsp.buf.format()
                     local_marks.restore()
@@ -215,7 +215,9 @@ function M.hover(config, handle_content)
         local buf = vim.lsp.util.open_floating_preview(contents, format, config)
         vim.api.nvim_buf_set_name(buf, "float.md")
 
-        require("obsidian.ui").update(require("obsidian.config").UIOpts.default(), buf)
+        if (require("obsidian")) then
+            require("obsidian.ui").update(require("obsidian.config").UIOpts.default(), buf)
+        end
     end)
 end
 

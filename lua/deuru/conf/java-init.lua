@@ -139,16 +139,20 @@ local extract_meth = function()
 end
 local formats = {}
 
-local create_getter = function()
-    M.perform_action("Generate Getter for.*")
-end
-
 local create_field = function()
     M.perform_action("Create field .*")
 end
 
+local create_getter = function()
+    M.perform_action("Generate Getter for.*")
+end
+
 local create_method = function()
     M.perform_action("Create method .*")
+end
+
+local add_unimp_methods = function()
+    M.perform_action("Add unimplemented methods")
 end
 
 local to_static_import = function()
@@ -189,22 +193,23 @@ local add_throws = function()
     M.perform_action("Add throws declaration")
 end
 
-local add_unimp_methods = function()
-    M.perform_action("Add unimplemented methods")
-end
 
 local ext = function(opts, desc, extra)
     assert(opts)
     assert(type(opts) == 'table')
 
     if (desc) then
-        vim.tbl_extend('error', opts, { desc = desc })
+        assert(type(desc) == 'string')
+        opts = vim.tbl_extend('error', opts, { desc = desc })
     end
 
     if (extra) then
-        vim.tbl_extend('error', opts, extra)
+        opts = vim.tbl_extend('error', opts, extra)
     end
+
+    return opts
 end
+
 
 vim.api.nvim_create_autocmd('User', {
     group = vim.api.nvim_create_augroup('JavaLspSettings', { clear = false }),
@@ -216,32 +221,34 @@ vim.api.nvim_create_autocmd('User', {
             return
         end
 
+        P("loaded")
         local opts = { silent = true, buffer = args.buf }
 
-        set('n', '<leader>o', jdtls.organize_imports, ext(opts, { desc = "Java Import" }))
-        set({ 'n', 'v' }, '<leader>f', format, ext(opts, --[[-]] { desc = "Java Format" }))
-        set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, { desc = "Java [E]xtract [V]ariable" }))
-        set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, { desc = "Java [E]xtract [M]ethod" }))
-        set("n", "<leader>jc", "<cmd>JdtCompile<CR>", ext(opts, { desc = "Java JdtCompile" }))
+        set('n', '<leader>o', jdtls.organize_imports, ext(opts, "Java Import"))
+        set({ 'n', 'v' }, '<leader>f', format, ext(opts, "Java Format"))
+        set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, "Java [E]xtract [V]ariable"))
+        set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, "Java [E]xtract [M]ethod"))
+        set("n", "<leader>jc", "<cmd>JdtCompile<CR>", ext(opts, "Java JdtCompile"))
 
         set('n', '<leader>jot', function() jdtls.jol("estimates") end, ext(opts, "Java [Jo]l Es[t]imates"))
         set('n', '<leader>jof', function() jdtls.jol("footprint") end, ext(opts, "Java [Jo]l [F]ootprint"))
         set('n', '<leader>joe', function() jdtls.jol("externals") end, ext(opts, "Java [Jo]l [E]xternals"))
         set('n', '<leader>joi', function() jdtls.jol("internals") end, ext(opts, "Java [Jo]l [I]nternals"))
-        set('n', '<leader>jap', jdtls.javap, ext(opts, { desc = "Java [Ja]va[p]" }))
+        set('n', '<leader>jap', jdtls.javap, ext(opts, "Java [Ja]va[p]"))
 
-        set("n", "<leader>tt", jdtls.test_class, ext(opts, { desc = "Java Test Class" }))
-        set("n", "<leader>tm", jdtls.test_nearest_method, ext(opts, { desc = "Java [T]est Nearest [M]ethod", }))
-        set("n", "<leader>tp", jdtls.pick_test, ext(opts, { desc = "Java [P]ick [T]est" }))
-        -- set("n", "<leader>tg", jdtls.generate, ext(opts, { desc = "Java [G]enerate [T]est" }))
-        -- set("n", "<leader>tb", jdtls.goto_subjects, ext(opts, { desc = "Java [G]o to subjects" }))
-        set("n", "<leader>ud", "<cmd>JdtUpdateDebugConf<CR>", ext(opts, { desc = "Java JdtUpdateDebugConf" }))
+        set("n", "<leader>tt", jdtls.test_class, ext(opts, "Java Test Class"))
+        set("n", "<leader>tm", jdtls.test_nearest_method, ext(opts, "Java [T]est Nearest [M]ethod"))
+        set("n", "<leader>tp", jdtls.pick_test, ext(opts, "Java [P]ick [T]est"))
+        -- set("n", "<leader>tg", jdtls.generate, ext(opts, "Java [G]enerate [T]est" ))
+        -- set("n", "<leader>tb", jdtls.goto_subjects, ext(opts, "Java [G]o to subjects" ))
+        set("n", "<leader>ud", "<cmd>JdtUpdateDebugConf<CR>", ext(opts, "Java JdtUpdateDebugConf"))
 
         -- Code Actions
         set("n", "<leader>ccg", create_getter, --[[------]] ext(opts, "Java: CA: [C]reate [G]etter"))
         set("n", "<leader>ccl", create_local_var, --[[---]] ext(opts, "Java: CA: [C]reate [L]ocal Var"))
         set("n", "<leader>ccf", create_field, --[[-------]] ext(opts, "Java: CA: [C]reate [F]ield"))
         set("n", "<leader>ccm", create_method, --[[------]] ext(opts, "Java: CA: [C]reate [M]ethod"))
+        -- set("n", "<leader>cum", change_method, --[[------]] ext(opts, "Java: CA: [C]reate [M]ethod"))
         set("n", "<leader>ccc", create_constructor, --[[-]] ext(opts, "Java: CA: [C]reate [C]onstructor"))
         set("n", "<leader>cuc", change_constructor, --[[-]] ext(opts, "Java: CA: [C]hange [C]onstructor - Add Param"))
         set("n", "<leader>cad", create_doc, --[[---------]] ext(opts, "Java: CA: [C]reate Java [D]oc"))
@@ -258,7 +265,6 @@ vim.api.nvim_create_autocmd('User', {
 vim.api.nvim_create_autocmd("BufWritePost", {
     pattern = "java",
     callback = function(args)
-        P("auotfomrm")
         auto_format()
     end
 })

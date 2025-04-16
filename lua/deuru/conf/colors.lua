@@ -1,6 +1,3 @@
--- vim.api.nvim_set_hl(0, "Normal", { blend=0 })
--- vim.api.nvim_set_hl(0, "NormalNC", { bg = 'none'})
--- vim.api.nvim_set_hl(0, "NormalFloatNC", { bg = "none" })
 return function()
     require("catppuccin").setup({
         background = {

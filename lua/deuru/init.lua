@@ -227,30 +227,36 @@ local plugins = {
         -- "nkey-ops/extended-marks.nvim",
         dir = "/home/local/table/extended-marks.nvim/",
         enabled = true,
+
+        --- @type ExtendedMarksOpts
         opts = {
             -- path where 'extended-marks' dir will be created
             data_dir = "~/.cache/nvim",
+            confirmation = true,
+            Global = {
+                key_length = 4
+            },
+            Cwd = {
+                key_length = 4,
+            },
             Local = {
                 key_length = 3, -- valid from 1 to 30
                 sign_column = 1,
             },
-            Cwd = {
-                key_length = 5,
-            },
             Tab = {
-                key_length = 1,
+                key_length = 2,
             },
         },
         init = function()
             local marks = require('extended-marks')
-            vim.keymap.set("n", "m", marks.set_mark)
+            vim.keymap.set("n", "m", marks.set_cwd_or_local_mark)
             vim.keymap.set("n", "`",
                 function()
-                    marks.jump_to_mark()
+                    marks.jump_to_cwd_or_local_mark()
                     vim.api.nvim_command(":normal! zt")
                 end)
-            vim.keymap.set("n", "M", marks.set_tab_mark)
-            vim.keymap.set("n", "'", marks.jump_to_tab_mark)
+            vim.keymap.set("n", "M", marks.set_global_or_tab_mark)
+            vim.keymap.set("n", "'", marks.jump_to_global_or_tab_mark)
         end,
     },
     {
@@ -319,8 +325,7 @@ local plugins = {
                 desc = "Markdown: [R]ender [T]oggle"
             }
         }
-    },
-
+    }
 }
 
 require("lazy").setup(plugins)

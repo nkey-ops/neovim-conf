@@ -140,12 +140,12 @@ local plugins = {
             vim.api.nvim_create_autocmd('filetype', {
                 pattern = "java",
                 callback = function()
-                    require("jdtls").start_or_attach(req_conf("java2")())
+                    require("jdtls").start_or_attach(req_conf("java")())
                 end
             })
+            req_conf("java-init")
         end,
         lazy = true,
-        init = function() req_conf("java-init") end,
     },
 
     {

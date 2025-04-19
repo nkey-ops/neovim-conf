@@ -29,19 +29,10 @@ local Paths = {
 -- local extendedClientCapabilities = jdtls.extendedClientCapabilities
 -- extendedClientCapabilities.resolveAdditionalTextEditsSupport = true
 
--- File types that signify a Java project's root directory. This will be
--- used by eclipse to determine what constitutes a workspace
---
---
--- eclipse.jdt.ls stores project specific data within a folder. If you are working
--- with multiple different projects, each project must use a dedicated data directory.
--- This variable is used to configure eclipse to use the directory name of the
--- current project found using the root_marker as the folder for project specific data.
---local workspace_folder = home .. "/.local/share/eclipse/" .. vim.fn.fnamemodify(root_dir, ":p:h:t")
 return function()
     return {
         cmd = {
-            -- "java", -- Or the absolute path '/path/to/java11_or_newer/bin/java'
+            -- "java",
             "/usr/lib/jvm/java-21-openjdk-amd64/bin/java",
             "-Declipse.application=org.eclipse.jdt.ls.core.id1",
             "-Dosgi.bundles.defaultStartLevel=4",
@@ -69,7 +60,6 @@ return function()
             "-jar", Paths.jdtls_launcher,
             "-configuration", Paths.jdtls .. "/config_linux",
             "-data", Paths.workspace_dir()
-
         },
         -- This is the default if not provided, you can remove it. Or adjust as needed.
         -- One dedicated LSP server & client will be started per unique root_dir
@@ -135,8 +125,11 @@ return function()
                     Paths.java_test_plugins,
                     { Paths.java_debug_plugin }
                 ),
-            extendedClientCapabilities = extendedClientCapabilities
+
         },
+        on_attach = function()
+            jdtls.setup_dap({ hotcodereplace = 'auto' })
+        end,
         capabilities =
         {
             workspace = {

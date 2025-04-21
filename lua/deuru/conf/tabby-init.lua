@@ -1,6 +1,6 @@
 vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
 vim.o.showtabline = 2
-
+local is_tab_name_present = true
 local function get_rgb(hl, is_fg)
     assert(hl ~= nil)
     assert(type(hl) == 'string')
@@ -123,8 +123,7 @@ require('tabby').setup({
 
                 return {
                     line.sep(start_sign, hl, theme.tail),
-                    ' ',
-                    tab_name(tab),
+                    is_tab_name_present and ' ' .. tab_name(tab) or '',
                     ' ',
                     tab_mark(tab),
                     ' ',
@@ -147,11 +146,15 @@ require('tabby').setup({
 })
 
 
+vim.api.nvim_create_user_command("ToggleTabNames", function()
+    is_tab_name_present = not is_tab_name_present
+end, {})
+
 vim.api.nvim_set_keymap("n", "<leader>ta", ":$tabnew<CR>", { noremap = true })
--- vim.api.nvim_set_keymap("n", "<leader>to", ":tabonly<CR>", { noremap = true })
--- vim.api.nvim_set_keymap("n", "<leader>tn", ":tabn<CR>", { noremap = true })
--- vim.api.nvim_set_keymap("n", "<leader>tp", ":tabp<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>to", ":tabonly<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>tn", ":tabn<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>tp", ":tabp<CR>", { noremap = true })
 -- move current tab to previous position
--- vim.api.nvim_set_keymap("n", "<leader>tmp", ":-tabmove<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>tmp", ":-tabmove<CR>", { noremap = true })
 -- move current tab to next position
--- vim.api.nvim_set_keymap("n", "<leader>tmn", ":+tabmove<CR>", { noremap = true })
+vim.api.nvim_set_keymap("n", "<leader>tmn", ":+tabmove<CR>", { noremap = true })

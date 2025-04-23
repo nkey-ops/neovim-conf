@@ -8,10 +8,13 @@ return function()
     require('luasnip.loaders.from_vscode').lazy_load()
 
     -- If you want insert `(` after select function or method item
-    cmp.event:on(
-        'confirm_done',
-        require('nvim-autopairs.completion.cmp').on_confirm_done()
-    )
+
+    -- if require("nvim-autopairs") then
+    --     cmp.event:on(
+    --         'confirm_done',
+    --         require('nvim-autopairs.completion.cmp').on_confirm_done()
+    --     )
+    -- end
 
     cmp.setup({
         snippet = {
@@ -36,26 +39,91 @@ return function()
             autocomplete = false
         },
 
+        confirmation = {
+
+            get_commit_characters = function(commit_characters)
+                return { "(", ")" }
+            end
+        },
+        matching = {
+            -- disallow_fuzzy_matching = true,
+            -- disallow_partial_fuzzy_matching = true,
+            disallow_partial_matching = false, --
+            disallow_prefix_unmatching = true, --
+            disallow_symbol_nonprefix_matching = true,
+        },
         sorting = {
+            -- 1 upper case vs lower case,
+            -- 2 length
+            -- 3 methods vs vars
+            -- 4 snake case bad
+            -- 5 recently used
+            -- 6 kind -- snippets should be last
+            -- 7 scopes
+            --
+            -- {
+            -- cmp.config.compare.offset,
+            -- cmp.config.compare.exact,
+            -- -- compare.scopes,
+            -- compare.score,
+            -- compare.recently_used,
+            -- compare.locality,
+            -- compare.kind,
+            -- compare.sort_text,
+            -- compare.length,
+            -- compare.order,
+            -- }
+
             comparators = {
-                -- using comparator that selects an item with the shortest length
+                -- match_score > length > vars > methods
                 function(e1, e2)
-                    local label1 = e1.completion_item.label
-                    local label2 = e2.completion_item.label
+                    local comps = {
+                        -- [1]
+                        function(o1, o2) -- the higher the better
+                            local diff = o1.score - o2.score
+                            if diff == 0 then return nil end
+                            return diff > 0
+                        end,
+                        -- [2]
+                        function(o1, o2) -- the shorter the better
+                            -- when snippet doesn't have an insert_text
+                            local t1 = o1.completion_item.insertText and o1.completion_item.insertText or
+                                o1.filter_text
+                            local t2 = o2.completion_item.insertText and o2.completion_item.insertText or
+                                o2.filter_text
 
-                    local ls1 = label1:find('%(')
-                    local ls2 = label2:find('%(')
+                            local diff = #t1 - #t2
+                            if diff == 0 then
+                                -- [3] if it is a method return false
+                                if o1.completion_item.kind == o2.completion_item.kind then
+                                    return nil
+                                elseif o1.completion_item.kind == 2 then
+                                    return false
+                                elseif o2.completion_item.kind == 2 then
+                                    return true
+                                else
+                                    return nil
+                                end
+                            end
+                            return diff < 0
+                        end,
+                        -- [5]
+                        -- cmp.config.compare.recently_used
+                    }
 
-                    if ls1 then
-                        label1 = label1:sub(0, ls1)
+                    local score = 0
+                    for i, comp in pairs(comps) do
+                        --- @type boolean?
+                        local diff = comp(e1, e2)
+                        if diff ~= nil then
+                            score = score + (diff and 1 + (#comps - i) or -1)
+                        end
                     end
-                    if ls2 then
-                        label2 = label2:sub(0, ls2)
-                    end
 
-                    return label1:len() < label2:len()
+                    if score == 0 then return nil end
+                    return score > 0
                 end
-            }
+            },
         },
 
         preselect = cmp.PreselectMode.Item,
@@ -118,9 +186,17 @@ return function()
             -- end
         }),
         sources = cmp.config.sources({
+
             { name = 'path' },
-            { name = 'nvim_lsp', group_index = 2, keword_length = 1 },
-            { name = 'luasnip',  group_index = 1, keword_length = 1 }, -- For luasnip users.
+            {
+                name = 'nvim_lsp',
+                keword_length = 1,
+                entry_filter = function(entry)
+                    local kind = require('cmp.types').lsp.CompletionItemKind[entry:get_kind()]
+                    return kind ~= 'Keyword'
+                end
+            },
+            { name = 'luasnip', priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.
             -- { name = 'snippy' }, -- For snippy users.

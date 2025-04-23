@@ -70,19 +70,24 @@ _G.gas_header = function(key1, key2, context, env_var_name)
 end
 
 --TODO corner keys for empty tables
-_G.gas_json = function(key, context, env_var_name)
+_G.gas_json = function(key, env_var_name, response, client)
     assert(key ~= nil and (type(key) == "table" or type(key) == "string"),
         "Key cannot be nil and should be of a type table or string")
-    assert(context ~= nil, "context cannot be nil")
     assert(env_var_name ~= nil and type(env_var_name) == "string",
         "env_var_name cannot be nil and should be of a type string")
+    assert(response ~= nil, "context cannot be nil")
+    assert(client ~= nil, "client cannot be nil")
 
-    if context.result.body == nil or context.result.body == "" then
+    if response.body == nil or response.body == "" then
         print("No body was present ")
         return
     end
 
-    local body = context.json_decode(context.result.body)
+    local status, body = pcall(vim.json.decode, response.body)
+    if not status then
+        print("Couldn't convert body to json")
+        return
+    end
 
     local full_key = "";
     if type(key) == "string" then
@@ -106,6 +111,6 @@ _G.gas_json = function(key, context, env_var_name)
         return
     end
 
-    context.set_env(env_var_name, body)
+    client.global.set(env_var_name, body)
     print(("Set env-var: '%s'='%s'"):format(env_var_name, body))
 end

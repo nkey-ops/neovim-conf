@@ -121,7 +121,7 @@ local plugins = {
         'windwp/nvim-autopairs',
         event = "InsertEnter",
         config = true,
-        enabled = true,
+        enabled = false,
         -- use opts = {} for passing setup options
         -- this is equalent to setup({}) function
     },
@@ -170,6 +170,7 @@ local plugins = {
     {
         'Pocco81/auto-save.nvim',
         config = req_conf('auto-save'),
+        enabled = false
     },
     {
         'nvim-lualine/lualine.nvim',
@@ -325,7 +326,18 @@ local plugins = {
                 desc = "Markdown: [R]ender [T]oggle"
             }
         }
-    }
-}
+    },
 
+    -- {
+    --     "JavaHello/spring-boot.nvim",
+    --     dependencies = {
+    --         "mfussenegger/nvim-jdtls",
+    --     },
+    --     config = {
+    --         -- ls_path = "/home/local/sts-4.29.1.RELEASE/plugins/org.springframework.tooling.boot.ls_1.61.1.202503181316/servers/spring-boot-language-server/lib/spring-boot-3.4.0.jar",
+    --         ls_path = "/home/local/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/language-server/spring-boot-language-server-1.61.1-SNAPSHOT-exec.jar"
+    --     }    },
+    --     enabled = false
+    -- }
+}
 require("lazy").setup(plugins)

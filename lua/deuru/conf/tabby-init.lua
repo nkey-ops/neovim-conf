@@ -1,6 +1,8 @@
 vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
 vim.o.showtabline = 2
-local is_tab_name_present = true
+
+local is_tab_name_present = false
+
 local function get_rgb(hl, is_fg)
     assert(hl ~= nil)
     assert(type(hl) == 'string')

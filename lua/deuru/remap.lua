@@ -50,6 +50,7 @@ vim.keymap.set("n", "]b", "<cmd>bnext<CR>")
 vim.keymap.set("n", "[B", "<cmd>bfirst<CR>")
 vim.keymap.set("n", "]B", "<cmd>blast<CR>")
 
+vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>", { desc = "Run :messages" })
 vim.keymap.set("n", "<C-l>", "<cmd>nohlsearch<CR>", { desc = "Run :noh" })
 
 vim.keymap.set("n", "<leader>esc", "<cmd>set spell spelllang=en_us<CR>",
@@ -57,10 +58,9 @@ vim.keymap.set("n", "<leader>esc", "<cmd>set spell spelllang=en_us<CR>",
 vim.keymap.set("n", "<leader>dsc", "<cmd>set nospell<CR>",
     { desc = "[D]isable [S]yntax [C]heck" });
 
-vim.keymap.set('t', '<Esc>', "<C-\\><C-n>",
-    { desc = "Exit terminal" })
-vim.keymap.set('t', '<C-[>', "<C-\\><C-n>",
-    { desc = "Exit terminal" })
+vim.keymap.set('t', '<Esc>', "<C-\\><C-n>", { desc = "Exit terminal" })
+vim.keymap.set('t', '<C-[>', "<C-\\><C-n>", { desc = "Exit terminal" })
+
 vim.keymap.set("n", "<leader>tc",
     ":split<CR>" ..
     ":let $VIM_DIR=expand('%:h')<CR>" ..
@@ -76,8 +76,6 @@ vim.keymap.set({ "c", "t" }, "<A-j>", "<Down>")
 vim.keymap.set({ "c", "t" }, "<A-k>", "<Up>")
 vim.keymap.set({ "c", "t" }, "<A-w>", "<C-Right>")
 vim.keymap.set({ "c", "t" }, "<A-b>", "<C-Left>")
-
-vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>", { desc = "Run :messages" })
 
 vim.keymap.set("n", "/", "/\\v")
 

@@ -10,6 +10,7 @@ local lsp_all_symbols = function()
     builtin.lsp_document_symbols({ show_line = true })
 end
 
+vim.diagnostic.config({ virtual_text = true })
 local M = {}
 
 -- Global mappings.
@@ -75,6 +76,15 @@ local lsp_dynamic_classes = function()
         })
 end
 
+
+local enable_auto_format = true
+vim.api.nvim_create_user_command("AutoFormat",
+    function()
+        enable_auto_format = not enable_auto_format
+        print(string.format("AutoFormat=%s", enable_auto_format))
+    end, {})
+
+
 vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('UserLspConfig', {}),
     callback = function(ev)
@@ -87,6 +97,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
         set('n', 'gd', vim.lsp.buf.definition)
         set('n', 'K', hover, opts)
         set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+        set({ 'n', 'v' }, '<leader-f>', vim.lsp.buf.format, opts)
 
         set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
         set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
@@ -115,7 +126,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
         vim.api.nvim_create_autocmd("BufWritePre", {
             buffer = ev.buf,
             callback = function(args)
-                if (not vim.bo[args.buf].filetype:match("java")) then
+                if (not vim.bo[args.buf].filetype:match("java") and enable_auto_format) then
                     local_marks.update()
                     vim.lsp.buf.format()
                     local_marks.restore()

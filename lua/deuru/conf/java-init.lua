@@ -139,17 +139,31 @@ local extract_meth = function()
 end
 local formats = {}
 
+-- CREATE
 local create_field = function()
     M.perform_action("Create field .*")
+end
+
+local create_local_var = function()
+    M.perform_action("Create local variable.*")
+end
+
+local create_param = function()
+    M.perform_action("Create parameter .*")
+end
+
+local create_method = function()
+    M.perform_action("Create method .*")
 end
 
 local create_getter = function()
     M.perform_action("Generate Getter for.*")
 end
 
-local create_method = function()
-    M.perform_action("Create method .*")
+local create_constructor = function()
+    M.perform_action("Create constructor.*")
 end
+
 
 local add_unimp_methods = function()
     M.perform_action("Add unimplemented methods")
@@ -171,15 +185,10 @@ local add_param_to_constr = function()
     M.perform_action("Change constructor .-: Add parameter.*")
 end
 
-local create_constructor = function()
-    M.perform_action("Create constructor.*")
-end
 local change_constructor = function()
     M.perform_action("Change constructor.*: Add param.*")
 end
-local create_local_var = function()
-    M.perform_action("Create local variable.*")
-end
+
 
 local to_string = function()
     M.perform_action("Generate toString.*")
@@ -244,12 +253,15 @@ vim.api.nvim_create_autocmd('User', {
         set("n", "<leader>ud", "<cmd>JdtUpdateDebugConf<CR>", ext(opts, "Java JdtUpdateDebugConf"))
 
         -- Code Actions
-        set("n", "<leader>ccg", create_getter, --[[------]] ext(opts, "Java: CA: [C]reate [G]etter"))
-        set("n", "<leader>ccl", create_local_var, --[[---]] ext(opts, "Java: CA: [C]reate [L]ocal Var"))
+        -- CREATE
         set("n", "<leader>ccf", create_field, --[[-------]] ext(opts, "Java: CA: [C]reate [F]ield"))
+        set("n", "<leader>ccl", create_local_var, --[[---]] ext(opts, "Java: CA: [C]reate [L]ocal Var"))
+        set("n", "<leader>ccp", create_param, --[[-------]] ext(opts, "Java: CA: [C]reate [P]aram"))
         set("n", "<leader>ccm", create_method, --[[------]] ext(opts, "Java: CA: [C]reate [M]ethod"))
-        -- set("n", "<leader>cum", change_method, --[[------]] ext(opts, "Java: CA: [C]reate [M]ethod"))
+        set("n", "<leader>ccg", create_getter, --[[------]] ext(opts, "Java: CA: [C]reate [G]etter"))
         set("n", "<leader>ccc", create_constructor, --[[-]] ext(opts, "Java: CA: [C]reate [C]onstructor"))
+
+        -- set("n", "<leader>cum", change_method, --[[------]] ext(opts, "Java: CA: [C]reate [M]ethod"))
         set("n", "<leader>cuc", change_constructor, --[[-]] ext(opts, "Java: CA: [C]hange [C]onstructor - Add Param"))
         set("n", "<leader>cad", create_doc, --[[---------]] ext(opts, "Java: CA: [C]reate Java [D]oc"))
         set("n", "<leader>ccs", to_static_import, --[[---]] ext(opts, "Java: CA: Convert to Static Import"))
@@ -292,7 +304,11 @@ function M.exit_visual()
     )
 end
 
+--- @param action_pattern string
 function M.perform_action(action_pattern)
+    assert(action_pattern)
+    assert(type(action_pattern) == 'string')
+
     vim.lsp.buf.code_action({
         apply = true,
         filter = function(action)
@@ -301,13 +317,36 @@ function M.perform_action(action_pattern)
     })
 end
 
-function M.filter(action, goal_action)
+--- @param action_patterns table<string>
+function M.perform_actions(action_patterns)
+    assert(action_patterns)
+    assert(type(action_patterns) == 'table')
+
+    vim.lsp.buf.code_action({
+        apply = true,
+        filter = function(action)
+            for _, action_pattern in pairs(action_patterns) do
+                if M.filter(action, action_pattern) then
+                    return true
+                end
+            end
+
+            return false
+        end
+    })
+end
+
+--- @param action lsp.CodeAction|lsp.Command
+--- @param goal_action_pattern string
+function M.filter(action, goal_action_pattern)
     assert(action)
-    assert(goal_action)
+    assert(type(action) == "table")
+    assert(goal_action_pattern)
+    assert(type(goal_action_pattern) == "string")
 
     local title = action.title
     if title and type(title) == 'string'
-        and title:match(goal_action) then
+        and title:match(goal_action_pattern) then
         return true
     end
 

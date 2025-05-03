@@ -8,24 +8,22 @@ null_ls.setup({
                 return {
                     "-f",
                     "sarif",
+                    "--tabWidth",
+                    "4",
                     "-c",
-                    vim.fn.glob('~/.config/nvim') .. '/addons/google_checks.xml',
+                    "/google_checks.xml",
                     params.bufname,
                 }
             end,
-
-            -- extra_args = { "-c",
-            --      mason_pack .. "/checkstyle/google_checks.xml" },
-            -- -- or "/sun_checks.xml" or path to self written rules
         }),
     }
 })
 
 
-local _, _ = pcall(vim.lsp.codelens.refresh)
-vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-    pattern = { "*.java" },
-    callback = function()
-        local _, _ = pcall(vim.lsp.codelens.refresh)
-    end,
-})
+-- local _, _ = pcall(vim.lsp.codelens.refresh)
+-- vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+--     pattern = { "*.java" },
+--     callback = function()
+--         local _, _ = pcall(vim.lsp.codelens.refresh)
+--     end,
+-- })

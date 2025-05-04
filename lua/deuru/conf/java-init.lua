@@ -33,25 +33,27 @@ require('formatter').setup {
                     M.exit_visual()
                 end
 
+                -- use the contents of the buffer not the file, so
+                -- you don't have to write into the file to make formatting
+                local tmp  = os.tmpname() ..".java"
+                local file = assert(io.open(tmp, "w"))
+
+                local data = vim.fn.getline(1, "$")
+                if (type(data) == 'string') then
+                    file:write(data)
+                else
+                    for _, x in pairs(data) do
+                        file:write(x, '\n')
+                    end
+                end
+                file:close()
+
                 if java_format:match("google2") then
                     return {
                         exe = java_path,
                         args = { '-jar', google_java_format_jar,
                             lines and lines or "",
-                            vim.api.nvim_buf_get_name(0)
-                        },
-                        stdin = true
-                    }
-                elseif java_format:match("5pos") then
-                    return {
-                        exe = java_path,
-                        args = {
-                            '-jar', google_java_format_jar,
-                            "--aosp",
-                            "--skip-javadoc-formatting",
-                            "--skip-reflowing-long-strings",
-                            lines and lines or "",
-                            vim.api.nvim_buf_get_name(0)
+                            tmp
                         },
                         stdin = true
                     }
@@ -60,7 +62,8 @@ require('formatter').setup {
                         exe = java_path,
                         args = { '-jar', google_java_format_jar, "--aosp",
                             lines and lines or "",
-                            vim.api.nvim_buf_get_name(0) },
+                            tmp 
+                        },
                         stdin = true
                     }
                 end

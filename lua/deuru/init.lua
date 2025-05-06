@@ -1,4 +1,5 @@
 require("deuru.remap")
+require("deuru.highlight")
 require("deuru.set")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"

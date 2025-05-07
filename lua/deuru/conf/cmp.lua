@@ -196,7 +196,8 @@ return function()
                     return kind ~= 'Keyword'
                 end
             },
-            { name = 'luasnip', priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
+            { name = 'luasnip',        priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
+            { name = 'render-markdown' },
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.
             -- { name = 'snippy' }, -- For snippy users.

@@ -314,7 +314,8 @@ local plugins = {
             'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
         ft = { "markdown", "md" },
         opts = {
-            indent = { enabled = true, skip_heading = true }
+            completions = { lsp = { enabled = true } },
+            indent = { enabled = true, skip_heading = true },
         },
         keys = {
             {

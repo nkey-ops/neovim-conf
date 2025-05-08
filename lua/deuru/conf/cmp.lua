@@ -52,15 +52,17 @@ return function()
             disallow_symbol_nonprefix_matching = true,
         },
         sorting = {
-            -- 1 upper case vs lower case,
-            -- 2 length
-            -- 3 methods vs vars
-            -- 4 snake case bad
-            -- 5 recently used
-            -- 6 kind -- snippets should be last
-            -- 7 scopes
+            -- 1 Fuzzy matching with dismissal of items with an incorrect case matche,
+            -- 2 The shorter length the higher rate
+            -- 3 Functions have the lowest rate out of other kinds
+            -- 4 Snake case bad
+            -- 5 Recently used
+            -- 6 Kind -- snippets should be last
+            -- 7 Scopes
             --
-            -- 8 The same methods with lowest number of arguments are first
+            -- 8 The same methods with lowest number of arguments have higher rate
+            -- 9 Deprecated items have the lowest rate
+            --
             -- {
             -- cmp.config.compare.offset,
             -- cmp.config.compare.exact,
@@ -74,8 +76,8 @@ return function()
             -- compare.order,
             -- }
             --
-            --- completion kinds
-            --- https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j/src/main/java/org/eclipse/lsp4j/CompletionItemKind.java
+            -- https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j/src/main/java/org/eclipse/lsp4j/CompletionItemKind.java
+            -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem
 
             comparators = {
                 -- match_score > length > vars > methods
@@ -89,6 +91,17 @@ return function()
                         end,
                         -- [2]
                         function(o1, o2) -- length name sorting | the shorter the better
+                            -- [9] deprecated items have the lowest rate
+                            if o1.completion_item.tags
+                                and o1.completion_item.tags[1] == 1 then
+                                return false
+                            end
+
+                            if o2.completion_item.tags
+                                and o2.completion_item.tags[1] == 1 then
+                                return false
+                            end
+
                             -- when snippet doesn't have an insert_text
                             local t1 = o1.completion_item.insertText and o1.completion_item.insertText or
                                 o1.filter_text

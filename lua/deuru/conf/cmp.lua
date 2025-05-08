@@ -40,7 +40,6 @@ return function()
         },
 
         confirmation = {
-
             get_commit_characters = function(commit_characters)
                 return { "(", ")" }
             end
@@ -61,6 +60,7 @@ return function()
             -- 6 kind -- snippets should be last
             -- 7 scopes
             --
+            -- 8 The same methods with lowest number of arguments are first
             -- {
             -- cmp.config.compare.offset,
             -- cmp.config.compare.exact,
@@ -73,6 +73,9 @@ return function()
             -- compare.length,
             -- compare.order,
             -- }
+            --
+            --- completion kinds
+            --- https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j/src/main/java/org/eclipse/lsp4j/CompletionItemKind.java
 
             comparators = {
                 -- match_score > length > vars > methods
@@ -85,7 +88,7 @@ return function()
                             return diff > 0
                         end,
                         -- [2]
-                        function(o1, o2) -- the shorter the better
+                        function(o1, o2) -- length name sorting | the shorter the better
                             -- when snippet doesn't have an insert_text
                             local t1 = o1.completion_item.insertText and o1.completion_item.insertText or
                                 o1.filter_text
@@ -94,10 +97,23 @@ return function()
 
                             local diff = #t1 - #t2
                             if diff == 0 then
-                                -- [3] if it is a method return false
+                                -- if the kind is the same of a completion item
                                 if o1.completion_item.kind == o2.completion_item.kind then
-                                    return nil
-                                elseif o1.completion_item.kind == 2 then
+                                    -- [8] if both completion items are functions lets pick the one
+                                    --     with the least function arguments
+                                    if o1.completion_item.kind == 2 then
+                                        local _, o1_arg_count = o1.completion_item.filterText:gsub('${', '')
+                                        local _, o2_arg_count = o2.completion_item.filterText:gsub('${', '')
+
+                                        local arg_diff = o1_arg_count - o2_arg_count
+                                        return arg_diff < 0
+                                    end
+                                    if diff == 0 then return nil end
+                                    return diff < 0
+                                end
+
+                                -- [3] if one is a function, lower it rate
+                                if o1.completion_item.kind == 2 then
                                     return false
                                 elseif o2.completion_item.kind == 2 then
                                     return true
@@ -190,6 +206,8 @@ return function()
             { name = 'path' },
             {
                 name = 'nvim_lsp',
+                priority = 5,
+                group_index = 2,
                 keword_length = 1,
                 entry_filter = function(entry)
                     local kind = require('cmp.types').lsp.CompletionItemKind[entry:get_kind()]

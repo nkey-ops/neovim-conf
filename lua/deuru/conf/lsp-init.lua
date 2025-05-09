@@ -225,10 +225,6 @@ function M.hover(config, handle_content)
 
         local buf = vim.lsp.util.open_floating_preview(contents, format, config)
         vim.api.nvim_buf_set_name(buf, "float.md")
-
-        if (require("obsidian")) then
-            require("obsidian.ui").update(require("obsidian.config").UIOpts.default(), buf)
-        end
     end)
 end
 

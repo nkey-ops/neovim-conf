@@ -3,7 +3,6 @@ return function()
 
     local cmp = require('cmp')
     local lspkind = require('lspkind')
-    local luasnip = require('luasnip')
 
     require('luasnip.loaders.from_vscode').lazy_load()
 
@@ -16,7 +15,7 @@ return function()
     --     )
     -- end
 
-    cmp.setup({
+    cmp.setup {
         snippet = {
             expand = function(args)
                 -- vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
@@ -52,7 +51,7 @@ return function()
             disallow_symbol_nonprefix_matching = true,
         },
         sorting = {
-            -- 1 Fuzzy matching with dismissal of items with an incorrect case matche,
+            -- 1 Fuzzy matching with dismissal of items with an incorrect case match,
             -- 2 The shorter length the higher rate
             -- 3 Functions have the lowest rate out of other kinds
             -- 4 Snake case bad
@@ -60,8 +59,6 @@ return function()
             -- 6 Kind -- snippets should be last
             -- 7 Scopes
             --
-            -- 8 The same methods with lowest number of arguments have higher rate
-            -- 9 Deprecated items have the lowest rate
             --
             -- {
             -- cmp.config.compare.offset,
@@ -80,7 +77,15 @@ return function()
             -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem
 
             comparators = {
-                -- match_score > length > vars > methods
+                -- 1. match_score  | fuzzy finder with case sensetive search
+                -- 2. length       | the shorter the better
+                --    2.1. same lengths
+                --         2.1.1 if one is functions | prefer non function
+                --         2.1.2 both functions      | the less arguments the better
+                --    2.2. variable name generation | the longer the better
+                -- 3. vars         | prefered more than functions
+                -- 9. deprecated    | lowest rate
+
                 function(e1, e2)
                     local comps = {
                         -- [1]
@@ -109,11 +114,12 @@ return function()
                                 o2.filter_text
 
                             local diff = #t1 - #t2
+                            -- [2.1] same lengths
                             if diff == 0 then
                                 -- if the kind is the same of a completion item
                                 if o1.completion_item.kind == o2.completion_item.kind then
-                                    -- [8] if both completion items are functions lets pick the one
-                                    --     with the least function arguments
+                                    -- [2.1.2] if both completion items are functions lets pick the one
+                                    --       with the least function arguments
                                     if o1.completion_item.kind == 2 then
                                         local _, o1_arg_count = o1.completion_item.filterText:gsub('${', '')
                                         local _, o2_arg_count = o2.completion_item.filterText:gsub('${', '')
@@ -125,7 +131,7 @@ return function()
                                     return diff < 0
                                 end
 
-                                -- [3] if one is a function, lower it rate
+                                -- [2.1.1] if one is a function, lower its rate
                                 if o1.completion_item.kind == 2 then
                                     return false
                                 elseif o2.completion_item.kind == 2 then
@@ -134,10 +140,20 @@ return function()
                                     return nil
                                 end
                             end
+
+                            -- [2.2] if this is a var name generation choose the longest name
+                            -- I don't know why and how these properties actually work
+                            -- but it seems that this is what is different between a new
+                            -- name generation of a variable and any other completions
+                            if o1.item_defaults and o2.item_defaults and
+                                o1.item_defaults.data and o2.item_defaults.data and
+                                o1.item_defaults.data.completionKinds[1] == 10 and
+                                o2.item_defaults.data.completionKinds[1] == 10 then
+                                return diff > 0
+                            end
+
                             return diff < 0
                         end,
-                        -- [5]
-                        -- cmp.config.compare.recently_used
                     }
 
                     local score = 0
@@ -234,7 +250,7 @@ return function()
             -- { name = 'snippy' }, -- For snippy users.
         }
         ),
-    })
+    }
 
     -- Set configuration for specific filetype.
     -- cmp.setup.filetype('gitcommit', {

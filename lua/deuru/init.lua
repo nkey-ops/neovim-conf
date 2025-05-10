@@ -91,7 +91,7 @@ local plugins = {
             'CmdlineEnter'
         },
         enabled = true,
-        config = req_conf('cmp'),
+        config = req_conf('cmp-conf'),
         dependencies = {
             { 'L3MON4D3/LuaSnip',                    version = "v2.*", },
             { 'hrsh7th/cmp-nvim-lsp' },

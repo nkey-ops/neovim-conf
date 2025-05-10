@@ -204,9 +204,37 @@ return function()
                         cmp.complete({ select = true })
                     end
                 end,
-
+            ['<C-x><C-p>'] = function()
+                cmp.complete({
+                    config = { sources = { { name = "buffer" } } },
+                    performance = {
+                        max_view_entries = 1
+                    }
+                })
+                if cmp.visible() then
+                    cmp.select_prev_item({
+                        config = { sources = { { name = "buffer" } } },
+                        behavior = cmp.SelectBehavior.Select
+                    })
+                else
+                    cmp.complete(
+                        {
+                            config = { sources = { { name = "buffer" } } },
+                            select = true
+                        })
+                end
+            end,
             ['<C-i>'] = function()
                 cmp.complete({ performance = { max_view_entries = 1 } })
+                cmp.confirm({ select = true })
+            end,
+            ['<C-x><C-i>'] = function()
+                cmp.complete({
+                    config = { sources = { { name = "buffer" } } },
+                    performance = {
+                        max_view_entries = 1
+                    }
+                })
                 cmp.confirm({ select = true })
             end,
             ['<Tab>'] = vim.NIL,

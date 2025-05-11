@@ -189,13 +189,11 @@ return function()
         },
 
         mapping = cmp.mapping.preset.insert({
-            -- ['<A-y>'] = cmp.mapping.scroll_docs(-1),
-            -- ['<A-e>'] = cmp.mapping.scroll_docs(1),
-            -- ['<A-u>'] = cmp.mapping.scroll_docs(-4),
-            -- ['<A-d>'] = cmp.mapping.scroll_docs(4),
-            --
+            ['<C-y>'] = cmp.mapping.scroll_docs(-1),
+            ['<C-e>'] = cmp.mapping.scroll_docs(1),
+            ['<C-u>'] = cmp.mapping.scroll_docs(-4),
+            ['<C-d>'] = cmp.mapping.scroll_docs(4),
             ['<C-[>'] = cmp.mapping.close(),
-
             ['<C-p>'] =
                 function()
                     if cmp.visible() then
@@ -229,12 +227,14 @@ return function()
                 cmp.confirm({ select = true })
             end,
             ['<C-x><C-i>'] = function()
-                cmp.complete({
-                    config = { sources = { { name = "buffer" } } },
-                    performance = {
-                        max_view_entries = 1
-                    }
-                })
+                if not cmp.visible() then
+                    cmp.complete({
+                        config = { sources = { { name = "buffer" } } },
+                        performance = {
+                            max_view_entries = 1
+                        }
+                    })
+                end
                 cmp.confirm({ select = true })
             end,
             ['<Tab>'] = vim.NIL,
@@ -247,9 +247,9 @@ return function()
                         cmp.complete({ select = true })
                     end
                 end,
-            ['<C-y>'] = function()
-                cmp.confirm({ select = true })
-            end,
+            -- ['<C-y>'] = function()
+            --     cmp.confirm({ select = true })
+            -- end,
             -- luasnip mapping
             -- ['<C-l>'] = function()
             --     luasnip.expand_or_jump()

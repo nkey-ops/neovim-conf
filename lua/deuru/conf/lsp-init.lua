@@ -32,7 +32,18 @@ set('n', '<leader>q', vim.diagnostic.setloclist, { desc = "Diagnostic Open Local
 
 
 local toggle_diagnos = function() vim.diagnostic.enable(not vim.diagnostic.is_enabled()) end
-local hover = function() M.hover(nil, function(content) M.strip(content) end) end
+local hover = function()
+    M.hover(
+        {
+            width = 80,
+            height = 20,
+            title = "[Documentation]",
+            achor_bias = "above",
+            relative = "win",
+            border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
+        }
+        , function(content) M.strip(content) end)
+end
 local print_workspace = function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end
 
 local lsp_fields = function()

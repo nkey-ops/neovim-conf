@@ -80,11 +80,12 @@ return function()
                 -- 1. match_score  | fuzzy finder with case sensetive search
                 -- 2. length       | the shorter the better
                 --    2.1. same lengths
-                --         2.1.1 if one is functions | prefer non function
-                --         2.1.2 both functions      | the less arguments the better
-                --    2.2. variable name generation | the longer the better
-                -- 3. vars         | prefered more than functions
-                -- 9. deprecated    | lowest rate
+                --         2.1.1 if one is a function | prefer non function
+                --         2.1.2 both functions       | the less arguments the better
+                --    2.2. variable name generation   | the longer the better
+                -- 3. vars                            | prefered more than functions
+                -- 4. if a snippet matches completely | highest rate otherwise lowest
+                -- 9. deprecated                      | lowest rate
 
                 function(e1, e2)
                     local comps = {
@@ -96,6 +97,23 @@ return function()
                         end,
                         -- [2]
                         function(o1, o2) -- length name sorting | the shorter the better
+                            local o1_kind = o1.completion_item.kind;
+                            local o2_kind = o2.completion_item.kind;
+                            local input = o1.match_view_args_ret.input;
+
+                            -- [4]
+                            if (o1_kind == 15 or o2_kind == 15) and o1_kind ~= o2_kind then
+                                if o1_kind == 15 then
+                                    return input ~= ""
+                                        and o1.completion_item.label:match('^' .. input .. '$') ~=
+                                        nil
+                                end
+                                if o2_kind == 15 then
+                                    return input == "" and
+                                        o2.completion_item.label:match('^' .. input .. '$') == nil
+                                end
+                            end
+
                             -- [9] deprecated items have the lowest rate
                             if o1.completion_item.tags
                                 and o1.completion_item.tags[1] == 1 then
@@ -117,10 +135,10 @@ return function()
                             -- [2.1] same lengths
                             if diff == 0 then
                                 -- if the kind is the same of a completion item
-                                if o1.completion_item.kind == o2.completion_item.kind then
+                                if o1_kind == o2_kind then
                                     -- [2.1.2] if both completion items are functions lets pick the one
                                     --       with the least function arguments
-                                    if o1.completion_item.kind == 2 then
+                                    if o1_kind == 2 then
                                         local _, o1_arg_count = o1.completion_item.filterText:gsub('${', '')
                                         local _, o2_arg_count = o2.completion_item.filterText:gsub('${', '')
 
@@ -132,9 +150,9 @@ return function()
                                 end
 
                                 -- [2.1.1] if one is a function, lower its rate
-                                if o1.completion_item.kind == 2 then
+                                if o1_kind == 2 then
                                     return false
-                                elseif o2.completion_item.kind == 2 then
+                                elseif o2_kind == 2 then
                                     return true
                                 else
                                     return nil
@@ -184,6 +202,7 @@ return function()
                     vim_item.menu = string.format("[%s]", name)
                     vim_item.kind = vim.fn.strcharpart(vim_item.kind, 0, 5)
 
+                    -- P(entry)
                     return vim_item
                 end
         },
@@ -271,7 +290,7 @@ return function()
                     return kind ~= 'Keyword'
                 end
             },
-            { name = 'luasnip',        priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
+            -- { name = 'luasnip',        priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
             { name = 'render-markdown' },
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.
@@ -330,15 +349,15 @@ return function()
         }
     })
     -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-    cmp.setup.cmdline(':', {
-        mapping = cmdline_mapping,
-        completion = {
-            autocomplete = { cmp.TriggerEvent.TextChanged }
-        },
-        sources = cmp.config.sources({
-            { name = 'path' }
-        }, {
-            { name = 'cmdline' }
-        })
-    })
+    -- cmp.setup.cmdline(':', {
+    --     mapping = cmdline_mapping,
+    --     completion = {
+    --         autocomplete = { cmp.TriggerEvent.TextChanged }
+    --     },
+    --     sources = cmp.config.sources({
+    --         { name = 'path' }
+    --     }, {
+    --         { name = 'cmdline' }
+    --     })
+    -- })
 end

@@ -90,45 +90,56 @@ return function()
                 function(e1, e2)
                     local comps = {
                         -- [1]
-                        function(o1, o2) -- the higher the better
+                        score = function(o1, o2) -- the higher the better
                             local diff = o1.score - o2.score
                             if diff == 0 then return nil end
                             return diff > 0
                         end,
                         -- [2]
-                        function(o1, o2) -- length name sorting | the shorter the better
+                        length = function(o1, o2) -- length name sorting | the shorter the better
                             local o1_kind = o1.completion_item.kind;
                             local o2_kind = o2.completion_item.kind;
+                            local o1_label = o1.completion_item.label
+                            local o2_label = o2.completion_item.label
+                            local o1_tags = o1.completion_item.tags and o1.completion_item.tags or {}
+                            local o2_tags = o2.completion_item.tags and o2.completion_item.tags or {}
+
                             local input = o1.match_view_args_ret.input;
+
+                            -- [9] deprecated items have the lowest rate
+                            if (o1_tags[1] == 1 or o2_tags[1] == 1) and
+                                o1_tags[1] ~= o2_tags[1]
+                            then
+                                if o1.completion_item.tags
+                                    and o1.completion_item.tags[1] == 1 then
+                                    return false
+                                end
+
+                                if o2.completion_item.tags
+                                    and o2.completion_item.tags[1] == 1 then
+                                    return true
+                                end
+                            end
 
                             -- [4]
                             if (o1_kind == 15 or o2_kind == 15) and o1_kind ~= o2_kind then
                                 if o1_kind == 15 then
                                     return input ~= ""
-                                        and o1.completion_item.label:match('^' .. input .. '$') ~=
+                                        and o1_label:match('^' .. input .. '$') ~=
                                         nil
                                 end
                                 if o2_kind == 15 then
-                                    return input == "" and
-                                        o2.completion_item.label:match('^' .. input .. '$') == nil
+                                    return not (input ~= "" and o2_label:match('^' .. input .. '$')) ~=
+                                        nil
                                 end
                             end
 
-                            -- [9] deprecated items have the lowest rate
-                            if o1.completion_item.tags
-                                and o1.completion_item.tags[1] == 1 then
-                                return false
-                            end
-
-                            if o2.completion_item.tags
-                                and o2.completion_item.tags[1] == 1 then
-                                return false
-                            end
 
                             -- when snippet doesn't have an insert_text
-                            local t1 = o1.completion_item.insertText and o1.completion_item.insertText or
+                            -- filterText vs insertText
+                            local t1 = o1.completion_item.filterText and o1.completion_item.filterText or
                                 o1.filter_text
-                            local t2 = o2.completion_item.insertText and o2.completion_item.insertText or
+                            local t2 = o2.completion_item.filterText and o2.completion_item.filterText or
                                 o2.filter_text
 
                             local diff = #t1 - #t2
@@ -174,17 +185,19 @@ return function()
                         end,
                     }
 
-                    local score = 0
-                    for i, comp in pairs(comps) do
-                        --- @type boolean?
-                        local diff = comp(e1, e2)
-                        if diff ~= nil then
-                            score = score + (diff and 1 + (#comps - i) or -1)
-                        end
-                    end
+                    -- local score = 0
+                    -- for i, comp in pairs(comps) do
+                    --     --- @type boolean?
+                    --     local diff = comp(e1, e2)
+                    --     if diff ~= nil then
+                    --         score = score + (diff and 1 + (#comps - i) or -1)
+                    --     end
+                    -- end
 
-                    if score == 0 then return nil end
-                    return score > 0
+                    -- if score == 0 then return nil end
+                    -- return score > 0
+
+                    return comps.length(e1, e2);
                 end
             },
         },
@@ -202,7 +215,6 @@ return function()
                     vim_item.menu = string.format("[%s]", name)
                     vim_item.kind = vim.fn.strcharpart(vim_item.kind, 0, 5)
 
-                    -- P(entry)
                     return vim_item
                 end
         },
@@ -290,7 +302,7 @@ return function()
                     return kind ~= 'Keyword'
                 end
             },
-            -- { name = 'luasnip',        priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
+            { name = 'luasnip',        priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
             { name = 'render-markdown' },
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.
@@ -349,15 +361,15 @@ return function()
         }
     })
     -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-    -- cmp.setup.cmdline(':', {
-    --     mapping = cmdline_mapping,
-    --     completion = {
-    --         autocomplete = { cmp.TriggerEvent.TextChanged }
-    --     },
-    --     sources = cmp.config.sources({
-    --         { name = 'path' }
-    --     }, {
-    --         { name = 'cmdline' }
-    --     })
-    -- })
+    cmp.setup.cmdline(':', {
+        mapping = cmdline_mapping,
+        completion = {
+            autocomplete = { cmp.TriggerEvent.TextChanged }
+        },
+        sources = cmp.config.sources({
+            { name = 'path' }
+        }, {
+            { name = 'cmdline' }
+        })
+    })
 end

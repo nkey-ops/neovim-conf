@@ -3,6 +3,7 @@ return function()
 
     local cmp = require('cmp')
     local lspkind = require('lspkind')
+    local luasnip = require('luasnip')
 
     require('luasnip.loaders.from_vscode').lazy_load()
 
@@ -77,7 +78,6 @@ return function()
             -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem
 
             comparators = {
-                -- 1. match_score  | fuzzy finder with case sensetive search
                 -- 2. length       | the shorter the better
                 --    2.1. same lengths
                 --         2.1.1 if one is a function | prefer non function
@@ -88,116 +88,95 @@ return function()
                 -- 9. deprecated                      | lowest rate
 
                 function(e1, e2)
-                    local comps = {
-                        -- [1]
-                        score = function(o1, o2) -- the higher the better
-                            local diff = o1.score - o2.score
-                            if diff == 0 then return nil end
-                            return diff > 0
-                        end,
-                        -- [2]
-                        length = function(o1, o2) -- length name sorting | the shorter the better
-                            local o1_kind = o1.completion_item.kind;
-                            local o2_kind = o2.completion_item.kind;
-                            local o1_label = o1.completion_item.label
-                            local o2_label = o2.completion_item.label
-                            local o1_tags = o1.completion_item.tags and o1.completion_item.tags or {}
-                            local o2_tags = o2.completion_item.tags and o2.completion_item.tags or {}
+                    local compare = function(o1, o2) -- length name sorting | the shorter the better
+                        local o1_kind = o1.completion_item.kind;
+                        local o2_kind = o2.completion_item.kind;
+                        local o1_label = o1.completion_item.label
+                        local o2_label = o2.completion_item.label
+                        local o1_tags = o1.completion_item.tags and o1.completion_item.tags or {}
+                        local o2_tags = o2.completion_item.tags and o2.completion_item.tags or {}
 
-                            local input = o1.match_view_args_ret.input;
+                        local input = o1.match_view_args_ret.input;
 
-                            -- [9] deprecated items have the lowest rate
-                            if (o1_tags[1] == 1 or o2_tags[1] == 1) and
-                                o1_tags[1] ~= o2_tags[1]
-                            then
-                                if o1.completion_item.tags
-                                    and o1.completion_item.tags[1] == 1 then
-                                    return false
-                                end
-
-                                if o2.completion_item.tags
-                                    and o2.completion_item.tags[1] == 1 then
-                                    return true
-                                end
+                        -- [9] deprecated items have the lowest rate
+                        if (o1_tags[1] == 1 or o2_tags[1] == 1) and
+                            o1_tags[1] ~= o2_tags[1]
+                        then
+                            if o1.completion_item.tags
+                                and o1.completion_item.tags[1] == 1 then
+                                return false
                             end
 
-                            -- [4]
-                            if (o1_kind == 15 or o2_kind == 15) and o1_kind ~= o2_kind then
-                                if o1_kind == 15 then
-                                    return input ~= ""
-                                        and o1_label:match('^' .. input .. '$') ~=
-                                        nil
-                                end
-                                if o2_kind == 15 then
-                                    return not (input ~= "" and o2_label:match('^' .. input .. '$')) ~=
-                                        nil
-                                end
+                            if o2.completion_item.tags
+                                and o2.completion_item.tags[1] == 1 then
+                                return true
                             end
+                        end
+
+                        -- [4]
+                        if (o1_kind == 15 or o2_kind == 15) and o1_kind ~= o2_kind then
+                            if o1_kind == 15 then
+                                return input ~= ""
+                                    and o1_label:match('^' .. input .. '$') ~=
+                                    nil
+                            end
+                            if o2_kind == 15 then
+                                return not (input ~= "" and o2_label:match('^' .. input .. '$')) ~=
+                                    nil
+                            end
+                        end
 
 
-                            -- when snippet doesn't have an insert_text
-                            -- filterText vs insertText
-                            local t1 = o1.completion_item.filterText and o1.completion_item.filterText or
-                                o1.filter_text
-                            local t2 = o2.completion_item.filterText and o2.completion_item.filterText or
-                                o2.filter_text
+                        -- when snippet doesn't have an insert_text
+                        -- filterText vs insertText
+                        local t1 = o1.completion_item.filterText and o1.completion_item.filterText or
+                            o1.filter_text
+                        local t2 = o2.completion_item.filterText and o2.completion_item.filterText or
+                            o2.filter_text
 
-                            local diff = #t1 - #t2
-                            -- [2.1] same lengths
-                            if diff == 0 then
-                                -- if the kind is the same of a completion item
-                                if o1_kind == o2_kind then
-                                    -- [2.1.2] if both completion items are functions lets pick the one
-                                    --       with the least function arguments
-                                    if o1_kind == 2 then
-                                        local _, o1_arg_count = o1.completion_item.filterText:gsub('${', '')
-                                        local _, o2_arg_count = o2.completion_item.filterText:gsub('${', '')
-
-                                        local arg_diff = o1_arg_count - o2_arg_count
-                                        return arg_diff < 0
-                                    end
-                                    if diff == 0 then return nil end
-                                    return diff < 0
-                                end
-
-                                -- [2.1.1] if one is a function, lower its rate
+                        local diff = #t1 - #t2
+                        -- [2.1] same lengths
+                        if diff == 0 then
+                            -- if the kind is the same of a completion item
+                            if o1_kind == o2_kind then
+                                -- [2.1.2] if both completion items are functions lets pick the one
+                                --       with the least function arguments
                                 if o1_kind == 2 then
-                                    return false
-                                elseif o2_kind == 2 then
-                                    return true
-                                else
-                                    return nil
+                                    local _, o1_arg_count = o1.completion_item.filterText:gsub('${', '')
+                                    local _, o2_arg_count = o2.completion_item.filterText:gsub('${', '')
+
+                                    local arg_diff = o1_arg_count - o2_arg_count
+                                    return arg_diff < 0
                                 end
+                                if diff == 0 then return nil end
+                                return diff < 0
                             end
 
-                            -- [2.2] if this is a var name generation choose the longest name
-                            -- I don't know why and how these properties actually work
-                            -- but it seems that this is what is different between a new
-                            -- name generation of a variable and any other completions
-                            if o1.item_defaults and o2.item_defaults and
-                                o1.item_defaults.data and o2.item_defaults.data and
-                                o1.item_defaults.data.completionKinds[1] == 10 and
-                                o2.item_defaults.data.completionKinds[1] == 10 then
-                                return diff > 0
+                            -- [2.1.1] if one is a function, lower its rate
+                            if o1_kind == 2 then
+                                return false
+                            elseif o2_kind == 2 then
+                                return true
+                            else
+                                return nil
                             end
+                        end
 
-                            return diff < 0
-                        end,
-                    }
+                        -- [2.2] if this is a var name generation choose the longest name
+                        -- I don't know why and how these properties actually work
+                        -- but it seems that this is what is different between a new
+                        -- name generation of a variable and any other completions
+                        if o1.item_defaults and o2.item_defaults and
+                            o1.item_defaults.data and o2.item_defaults.data and
+                            o1.item_defaults.data.completionKinds[1] == 10 and
+                            o2.item_defaults.data.completionKinds[1] == 10 then
+                            return diff > 0
+                        end
 
-                    -- local score = 0
-                    -- for i, comp in pairs(comps) do
-                    --     --- @type boolean?
-                    --     local diff = comp(e1, e2)
-                    --     if diff ~= nil then
-                    --         score = score + (diff and 1 + (#comps - i) or -1)
-                    --     end
-                    -- end
+                        return diff < 0
+                    end
 
-                    -- if score == 0 then return nil end
-                    -- return score > 0
-
-                    return comps.length(e1, e2);
+                    return compare(e1, e2);
                 end
             },
         },
@@ -233,6 +212,20 @@ return function()
                         cmp.complete({ select = true })
                     end
                 end,
+            ['<C-n>'] =
+                function()
+                    -- cmp.select_next_item({ behaviour = cmp.ConfirmBehavior.Replace })
+                    if cmp.visible() then
+                        cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                    else
+                        cmp.complete({ select = true })
+                    end
+                end,
+            ['<C-i>'] = function()
+                cmp.complete({ performance = { max_view_entries = 1 } })
+                cmp.confirm({ select = true })
+            end,
+            -- Mirrowing previous 3 key-maps for Buffer only completion
             ['<C-x><C-p>'] = function()
                 cmp.complete({
                     config = { sources = { { name = "buffer" } } },
@@ -253,10 +246,6 @@ return function()
                         })
                 end
             end,
-            ['<C-i>'] = function()
-                cmp.complete({ performance = { max_view_entries = 1 } })
-                cmp.confirm({ select = true })
-            end,
             ['<C-x><C-i>'] = function()
                 if not cmp.visible() then
                     cmp.complete({
@@ -268,26 +257,13 @@ return function()
                 end
                 cmp.confirm({ select = true })
             end,
-            ['<Tab>'] = vim.NIL,
-            ['<C-n>'] =
-                function()
-                    -- cmp.select_next_item({ behaviour = cmp.ConfirmBehavior.Replace })
-                    if cmp.visible() then
-                        cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
-                    else
-                        cmp.complete({ select = true })
-                    end
-                end,
-            -- ['<C-y>'] = function()
-            --     cmp.confirm({ select = true })
-            -- end,
-            -- luasnip mapping
-            -- ['<C-l>'] = function()
-            --     luasnip.expand_or_jump()
-            -- end,
-            -- ['<C-h>'] = function()
+            -- inside a snippet navigation
+            ['<Tab>'] = cmp.mapping(function()
+                P(luasnip.jump(1))
+            end, { "i", "s" }),
+            -- ['<C-h>'] = cmp.mapping(function()
             --     luasnip.jump(-1)
-            -- end
+            -- end, { "1", "s" })
         }),
         sources = cmp.config.sources({
 
@@ -297,7 +273,7 @@ return function()
                 priority = 5,
                 group_index = 2,
                 keword_length = 1,
-                entry_filter = function(entry)
+                entry_filter = function(entry, ctx)
                     local kind = require('cmp.types').lsp.CompletionItemKind[entry:get_kind()]
                     return kind ~= 'Keyword'
                 end

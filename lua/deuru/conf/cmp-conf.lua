@@ -127,12 +127,11 @@ return function()
                         end
 
 
-                        -- when snippet doesn't have an insert_text
-                        -- filterText vs insertText
-                        local t1 = o1.completion_item.filterText and o1.completion_item.filterText or
-                            o1.filter_text
-                        local t2 = o2.completion_item.filterText and o2.completion_item.filterText or
-                            o2.filter_text
+                        -- when kind "snippet" doesn't have an "insertText" use its "label"
+                        local t1 = o1.completion_item.insertText and o1.completion_item.insertText or
+                            o1.completion_item.label
+                        local t2 = o2.completion_item.insertText and o2.completion_item.insertText or
+                            o2.completion_item.label
 
                         local diff = #t1 - #t2
                         -- [2.1] same lengths
@@ -194,6 +193,7 @@ return function()
                     vim_item.menu = string.format("[%s]", name)
                     vim_item.kind = vim.fn.strcharpart(vim_item.kind, 0, 5)
 
+                    -- P(entry)
                     return vim_item
                 end
         },

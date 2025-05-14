@@ -258,12 +258,12 @@ return function()
                 cmp.confirm({ select = true })
             end,
             -- inside a snippet navigation
-            ['<Tab>'] = cmp.mapping(function()
+            ['<C-c><C-n>'] = cmp.mapping(function()
                 P(luasnip.jump(1))
             end, { "i", "s" }),
-            -- ['<C-h>'] = cmp.mapping(function()
-            --     luasnip.jump(-1)
-            -- end, { "1", "s" })
+            ['<C-c><C-p>'] = cmp.mapping(function()
+                luasnip.jump(-1)
+            end, { "i", "s" })
         }),
         sources = cmp.config.sources({
 
@@ -275,6 +275,19 @@ return function()
                 keword_length = 1,
                 entry_filter = function(entry, ctx)
                     local kind = require('cmp.types').lsp.CompletionItemKind[entry:get_kind()]
+
+                    -- doing some replacements of responses
+                    if entry.completion_item.filterText then
+                        local f_text = entry.completion_item.filterText
+                        if f_text:match("{@link}") then
+                            entry.completion_item.textEdit.newText = "{@link ${1}} ${0}"
+                        elseif f_text:match("{@code}") then
+                            entry.completion_item.textEdit.newText = "{@code ${1}} ${0}"
+                        end
+                        -- before text is inserted cmp resolve the completion item against the server if
+                        -- it wasn't resolved, lets copy the completion item and pretend it was resolved
+                        entry.resolved_completion_item = entry.completion_item
+                    end
                     return kind ~= 'Keyword'
                 end
             },

@@ -189,11 +189,48 @@ return function()
 
                     vim_item = lspkind_format(entry, vim_item)
 
-                    local name = vim.fn.strcharpart(entry.source.name, 0, 4)
-                    vim_item.menu = string.format("[%s]", name)
+                    -- local name = vim.fn.strcharpart(entry.source.name, 0, 4)
+                    -- vim_item.menu = string.format("[%s]", name)
                     vim_item.kind = vim.fn.strcharpart(vim_item.kind, 0, 5)
 
-                    -- P(entry)
+                    local kind = entry.completion_item.kind
+
+
+                    if kind ~= 15 then -- except snippets
+                        if kind == 2 or kind == 3 then
+                            -- word "named_function"
+                            -- abbr "named_function(String arg1)"
+                            -- >>
+                            -- menu -> "(String arg1)"
+                            vim_item.menu = vim_item.abbr:sub(#vim_item.word + 1)
+                        else
+                            -- word "named_var"
+                            -- abbr "named_var : Var_Type"
+                            -- >>
+                            -- menu -> "Var_Type"
+                            vim_item.menu = vim_item.abbr:sub(#vim_item.word + 4)
+                        end
+
+                        vim_item.abbr = vim_item.word
+                    end
+
+                    local hl
+                    if kind == 1 then
+                        hl = "String"
+                    elseif kind == 2 or kind == 3 then
+                        hl = "Function"
+                    elseif kind == 5 then
+                        hl = "@variable.member"
+                    elseif kind == 7 then
+                        hl = "Type"
+                    elseif kind == 20 then
+                        hl = "Structure"
+                    elseif kind == 21 then
+                        hl = "Constant"
+                    end
+
+                    vim_item.abbr_hl_group = hl
+                    vim_item.kind_hl_group = hl
                     return vim_item
                 end
         },

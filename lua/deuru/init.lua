@@ -44,6 +44,8 @@ local plugins = {
     },
     {
         "nvim-treesitter/nvim-treesitter",
+        dependencies = {
+            "nvim-treesitter/playground" },
         build = ":TSUpdate",
         config = req_conf('treesitter')
     },

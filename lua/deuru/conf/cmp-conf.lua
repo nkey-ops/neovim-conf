@@ -25,7 +25,6 @@ return function()
                 -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
             end,
         },
-
         window = {
             completion = cmp.config.window.bordered(),
             documentation = cmp.config.window.bordered(),
@@ -183,9 +182,10 @@ return function()
         preselect = cmp.PreselectMode.Item,
 
         formatting = {
+            fields = { cmp.ItemField.Kind, cmp.ItemField.Abbr, cmp.ItemField.Menu },
             format =
                 function(entry, vim_item)
-                    local lspkind_format = lspkind.cmp_format({ mode = 'symbol_text', maxwidth = 50 })
+                    local lspkind_format = lspkind.cmp_format({ mode = 'symbol', maxwidth = 50 })
 
                     vim_item = lspkind_format(entry, vim_item)
 
@@ -196,8 +196,8 @@ return function()
                     local kind = entry.completion_item.kind
 
 
-                    if kind ~= 15 then -- except snippets
-                        if kind == 2 or kind == 3 then
+                    if kind ~= 15 then                 -- except snippets
+                        if kind == 2 or kind == 3 then -- methods and functions
                             -- word "named_function"
                             -- abbr "named_function(String arg1)"
                             -- >>
@@ -211,6 +211,7 @@ return function()
                             vim_item.menu = vim_item.abbr:sub(#vim_item.word + 4)
                         end
 
+                        -- cmp only displayc "abbr", lets assing a shorter "word"
                         vim_item.abbr = vim_item.word
                     end
 

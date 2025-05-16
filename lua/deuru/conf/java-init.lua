@@ -35,7 +35,7 @@ require('formatter').setup {
 
                 -- use the contents of the buffer not the file, so
                 -- you don't have to write into the file to make formatting
-                local tmp  = os.tmpname() ..".java"
+                local tmp  = os.tmpname() .. ".java"
                 local file = assert(io.open(tmp, "w"))
 
                 local data = vim.fn.getline(1, "$")
@@ -62,7 +62,7 @@ require('formatter').setup {
                         exe = java_path,
                         args = { '-jar', google_java_format_jar, "--aosp",
                             lines and lines or "",
-                            tmp 
+                            tmp
                         },
                         stdin = true
                     }
@@ -205,6 +205,14 @@ local add_throws = function()
     M.perform_action("Add throws declaration")
 end
 
+local add_all_missing_imp = function()
+    M.perform_action("Add all missing imports")
+end
+
+local change_all_to_final = function()
+    M.perform_action("Change modifiers to final where possible")
+end
+
 
 local ext = function(opts, desc, extra)
     assert(opts)
@@ -236,7 +244,7 @@ vim.api.nvim_create_autocmd('User', {
         P("loaded")
         local opts = { silent = true, buffer = args.buf }
 
-        set('n', '<leader>o', jdtls.organize_imports, ext(opts, "Java Import"))
+        set('n', '<leader>o', add_all_missing_imp, ext(opts, "Java Import"))
         set({ 'n', 'v' }, '<leader>f', format, ext(opts, "Java Format"))
         set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, "Java [E]xtract [V]ariable"))
         set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, "Java [E]xtract [M]ethod"))
@@ -274,6 +282,7 @@ vim.api.nvim_create_autocmd('User', {
         set("n", "<leader>csc", surround_try_catch, --[[-]] ext(opts, "Java: CA: [S]urround with Try [C]atch"))
         set("n", "<leader>cat", add_throws, --[[---------]] ext(opts, "Java: CA: Add Throws"))
         set("n", "<leader>cum", add_unimp_methods, --[[--]] ext(opts, "Java: CA: Add [U]nimp [M]ethods"))
+        set("n", "<leader>ctf", change_all_to_final, --[[]] ext(opts, "Java: CA: Change All Modifiers [T]o [F]inal"))
     end
 })
 

@@ -16,6 +16,48 @@ return function()
     --     )
     -- end
 
+    local function refuse_first_or_second__object_methods(o1_insert_text, o2_insert_text)
+        assert(type(o1_insert_text) == "string")
+        assert(type(o2_insert_text) == "string")
+
+        local methods = { "notify", "notifyAll", "wait",
+            "toString", "hashCode", "equals", "getClass" }
+
+
+        local does_o1_match = false
+        local does_o2_match = false
+        for _, method in pairs(methods) do
+            if o1_insert_text:match(string.format("^%s$", method)) then
+                does_o1_match = true
+            end
+            if o2_insert_text:match(string.format("^%s$", method)) then
+                does_o2_match = true
+            end
+        end
+
+        if (does_o1_match and does_o2_match) or
+            (not does_o1_match and not does_o2_match) then
+            return nil
+        end
+
+        return does_o1_match
+    end
+
+    local function refuse_first_or_second_deprecated_item(o1_tags, o2_tags)
+        assert(type(o1_tags) == "table")
+        assert(type(o2_tags) == "table")
+
+        if o1_tags[1] == 1 or o2_tags[1] == 1 then
+            if o1_tags[1] == o2_tags[1] then
+                return nil
+            else
+                return o1_tags[1] == 1
+            end
+        end
+
+        return nil
+    end
+
     cmp.setup {
         snippet = {
             expand = function(args)
@@ -97,19 +139,22 @@ return function()
 
                         local input = o1.match_view_args_ret.input;
 
-                        -- [9] deprecated items have the lowest rate
-                        if (o1_tags[1] == 1 or o2_tags[1] == 1) and
-                            o1_tags[1] ~= o2_tags[1]
-                        then
-                            if o1.completion_item.tags
-                                and o1.completion_item.tags[1] == 1 then
-                                return false
-                            end
+                        -- when kind "snippet" doesn't have an "insertText" use its "label"
+                        local o1_insert_text = o1.completion_item.insertText and o1.completion_item.insertText or
+                            o1.completion_item.label
+                        local o2_insert_text = o2.completion_item.insertText and o2.completion_item.insertText or
+                            o2.completion_item.label
 
-                            if o2.completion_item.tags
-                                and o2.completion_item.tags[1] == 1 then
-                                return true
-                            end
+                        -- [9] deprecated items have the lowest rate
+                        local refuse_deprecated = refuse_first_or_second_deprecated_item(o1_tags, o2_tags)
+                        if refuse_deprecated ~= nil then
+                            return not refuse_deprecated
+                        end
+
+                        local refuse_object_method = refuse_first_or_second__object_methods(o1_insert_text,
+                            o2_insert_text)
+                        if refuse_object_method ~= nil then
+                            return not refuse_object_method
                         end
 
                         -- [4]
@@ -126,13 +171,8 @@ return function()
                         end
 
 
-                        -- when kind "snippet" doesn't have an "insertText" use its "label"
-                        local t1 = o1.completion_item.insertText and o1.completion_item.insertText or
-                            o1.completion_item.label
-                        local t2 = o2.completion_item.insertText and o2.completion_item.insertText or
-                            o2.completion_item.label
 
-                        local diff = #t1 - #t2
+                        local diff = #o1_insert_text - #o2_insert_text
                         -- [2.1] same lengths
                         if diff == 0 then
                             -- if the kind is the same of a completion item
@@ -230,7 +270,11 @@ return function()
                         hl = "Constant"
                     end
 
-                    vim_item.abbr_hl_group = hl
+                    -- if the completion item is not deprecated set an hl
+                    if entry.completion_item.tags and entry.completion_item.tags[1] ~= 1 then
+                        vim_item.abbr_hl_group = hl
+                    end
+
                     vim_item.kind_hl_group = hl
                     return vim_item
                 end

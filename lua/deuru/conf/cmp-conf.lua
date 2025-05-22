@@ -352,9 +352,7 @@ return function()
             { name = 'path' },
             {
                 name = 'nvim_lsp',
-                priority = 5,
-                group_index = 2,
-                keword_length = 1,
+                priority = 1,
                 entry_filter = function(entry, ctx)
                     local kind = require('cmp.types').lsp.CompletionItemKind[entry:get_kind()]
 
@@ -373,7 +371,7 @@ return function()
                     return kind ~= 'Keyword'
                 end
             },
-            { name = 'luasnip',        priority = 1, group_index = 1, keword_length = 5 }, -- For luasnip users.
+            { name = 'luasnip',        priority = 2, group_index = 1, keword_length = 5 }, -- For luasnip users.
             { name = 'render-markdown' },
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.

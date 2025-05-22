@@ -79,14 +79,27 @@ local lsp_constructors = function()
 end
 
 local lsp_dynamic_classes = function()
+    -- looking for lua and java clients, if only one is
+    -- found then we can open dynamic workspace with it from any bufferr
+    -- otherwise open the workspace related to the current buffer
+
+    local clients = vim.lsp.get_clients({ name = "lua_ls" })
+    local java_clients = vim.lsp.get_clients({ name = "jdtls" })
+    for _, v in ipairs(java_clients) do table.insert(clients, v) end
+
+    local bufnr = nil
+    if #clients == 1 then
+        bufnr = vim.lsp.get_buffers_by_client_id(clients[1].id)[1]
+    end
+
     builtin.lsp_dynamic_workspace_symbols(
         {
+            bufnr = bufnr,
             fname_width = 80,
             symbol_width = 40,
             show_line = true
         })
 end
-
 
 local enable_auto_format = true
 vim.api.nvim_create_user_command("AutoFormat",

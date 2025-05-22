@@ -182,8 +182,10 @@ local plugins = {
         'rest-nvim/rest.nvim',
         dependencies = { "nvim-lua/plenary.nvim" },
         ft = 'http',
-        config = req_conf('rest-nvim'),
-        init = function() req_conf('rest-nvim-init') end
+        init = function()
+            req_conf('rest-nvim')
+            req_conf('rest-nvim-init')
+        end
     },
     {
         'kristijanhusak/vim-dadbod-ui',

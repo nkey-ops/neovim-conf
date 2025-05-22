@@ -173,7 +173,7 @@ local add_unimp_methods = function()
 end
 
 local to_static_import = function()
-    M.perform_action("Convert to static import (repl.*")
+    M.perform_action("Convert to static import %(replace all occurences%)")
 end
 
 local create_doc = function()

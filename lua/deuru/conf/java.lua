@@ -1,12 +1,10 @@
 -- setting up cmp capabilities for jdtls
 local jdtls = require('jdtls')
-local mason_registry = require('mason-registry')
 
-local mason_jdtls_path = mason_registry.get_package('jdtls'):get_install_path()
-local java_debug_adapter = mason_registry
-    .get_package("java-debug-adapter"):get_install_path()
-local java_test = mason_registry
-    .get_package("java-test"):get_install_path()
+local mason_package_path = "/home/local/.local/share/nvim/mason/packages"
+local mason_jdtls_path = mason_package_path .. "/jdtls"
+local java_debug_adapter = mason_package_path .. "/java-debug-adapter"
+local java_test = mason_package_path .. "/java-test"
 
 assert(vim.fn.mkdir(vim.fn.glob("~") .. "/.cache/jdtls", 'p') == 1,
     "Couldn't create '~/.cache/jdtls' directory")

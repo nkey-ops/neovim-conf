@@ -6,9 +6,7 @@ local jdtls = require("jdtls")
 local mason_registry = require('mason-registry')
 local google_java_format_jar =
     vim.fn.glob(
-        mason_registry
-        .get_package("google-java-format")
-        :get_install_path() .. "/google-java-format-*.jar"
+        "/home/local/.local/share/nvim/mason/packages/google-java-format/google-java-format-*.jar"
     )
 
 local enable_auto_format = false

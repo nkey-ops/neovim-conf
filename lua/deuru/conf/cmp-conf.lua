@@ -21,7 +21,7 @@ return function()
         assert(type(o2_insert_text) == "string")
 
         local methods = { "notify", "notifyAll", "wait",
-            "toString", "hashCode", "equals", "getClass" }
+            "toString", "hashCode", "equals", "getClass", "clone" }
 
 
         local does_o1_match = false
@@ -180,8 +180,13 @@ return function()
                                 -- [2.1.2] if both completion items are functions lets pick the one
                                 --       with the least function arguments
                                 if o1_kind == 2 then
-                                    local _, o1_arg_count = o1.completion_item.filterText:gsub('${', '')
-                                    local _, o2_arg_count = o2.completion_item.filterText:gsub('${', '')
+                                    local o1_text = o1.completion_item.filterText and o1.completion_item.filterText or
+                                    o1_insert_text
+                                    local o2_text = o2.completion_item.filterText and o2.completion_item.filterText or
+                                    o2_insert_text
+
+                                    local _, o1_arg_count = o1_text:gsub('${', '')
+                                    local _, o2_arg_count = o2_text:gsub('${', '')
 
                                     local arg_diff = o1_arg_count - o2_arg_count
                                     return arg_diff < 0

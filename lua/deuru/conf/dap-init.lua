@@ -97,9 +97,9 @@ dap.listeners.before.attach.dapui_config = function()
 end
 dap.listeners.before.launch.dapui_config = function(config)
     if config.config.mainClass:match(".*junit.*") then
-        dapui.open(2)
-        dapui.open(3)
+        dapui.open({ layout = 2 })
+        dapui.open({ layout = 3 })
     else
-        dapui.open(2)
+        dapui.open({ layout = 2 })
     end
 end

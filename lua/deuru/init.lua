@@ -127,6 +127,7 @@ local plugins = {
     },
     {
         'mfussenegger/nvim-jdtls',
+        enabled = true,
         dependencies = {
             {
                 'jose-elias-alvarez/null-ls.nvim',
@@ -235,7 +236,9 @@ local plugins = {
         opts = {
             -- path where 'extended-marks' dir will be created
             data_dir = "~/.cache/nvim",
-            confirmation = true,
+
+            confirmation_press = true,
+            confirmation_on_replace = true,
             Global = {
                 key_length = 4
             },
@@ -255,8 +258,9 @@ local plugins = {
             vim.keymap.set("n", "m", marks.set_cwd_or_local_mark)
             vim.keymap.set("n", "`",
                 function()
-                    marks.jump_to_cwd_or_local_mark()
-                    vim.api.nvim_command(":normal! zt")
+                    if marks.jump_to_cwd_or_local_mark() then
+                        vim.api.nvim_command(":normal! zt")
+                    end
                 end)
             vim.keymap.set("n", "M", marks.set_global_or_tab_mark)
             vim.keymap.set("n", "'", marks.jump_to_global_or_tab_mark)
@@ -342,5 +346,10 @@ local plugins = {
     --     }    },
     --     enabled = false
     -- }
+    {
+        "m4xshen/hardtime.nvim",
+        dependencies = { "MunifTanjim/nui.nvim" },
+        opts = {}
+    },
 }
 require("lazy").setup(plugins)

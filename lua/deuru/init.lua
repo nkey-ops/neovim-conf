@@ -20,6 +20,8 @@ local req_conf = function(mod)
     return require("deuru.conf." .. mod)
 end
 
+require("deuru.conf.filetypes.sql")
+
 local plugins = {
     {
         'nvim-telescope/telescope.nvim',

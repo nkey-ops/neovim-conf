@@ -65,7 +65,6 @@ require('mason-lspconfig').setup(
             "jsonls",
             "lua_ls",
             "yamlls",
-            "sqlls",
             "html",
         },
         automatic_enable = {

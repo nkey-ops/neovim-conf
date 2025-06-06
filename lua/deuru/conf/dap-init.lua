@@ -103,3 +103,130 @@ dap.listeners.before.launch.dapui_config = function(config)
         dapui.open({ layout = 2 })
     end
 end
+
+
+
+local api = vim.api
+
+local lazy = setmetatable({
+    async = nil,       --- @module "dap.async"
+    utils = nil,       --- @module "dap.utils"
+    progress = nil,    --- @module "dap.progress"
+    ui = nil,          --- @module "dap.ui"
+    breakpoints = nil, --- @module "dap.breakpoints"
+}, {
+    __index = function(_, key)
+        return require('dap.' .. key)
+    end
+})
+
+---@diagnostic disable-next-line: deprecated
+local islist = vim.islist or vim.tbl_islist
+
+local M = {}
+
+--- Configurations per adapter. See `:help dap-configuration` for more help.
+---
+--- An example:
+---
+--- ```
+--- require('dap').configurations.python = {
+---   {
+---       name = "My configuration",
+---       type = "debugpy", -- references an entry in dap.adapters
+---       request = "launch",
+---       -- + Other debug adapter specific configuration options
+---   },
+--- }
+--- ```
+---@type table<string, dap.Configuration[]>
+M.configurations = {}
+
+local providers = {
+    ---@type table<string, fun(bufnr: integer): dap.Configuration[]>
+    configs = {},
+}
+do
+    local providers_mt = {
+        __newindex = function()
+            error("Cannot add item to dap.providers")
+        end,
+    }
+    M.providers = setmetatable(providers, providers_mt)
+end
+
+providers.configs["dap.global"] = function(bufnr)
+    local filetype = vim.b["dap-srcft"] or vim.bo[bufnr].filetype
+    local configurations = M.configurations[filetype] or {}
+    assert(
+        islist(configurations),
+        string.format(
+            '`dap.configurations.%s` must be a list of configurations, got %s',
+            filetype,
+            vim.inspect(configurations)
+        )
+    )
+    return configurations
+end
+
+providers.configs["dap.launch.json"] = function()
+    local ok, configs = pcall(require("dap.ext.vscode").getconfigs)
+    if not ok then
+        local msg = "Can't get configurations from launch.json:\n%s" .. configs
+        vim.notify_once(msg, vim.log.levels.WARN, { title = "DAP" })
+        return {}
+    end
+    return configs
+end
+
+
+local function notify(...)
+    lazy.utils.notify(...)
+end
+
+M.select_config_and_run = function(opts)
+    local bufnr = api.nvim_get_current_buf()
+    local filetype = vim.bo[bufnr].filetype
+
+    local all_configs = {}
+    local provider_keys = vim.tbl_keys(providers.configs)
+    table.sort(provider_keys)
+    for _, provider in ipairs(provider_keys) do
+        local config_provider = providers.configs[provider]
+        local configs = config_provider(bufnr)
+        if islist(configs) then
+            vim.list_extend(all_configs, configs)
+        else
+            local msg = "Configuration provider %s must return a list of configurations. Got: %s"
+            notify(msg:format(provider, vim.inspect(configs)), vim.log.levels.WARN)
+        end
+    end
+
+    if #all_configs == 0 then
+        local msg =
+        'No configuration found for `%s`. You need to add configs to `dap.configurations.%s` (See `:h dap-configuration`)'
+        notify(string.format(msg, filetype, filetype), vim.log.levels.INFO)
+        return
+    end
+
+    opts = opts or {}
+    opts.filetype = opts.filetype or filetype
+
+    local result
+    lazy.ui.pick_if_many(
+        all_configs,
+        "Configuration: ",
+        function(i) return i.name end,
+        function(configuration)
+            if configuration then
+                result =
+                    configuration
+            else
+                notify('No configuration selected', vim.log.levels.INFO)
+            end
+        end
+    )
+
+    return result
+end
+return M

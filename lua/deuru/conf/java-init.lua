@@ -254,8 +254,21 @@ vim.api.nvim_create_autocmd('User', {
         set('n', '<leader>joi', function() jdtls.jol("internals") end, ext(opts, "Java [Jo]l [I]nternals"))
         set('n', '<leader>jap', jdtls.javap, ext(opts, "Java [Ja]va[p]"))
 
-        set("n", "<leader>tt", jdtls.test_class, ext(opts, "Java Test Class"))
-        set("n", "<leader>tm", jdtls.test_nearest_method, ext(opts, "Java [T]est Nearest [M]ethod"))
+        set("n", "<leader>tt",
+            function()
+                jdtls.test_class(
+                    { config_overrides = require("deuru.conf.dap-init").select_config_and_run() }
+                )
+            end,
+            ext(opts, "Java Test Class"))
+        set("n", "<leader>tm",
+
+            function()
+                jdtls.test_nearest_method(
+                    { config_overrides = require("deuru.conf.dap-init").select_config_and_run() }
+                )
+            end,
+            ext(opts, "Java [T]est Nearest [M]ethod"))
         set("n", "<leader>tp", jdtls.pick_test, ext(opts, "Java [P]ick [T]est"))
         -- set("n", "<leader>tg", jdtls.generate, ext(opts, "Java [G]enerate [T]est" ))
         -- set("n", "<leader>tb", jdtls.goto_subjects, ext(opts, "Java [G]o to subjects" ))

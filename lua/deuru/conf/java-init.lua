@@ -10,24 +10,25 @@ local google_java_format_jar =
     )
 
 local enable_auto_format = false
-local java_formats = { "google2", "google4", "intellij", "5pos" }
+local java_formats = { "google2", "google4", "intellij", "securepay" }
 local java_format = java_formats[2]
 
 local set = vim.keymap.set
 
 local java_path = "/usr/lib/jvm/java-21-openjdk-amd64/bin/java"
 
-require('formatter').setup {
+require('formatter').setup({
     filetype = {
         java = {
             function()
-                local lines = nil
+                local lines_arg = nil
                 local mode = vim.api.nvim_get_mode()['mode']
 
                 if mode == 'v' or mode == 'V' or mode == '\22' then
-                    local startLine = vim.fn.getpos("v")[2]
-                    local endLine = vim.fn.getcurpos()[2]
-                    lines = string.format("--lines %s:%s", startLine, endLine)
+                    local start_line = vim.fn.getpos("v")[2]
+                    local end_line = vim.fn.getcurpos()[2]
+                    lines_arg = string.format("--lines %s:%s", start_line, end_line)
+
                     M.exit_visual()
                 end
 
@@ -50,16 +51,26 @@ require('formatter').setup {
                     return {
                         exe = java_path,
                         args = { '-jar', google_java_format_jar,
-                            lines and lines or "",
+                            lines_arg and lines_arg or "",
                             tmp
                         },
+                        stdin = true
+                    }
+                elseif java_format:match("securepay") then
+                    return {
+                        exe = java_path,
+                        args = { '-jar', google_java_format_jar, "--aosp",
+                            lines_arg and lines_arg or "",
+                            tmp
+                        },
+
                         stdin = true
                     }
                 else
                     return {
                         exe = java_path,
                         args = { '-jar', google_java_format_jar, "--aosp",
-                            lines and lines or "",
+                            lines_arg and lines_arg or "",
                             tmp
                         },
                         stdin = true
@@ -68,7 +79,7 @@ require('formatter').setup {
             end
         }
     }
-}
+})
 
 
 vim.api.nvim_create_user_command("JavaAutoFormat",
@@ -105,7 +116,11 @@ vim.api.nvim_create_user_command("SetJavaFormat",
 
 local format = function()
     local_marks.update()
-    vim.cmd("Format")
+    if java_format:match("securepay") then
+        vim.lsp.buf.format()
+    else
+        vim.cmd("Format")
+    end
     local_marks.restore()
 end
 

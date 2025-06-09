@@ -119,7 +119,10 @@ local plugins = {
         dependencies = {
             { 'williamboman/mason-lspconfig.nvim' },
         },
-        init = function() req_conf('lsp-init') end
+        init = function()
+            req_conf('lsp-init')
+            vim.lsp.inlay_hint.enable()
+        end
     },
     {
         'windwp/nvim-autopairs',
@@ -241,7 +244,7 @@ local plugins = {
             -- path where 'extended-marks' dir will be created
             data_dir = "~/.cache/nvim",
 
-            confirmation_press = true,
+            confirmation_on_last_key = true,
             confirmation_on_replace = true,
             Global = {
                 key_length = 4

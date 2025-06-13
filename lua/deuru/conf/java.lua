@@ -24,6 +24,17 @@ local Paths = {
     lombok            = mason_jdtls_path .. "/lombok.jar",
 }
 
+local test_plugins = {}
+for _, value in pairs(Paths.java_test_plugins) do
+    if not (
+            value:match(".+jacocoagent.+") or
+            value:match(".+runner%-jar%-with%-dependencies.+")) then
+        table.insert(test_plugins, value)
+    end
+end
+Paths.java_test_plugins = test_plugins
+
+
 -- local extendedClientCapabilities = jdtls.extendedClientCapabilities
 -- extendedClientCapabilities.resolveAdditionalTextEditsSupport = true
 

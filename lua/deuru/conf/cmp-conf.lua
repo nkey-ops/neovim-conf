@@ -58,6 +58,35 @@ return function()
         return nil
     end
 
+    local function nvim_lsp_entry_filter(entry, ctx)
+        assert(type(entry) == "table", "entry shold not be nil and should have type 'table'")
+        assert(type(ctx) == "table", "ctx shold not be nil and should have type 'table'")
+
+        local kind = require('cmp.types').lsp.CompletionItemKind[entry:get_kind()]
+
+        -- doing some replacements of responses
+        if entry.completion_item.filterText then
+            local f_text = entry.completion_item.filterText
+            local newText = nil
+
+            if f_text:match("{@link}") then
+                newText = "{@link ${1}} ${0}"
+            elseif f_text:match("{@code}") then
+                newText = "{@code ${1}} ${0}"
+            end
+
+            if newText then
+                -- before text is inserted cmp resolve the completion item against the server if
+                -- it wasn't resolved, lets copy the completion item and pretend it was resolved
+                table.insert(entry.resolved_callbacks, function()
+                    entry.completion_item.textEdit.newText = newText
+                end)
+            end
+        end
+        return kind ~= 'Keyword'
+    end
+
+
     cmp.setup {
         snippet = {
             expand = function(args)
@@ -181,9 +210,9 @@ return function()
                                 --       with the least function arguments
                                 if o1_kind == 2 then
                                     local o1_text = o1.completion_item.filterText and o1.completion_item.filterText or
-                                    o1_insert_text
+                                        o1_insert_text
                                     local o2_text = o2.completion_item.filterText and o2.completion_item.filterText or
-                                    o2_insert_text
+                                        o2_insert_text
 
                                     local _, o1_arg_count = o1_text:gsub('${', '')
                                     local _, o2_arg_count = o2_text:gsub('${', '')
@@ -358,25 +387,9 @@ return function()
             {
                 name = 'nvim_lsp',
                 priority = 1,
-                entry_filter = function(entry, ctx)
-                    local kind = require('cmp.types').lsp.CompletionItemKind[entry:get_kind()]
-
-                    -- doing some replacements of responses
-                    if entry.completion_item.filterText then
-                        local f_text = entry.completion_item.filterText
-                        if f_text:match("{@link}") then
-                            entry.completion_item.textEdit.newText = "{@link ${1}} ${0}"
-                        elseif f_text:match("{@code}") then
-                            entry.completion_item.textEdit.newText = "{@code ${1}} ${0}"
-                        end
-                        -- before text is inserted cmp resolve the completion item against the server if
-                        -- it wasn't resolved, lets copy the completion item and pretend it was resolved
-                        entry.resolved_completion_item = entry.completion_item
-                    end
-                    return kind ~= 'Keyword'
-                end
+                entry_filter = nvim_lsp_entry_filter
             },
-            { name = 'luasnip',        priority = 2, group_index = 1, keword_length = 5 }, -- For luasnip users.
+            { name = 'luasnip',        priority = 2, group_index = 2 }, -- For luasnip users.
             { name = 'render-markdown' },
             -- { name = 'vsnip',    keyword_length = 1 }, -- For vsnip users.
             -- { name = 'ultisnips' }, -- For ultisnips users.

@@ -58,7 +58,7 @@ return function()
         return nil
     end
     local function format(entry, vim_item)
-        local lspkind_format = lspkind.cmp_format({ mode = 'symbol', maxwidth = 50 })
+        local lspkind_format = lspkind.cmp_format({ mode = 'symbol' })
 
         vim_item = lspkind_format(entry, vim_item)
 
@@ -69,21 +69,39 @@ return function()
         local kind = entry.completion_item.kind
 
 
-        if kind ~= 15 then                 -- except snippets
-            if kind == 2 or kind == 3 then -- methods and functions
+        if kind ~= 15 then -- except snippets
+            -- methods, functions and constructors
+            if kind == 2 or kind == 3 or kind == 4 then
                 -- word "named_function"
                 -- abbr "named_function(String arg1)"
                 -- >>
                 -- menu -> "(String arg1)"
                 vim_item.menu = vim_item.abbr:sub(#vim_item.word + 1)
             else
-                -- word "named_var"
-                -- abbr "named_var : Var_Type"
-                -- >>
-                -- menu -> "Var_Type"
+                -- -- word "named_var"
+                -- -- abbr "named_var : Var_Type"
+                -- -- >>
+                -- -- menu -> "Var_Type"
                 vim_item.menu = vim_item.abbr:sub(#vim_item.word + 4)
             end
 
+            local i = vim_item.menu:find(":")
+
+            local type
+            if i then
+                type = vim_item.menu:sub(i):sub(1, 18)
+                if #type == 18 then type = type .. ".." end
+                vim_item.menu = vim_item.menu:sub(1, i - 2)
+            end
+
+            vim_item.menu = vim_item.menu:sub(1, 18)
+            if #vim_item.menu == 18 then vim_item.menu = vim_item.menu .. ".." end
+
+            vim_item.menu = string.format("%-20s", vim_item.menu)
+
+            if type then
+                vim_item.menu = vim_item.menu .. " " .. type
+            end
             -- cmp only displayc "abbr", lets assing a shorter "word"
             vim_item.abbr = vim_item.word
         end
@@ -123,19 +141,19 @@ return function()
             local f_text = entry.completion_item.filterText
             local newText = nil
 
-            if f_text:match("{@link}") then
+            if f_text == "{@link}" then
                 newText = "{@link ${1}} ${0}"
-            elseif f_text:match("{@code}") then
+            elseif f_text == "{@code}" then
                 newText = "{@code ${1}} ${0}"
             end
 
-            if newText then
-                -- before text is inserted cmp resolve the completion item against the server if
-                -- it wasn't resolved, lets copy the completion item and pretend it was resolved
-                table.insert(entry.resolved_callbacks, function()
+            -- before text is inserted cmp resolve the completion item against the server
+            -- then it will call a callback so we can work the update data
+            table.insert(entry.resolved_callbacks, function()
+                if newText then
                     entry.completion_item.textEdit.newText = newText
-                end)
-            end
+                end
+            end)
         end
         return kind ~= 'Keyword'
     end
@@ -216,7 +234,6 @@ return function()
                             nil
                     end
                 end
-
 
 
                 local diff = #o1_insert_text - #o2_insert_text
@@ -366,8 +383,8 @@ return function()
             end
         },
         matching = {
-            -- disallow_fuzzy_matching = true,
-            -- disallow_partial_fuzzy_matching = true,
+            disallow_fuzzy_matching = false,
+            disallow_partial_fuzzy_matching = false,
             disallow_partial_matching = false, --
             disallow_prefix_unmatching = true, --
             disallow_symbol_nonprefix_matching = true,

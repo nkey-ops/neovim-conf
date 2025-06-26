@@ -77,12 +77,11 @@ local plugins = {
     {
         "ray-x/lsp_signature.nvim",
         event = 'VeryLazy',
-        init = function()
-            require('lsp_signature').setup({
-                bind = true, -- This is mandatory, otherwise border config won't get registered.
-                floating_window = false,
-            })
-        end,
+        opts = {
+            bind = true, -- This is mandatory, otherwise border config won't get registered.
+            floating_window = false,
+            ignore_error = function(_, _, _) return true end
+        }
     },
 
     {

@@ -16,7 +16,7 @@ return function()
     --     )
     -- end
 
-    local function refuse_first_or_second__object_methods(o1_insert_text, o2_insert_text)
+    local function refuse_first_or_second_object_methods(o1_insert_text, o2_insert_text)
         assert(type(o1_insert_text) == "string")
         assert(type(o2_insert_text) == "string")
 
@@ -62,12 +62,7 @@ return function()
 
         vim_item = lspkind_format(entry, vim_item)
 
-        -- local name = vim.fn.strcharpart(entry.source.name, 0, 4)
-        -- vim_item.menu = string.format("[%s]", name)
-        vim_item.kind = vim.fn.strcharpart(vim_item.kind, 0, 5)
-
         local kind = entry.completion_item.kind
-
 
         if kind ~= 15 then -- except snippets
             -- methods, functions and constructors
@@ -76,7 +71,8 @@ return function()
                 -- abbr "named_function(String arg1)"
                 -- >>
                 -- menu -> "(String arg1)"
-                vim_item.menu = vim_item.abbr:sub(#vim_item.word + 1)
+                local s = vim_item.word:find("(", 1, { plain = true })
+                vim_item.menu = vim_item.abbr:sub(s or 1)
             else
                 -- -- word "named_var"
                 -- -- abbr "named_var : Var_Type"
@@ -150,9 +146,9 @@ return function()
             -- before text is inserted cmp resolve the completion item against the server
             -- then it will call a callback so we can work the update data
             table.insert(entry.resolved_callbacks, function()
-                if newText then
-                    entry.completion_item.textEdit.newText = newText
-                end
+            if newText then
+                entry.completion_item.textEdit.newText = newText
+            end
             end)
         end
         return kind ~= 'Keyword'
@@ -216,7 +212,7 @@ return function()
                     return not refuse_deprecated
                 end
 
-                local refuse_object_method = refuse_first_or_second__object_methods(o1_insert_text,
+                local refuse_object_method = refuse_first_or_second_object_methods(o1_insert_text,
                     o2_insert_text)
                 if refuse_object_method ~= nil then
                     return not refuse_object_method
@@ -378,9 +374,6 @@ return function()
         },
 
         confirmation = {
-            get_commit_characters = function(commit_characters)
-                return { "(", ")" }
-            end
         },
         matching = {
             disallow_fuzzy_matching = false,

@@ -272,15 +272,14 @@ vim.api.nvim_create_autocmd('User', {
         set("n", "<leader>tt",
             function()
                 jdtls.test_class(
-                    { config_overrides = require("deuru.conf.dap-init").select_config_and_run() }
+                    { config_overrides = require("deuru.conf.dap-init").select_config() }
                 )
             end,
             ext(opts, "Java Test Class"))
         set("n", "<leader>tm",
-
             function()
                 jdtls.test_nearest_method(
-                    { config_overrides = require("deuru.conf.dap-init").select_config_and_run() }
+                    { config_overrides = require("deuru.conf.dap-init").select_config() }
                 )
             end,
             ext(opts, "Java [T]est Nearest [M]ethod"))

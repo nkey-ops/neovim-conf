@@ -179,7 +179,7 @@ local function notify(...)
     lazy.utils.notify(...)
 end
 
-M.select_config_and_run = function(opts)
+M.select_config = function(opts)
     local bufnr = api.nvim_get_current_buf()
     local filetype = vim.bo[bufnr].filetype
 
@@ -189,6 +189,7 @@ M.select_config_and_run = function(opts)
     for _, provider in ipairs(provider_keys) do
         local config_provider = providers.configs[provider]
         local configs = config_provider(bufnr)
+
         if islist(configs) then
             vim.list_extend(all_configs, configs)
         else
@@ -207,20 +208,23 @@ M.select_config_and_run = function(opts)
     opts = opts or {}
     opts.filetype = opts.filetype or filetype
 
-    local result
-    lazy.ui.pick_if_many(
-        all_configs,
-        "Configuration: ",
-        function(i) return i.name end,
-        function(configuration)
-            if configuration then
-                result =
-                    configuration
-            else
-                notify('No configuration selected', vim.log.levels.INFO)
-            end
-        end
-    )
+    local result = all_configs[1]
+    if #all_configs > 1 then
+        result = lazy.ui.pick_one_sync(
+            all_configs,
+            "Configuration: ",
+            function(i) return i.name end
+        )
+    end
+
+    if not result then
+        notify('No configuration selected', vim.log.levels.INFO)
+        return nil
+    end
+
+    if type(result.vmArgs) == 'table' then
+        result.vmArgs = table.concat(result.vmArgs, ' ')
+    end
 
     return result
 end

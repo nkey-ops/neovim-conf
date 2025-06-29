@@ -75,6 +75,7 @@ return function()
         root_dir = require('jdtls.setup').find_root({ 'gradlew', 'mvnw', '.git', 'pom.xml' }),
         settings = {
             java = {
+                project = {},
                 signatureHelp = {
                     enabled = true,
                     description = { enabled = true } -- not working
@@ -99,23 +100,26 @@ return function()
                 completion = {
                     enabled = true,
                     favoriteStaticMembers = {
+                        "java.util.Objects.*",
+                        "java.util.Arrays.*",
                         "org.hamcrest.MatcherAssert.assertThat",
                         "org.hamcrest.Matchers.*",
                         "org.hamcrest.CoreMatchers.*",
-                        "java.util.Objects.*",
-                        "java.util.Arrays.*",
                         "org.mockito.Mockito.*",
+                        "org.mockito.ArgumentMatchers.*",
                         "org.junit.Assert.*",
                         "org.junit.Assume.*",
                         "org.junit.jupiter.api.Assertions.*",
                         "org.junit.jupiter.api.Assumptions.*",
                         "org.junit.jupiter.api.DynamicContainer.*",
-                        "org.junit.jupiter.api.DynamicTest.*"
+                        "org.junit.jupiter.api.DynamicTest.*",
+                        "org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*",
+                        "org.springframework.test.web.servlet.result.MockMvcResultMatchers.*"
                     },
-                    overwrite = true,
+                    -- overwrite = true,
                     guessMethodArguments = true,
-                    matchCase = "all",
-                    postFix = true,
+                    -- matchCase = "FIRSTLETTER", -- doesn't return @code
+                    -- postFix = true,
 
                 },
                 codeGeneration = {
@@ -134,6 +138,7 @@ return function()
                 maxConcurrentBuilds = 1,
             },
         },
+
         sources = {
             organizeImports = {
                 starThreshold = 9999,
@@ -161,19 +166,8 @@ return function()
         on_attach = function()
             jdtls.setup_dap({ hotcodereplace = 'auto' })
         end,
-        capabilities =
-        {
-            workspace = {
-                configuration = true
-            },
-            textDocument = {
-                completion = {
-                    completionItem = {
-                        snippetSupport = true
-                    }
-                }
-            }
-        }, -- jol_path = '/opt/jol/jol-cli-0.9-full.jar'
-        -- require('cmp_nvim_lsp').default_capabilities()
+        capabilities = require('cmp_nvim_lsp').default_capabilities()
+        --  jol_path = '/opt/jol/jol-cli-0.9-full.jar'
+
     }
 end

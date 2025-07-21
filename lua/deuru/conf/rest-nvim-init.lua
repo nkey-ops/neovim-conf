@@ -8,6 +8,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
         --     { desc = "RestNvim: [P]review Curl Command", buffer = args.buf })
         vim.keymap.set("n", "<leader>l", "<cmd>Rest last<CR>",
             { desc = "RestNvim: Run [L]ast Curl Command", buffer = args.buf })
+        vim.opt_local.expandtab = true
     end
 })
 vim.api.nvim_create_autocmd("FileType", {
@@ -43,31 +44,46 @@ vim.api.nvim_create_autocmd("FileType", {
 -- })
 
 -- Gets and Sets the found key2 as a context var with the name
-_G.gas_header = function(key1, key2, context, env_var_name)
-    if (key1 == nil or key2 == nil or context == nil or env_var_name == nil) then
-        print("One of the parameters is nil:", key1, key2, context, env_var_name)
+_G.gas_header = function(header_name, header_value_regex, env_var_name, response, client)
+    assert(type(header_name) == 'string', "header_name cannot be nil and should be of type 'string'")
+    assert(type(env_var_name) == 'string', "env_var_name cannot be nil and should be of type 'string'")
+    assert(type(response) == 'table', "env_var_name cannot be nil and should be of type 'table'")
+    assert(type(client) == 'table', "env_var_name cannot be nil and should be of type 'table'")
+    if header_value_regex then
+        assert(type(header_value_regex) == 'string', "header_value_regex should be of type 'string'")
+    end
+
+
+    local header = response.headers[header_name]
+
+    if (header == nil) then
+        print("Couldn't find header_name:", header_name)
         return
     end
 
-    local line = context.result.headers[key1]
+    local value = nil
+    if header_value_regex then
+        for _, header_value in pairs(header) do
+            local s = string.match(header_value, header_value_regex)
+            if s then
+                value = s
+            end
+        end
 
-    if (line == nil) then
-        print("Couldn't find key1:", key1)
-        return
+        if not value then
+            print(("Couldn't find '%s'"):format(header_value_regex))
+            return
+        end
+    else
+        for _, header_value in pairs(header) do
+            value = value .. header_value
+        end
     end
 
-    local s, e = string.find(line, key2)
-
-    if (s == nil) then
-        print("Couldn't find key2:", key2)
-        return
-    end
-
-    local st = string.sub(line, s, e)
-    context.set_env(env_var_name, st)
-
-    print(("Set env-var: '%s'='%s'"):format(env_var_name, st))
+    client.global.set(env_var_name, value)
+    print(("Set env-var: '%s'='%s'"):format(env_var_name, value))
 end
+
 
 --TODO corner keys for empty tables
 _G.gas_json = function(key, env_var_name, response, client)
@@ -113,4 +129,45 @@ _G.gas_json = function(key, env_var_name, response, client)
 
     client.global.set(env_var_name, body)
     print(("Set env-var: '%s'='%s'"):format(env_var_name, body))
+end
+
+
+_G.gas_body = function(vim_regex, env_var_name, response, client)
+    assert(vim_regex ~= nil and (type(vim_regex) == "table" or type(vim_regex) == "string"),
+        "Key cannot be nil and should be of a type table or string")
+    assert(env_var_name ~= nil and type(env_var_name) == "string",
+        "env_var_name cannot be nil and should be of a type string")
+    assert(response ~= nil, "context cannot be nil")
+    assert(client ~= nil, "client cannot be nil")
+
+    if response.body == nil or response.body == "" then
+        print("No body was present ")
+        return
+    end
+
+    if not type(response.body) == 'string' then
+        print("The body was of type", type(response.body))
+        return
+    end
+
+    local result = vim.fn.matchstr(response.body, vim_regex)
+    if not result then
+        print(("Couldn't find key: '%s'"):format(vim_regex))
+        return
+    end
+
+    client.global.set(env_var_name, result)
+    print(("Set env-var: '%s'='%s'"):format(env_var_name, result))
+end
+
+--- @param command string
+_G.cmd = function(command)
+    assert(type(command) == 'string', "command should not be nil and should be of type 'string'")
+    --
+    local cmd = {}
+    for m in command:gmatch("%S+") do
+        table.insert(cmd, m)
+    end
+    local result = vim.system(cmd, { text = true }):wait().stdout
+    return result:gsub("\n", "")
 end

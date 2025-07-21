@@ -55,7 +55,7 @@ vim.g.rest_nvim =
     ---@class rest.Config.Cookies
     cookies = {
         ---@type boolean Whether enable cookies support or not
-        enable = true,
+        enable = false,
         ---@type string Cookies file path
         path = vim.fs.joinpath(vim.fn.stdpath("data") --[[@as string]], "rest-nvim.cookies"),
     },

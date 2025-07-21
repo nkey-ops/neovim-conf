@@ -146,9 +146,9 @@ return function()
             -- before text is inserted cmp resolve the completion item against the server
             -- then it will call a callback so we can work the update data
             table.insert(entry.resolved_callbacks, function()
-            if newText then
-                entry.completion_item.textEdit.newText = newText
-            end
+                if newText then
+                    entry.completion_item.textEdit.newText = newText
+                end
             end)
         end
         return kind ~= 'Keyword'
@@ -384,14 +384,14 @@ return function()
         },
         sorting = {
 
-            comparators = comparators
+            -- comparators = comparators
         },
 
         preselect = cmp.PreselectMode.Item,
 
         formatting = {
             fields = { cmp.ItemField.Kind, cmp.ItemField.Abbr, cmp.ItemField.Menu },
-            format = format,
+            -- format = format,
         },
 
         mapping = cmp.mapping.preset.insert(keybinds),
@@ -401,7 +401,7 @@ return function()
             {
                 name = 'nvim_lsp',
                 priority = 1,
-                entry_filter = nvim_lsp_entry_filter
+                -- entry_filter = nvim_lsp_entry_filter
             },
             { name = 'luasnip',        priority = 2, group_index = 2 }, -- For luasnip users.
             { name = 'render-markdown' },

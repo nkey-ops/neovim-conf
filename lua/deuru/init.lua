@@ -20,6 +20,7 @@ local req_conf = function(mod)
     return require("deuru.conf." .. mod)
 end
 
+req_conf("filetypes.filetypes")
 req_conf("filetypes.sql")
 req_conf("cwd-settings")
 

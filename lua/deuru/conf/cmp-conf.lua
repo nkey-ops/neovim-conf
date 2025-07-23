@@ -474,3 +474,42 @@ return function()
         })
     })
 end
+
+
+-- local l = #params.context.cursor_line
+-- if params.context.cursor_before_line:sub(l, l) == '(' then
+--     lsp_params.position.character = params.context.cursor.character - 1
+--     -- lsp_params.context.cursor_after_line = ""
+--     -- lsp_params.context.cursor_before_line = params.context.cursor_before_line:sub(1,
+--     --     #params.context.cursor_before_line - 1)
+--     -- lsp_params.context.cursor_line = lsp_params.context.cursor_before_line
+--     -- lsp_params.context.cursor = params.context.cursor
+--     -- lsp_params.context.cursor.character = params.context.cursor.character - 1
+-- end
+
+-- P(lsp_params)
+-- lsp_params.context.triggerKind = params.completion_context.triggerKind
+-- lsp_params.context.triggerCharacter = params.completion_context.triggerCharacter
+-- self:_request('textDocument/completion', lsp_params, function(_, response)
+--     -- if response then
+--     --     for _, item in pairs(response.items) do
+--     --         if item.kind >= 2 and item.kind <= 4
+--     --             and item.filterText
+--     --             and item.detail and (item.filterText:sub(#item.filterText, #item.filterText) ~= ';'
+--     --                 and item.filterText:sub(#item.filterText, #item.filterText) ~= ')') then
+--     --             item.filterText = item.filterText .. (item.detail:match("%(%)") and "()" or "(${1})")
+--     --             if item.insertText and item.textEdit then
+--     --                 item.textEdit.newText = item.filterText
+--     --             end
+--     --         end
+--     --     end
+--     -- end
+--     callback(response)
+-- end)
+--
+-- if item.kind >= 2 and item.kind <= 4 then
+--     if item.textEdit then
+--         item.textEdit.newText = item.filterText
+--     end
+-- end
+--

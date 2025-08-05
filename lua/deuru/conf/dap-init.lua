@@ -46,56 +46,56 @@ map.set('n', '<leader>dfr', dap.restart_frame, --[[-----]] { desc = "Debug: [F]r
 map.set('n', '<leader>dff', dap.focus_frame, --[[-------]] { desc = "Debug: [F]rame [F]ocus" })
 -- UI
 map.set('n', '<leader>dut', dapui.toggle, --[[-----------]] { desc = "Debug: [U]I [T]oggle" })
-map.set('n', '<leader>dus', function() dapui.toggle(1) end, { desc = "Debug: [U]I [S]ide Bar" })
-map.set('n', '<leader>duc', function() dapui.toggle(2) end, { desc = "Debug: [U]I [C]onsole" })
-map.set('n', '<leader>dur', function() dapui.toggle(3) end, { desc = "Debug: [U]I [R]epl" })
+map.set('n', '<leader>dus', function() dapui.toggle({ layout = 1 }) end, { desc = "Debug: [U]I [S]ide Bar" })
+map.set('n', '<leader>duc', function() dapui.toggle({ layout = 2 }) end, { desc = "Debug: [U]I [C]onsole" })
+map.set('n', '<leader>dur', function() dapui.toggle({ layout = 3 }) end, { desc = "Debug: [U]I [R]epl" })
 map.set('n', '<leader>duf', float_frames, --[[-----------]] { desc = "Debug: [U]I Floating [F]rames" })
 map.set('n', '<leader>dup', float_scopes, --[[-----------]] { desc = "Debug: [U]I Floating Sco[p]es" })
 
 map.set({ 'n', 'v' }, '<leader>dh', widgets.hover, --[[--]] { desc = "Debug: [H]over" })
 map.set({ 'n', 'v' }, '<leader>dp', widgets.preview, --[[]] { desc = "Debug: [P]review" })
 
-dapui.setup({
-    layouts = { {
-        elements = { {
-            id = "scopes",
-            size = 0.25
+dapui.setup(
+    {
+        layouts = { {
+            elements = { {
+                id = "scopes",
+                size = 0.25
+            }, {
+                id = "breakpoints",
+                size = 0.25
+            }, {
+                id = "stacks",
+                size = 0.25
+            }, {
+                id = "watches",
+                size = 0.25
+            } },
+            position = "left",
+            size = 40
         }, {
-            id = "breakpoints",
-            size = 0.25
-        }, {
-            id = "stacks",
-            size = 0.25
-        }, {
-            id = "watches",
-            size = 0.25
-        } },
-        position = "left",
-        size = 40
-    }, {
-        elements = { {
-            id = "console",
-            size = 0.5
-        } },
-        position = "bottom",
-        size = 10
-    }, {
-        elements = {
-            {
-                id = "repl",
+            elements = { {
+                id = "console",
                 size = 0.5
+            } },
+            position = "bottom",
+            size = 10
+        }, {
+            elements = {
+                {
+                    id = "repl",
+                    size = 0.5
+                },
             },
-        },
-        position = "bottom",
-        size = 10
-    }
-    }
-})
+            position = "bottom",
+            size = 10
+        }
+        }
+    })
 
 dap.listeners.before.attach.dapui_config = function()
-    dapui.open()
 end
-dap.listeners.before.launch.dapui_config = function(config)
+dap.listeners.before.launch.dapui_config = function()
     dapui.open({ layout = 2 })
 end
 

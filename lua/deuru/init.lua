@@ -1,5 +1,4 @@
 require("deuru.remap")
-require("deuru.highlight")
 require("deuru.set")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -235,8 +234,8 @@ local plugins = {
         end
     },
     {
-        -- "nkey-ops/extended-marks.nvim",
-        dir = "/home/local/table/extended-marks.nvim/",
+        "nkey-ops/extended-marks.nvim",
+        -- dir = "/home/local/table/extended-marks.nvim/",
         enabled = true,
 
         --- @type ExtendedMarksOpts
@@ -358,5 +357,9 @@ local plugins = {
         dependencies = { "MunifTanjim/nui.nvim" },
         opts = {}
     },
+    {
+        dir = "~/table/hireg",
+        opts = {}
+    }
 }
 require("lazy").setup(plugins)

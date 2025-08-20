@@ -99,4 +99,125 @@ vim.g.rest_nvim =
     ---@see vim.log.levels
     ---@type integer log level
     _log_level = vim.log.levels.WARN,
+
+    ---@param ctx rest.Context
+    ---@return table
+    custom_requests = function(ctx, response)
+        return {
+            lua = {
+                gas_json = function(key, env_name)
+                    assert(key ~= nil and (type(key) == "table" or type(key) == "string"),
+                        "Key cannot be nil and should be of a type table or string")
+                    assert(env_name ~= nil and type(env_name) == "string",
+                        "env_var_name cannot be nil and should be of a type string")
+
+                    if response.body == nil or response.body == "" then
+                        print("No body was present ")
+                        return
+                    end
+
+                    local status, body = pcall(vim.json.decode, response.body)
+                    if not status then
+                        print("Couldn't convert body to json")
+                        return
+                    end
+
+                    local full_key = "";
+                    if type(key) == "string" then
+                        body = body[key]
+                        full_key = key
+                    else
+                        for _, v in pairs(key) do
+                            if body == nil or type(body) ~= "table" then
+                                break
+                            end
+
+                            body = body[v]
+                            full_key = string.format("%s%s.", full_key, v)
+                        end
+
+                        full_key = string.sub(full_key, 1, string.len(full_key) - 1)
+                    end
+
+                    if body == nil or type(body) == "table" then
+                        print("Couldn't find key:", full_key)
+                        return
+                    end
+
+                    vim.env[env_name] = body
+                    print(("Set env-var: '%s'='%s'"):format(env_name, body))
+                    return body
+                end,
+
+                -- Gets and Sets the found key2 as a context var with the name
+                gas_header = function(header_name, regex, env_name)
+                    assert(type(header_name) == 'string', "header_name cannot be nil and should be of type 'string'")
+                    assert(type(env_name) == 'string', "env_var_name cannot be nil and should be of type 'string'")
+
+                    if regex then
+                        assert(type(regex) == 'string', "header_value_regex should be of type 'string'")
+                    end
+
+                    local header = response.headers[header_name]
+
+                    if (header == nil) then
+                        print("Couldn't find header_name:", header_name)
+                        return
+                    end
+
+                    local value = nil
+                    if regex then
+                        for _, header_value in pairs(header) do
+                            local s = string.match(header_value, regex)
+                            if s then
+                                value = s
+                            end
+                        end
+
+                        if not value then
+                            print(("Couldn't find '%s'"):format(regex))
+                            return
+                        end
+                    else
+                        for _, header_value in pairs(header) do
+                            value = value .. header_value
+                        end
+                    end
+
+                    vim.env[env_name] = value
+                    print(("Set env-var: '%s'='%s'"):format(env_name, value))
+                    return value
+                end,
+                yank = function(value)
+                    vim.fn.setreg("+", value)
+                end,
+                cmd = function(command)
+                    assert(type(command) == 'string', "command should not be nil and should be of type 'string'")
+                    --
+                    local cmd = {}
+                    for m in command:gmatch("%S+") do
+                        table.insert(cmd, m)
+                    end
+                    local result = vim.system(cmd, { text = true }):wait().stdout
+                    return result:gsub("\n", "")
+                end
+
+            }
+        }
+    end
 }
+
+-- update scripts/lua.lua
+--
+-- if vim.g.rest_nvim.custom_requests
+--     and type(vim.g.rest_nvim.custom_requests) == 'function' then
+--     -- and vim.g.rest_nvim.custom_requests.lua
+--     -- and type(vim.g.rest_nvim.custom_requests.lua) == 'table' then
+--
+--     local custom_requests = vim.g.rest_nvim.custom_requests(ctx, res)
+--
+--     if custom_requests.lua and
+--         type(custom_requests.lua) == 'table' then
+--         env = vim.tbl_extend("force", env, custom_requests.lua)
+--     end
+-- end

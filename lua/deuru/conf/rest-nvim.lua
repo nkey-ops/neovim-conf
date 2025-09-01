@@ -149,33 +149,62 @@ vim.g.rest_nvim =
                     return body
                 end,
 
+                gas_body = function(vim_regex, env_name)
+                    assert(vim_regex ~= nil and (type(vim_regex) == "table" or type(vim_regex) == "string"),
+                        "Key cannot be nil and should be of a type table or string")
+                    assert(env_name ~= nil and type(env_name) == "string",
+                        "env_var_name cannot be nil and should be of a type string")
+
+                    if response.body == nil or response.body == "" then
+                        print("No body was present ")
+                        return
+                    end
+
+                    if not type(response.body) == 'string' then
+                        print("The body was of type", type(response.body))
+                        return
+                    end
+
+                    local result = vim.fn.matchstr(response.body, vim_regex)
+                    if not result then
+                        print(("Couldn't find key: '%s'"):format(vim_regex))
+                        return
+                    end
+
+                    vim.env[env_name] = result
+                    print(("Set env-var: '%s'='%s'"):format(env_name, result))
+                end,
+
                 -- Gets and Sets the found key2 as a context var with the name
-                gas_header = function(header_name, regex, env_name)
+                gas_header = function(header_name, vim_regex, env_name)
                     assert(type(header_name) == 'string', "header_name cannot be nil and should be of type 'string'")
                     assert(type(env_name) == 'string', "env_var_name cannot be nil and should be of type 'string'")
 
-                    if regex then
-                        assert(type(regex) == 'string', "header_value_regex should be of type 'string'")
+                    if vim_regex then
+                        assert(type(vim_regex) == 'string', "header_value_regex should be of type 'string'")
                     end
 
-                    local header = response.headers[header_name]
+                    local header = response.headers[header_name:lower()]
 
                     if (header == nil) then
                         print("Couldn't find header_name:", header_name)
                         return
                     end
 
-                    local value = nil
-                    if regex then
+                    local value = ""
+                    if vim_regex then
                         for _, header_value in pairs(header) do
-                            local s = string.match(header_value, regex)
+                            local s = vim.fn.matchstr(header_value, vim_regex)
                             if s then
-                                value = s
+                                if value ~= "" then
+                                    value = value .. '; '
+                                end
+                                value = value .. s
                             end
                         end
 
                         if not value then
-                            print(("Couldn't find '%s'"):format(regex))
+                            print(("Couldn't find '%s'"):format(vim_regex))
                             return
                         end
                     else

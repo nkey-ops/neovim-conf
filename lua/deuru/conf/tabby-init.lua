@@ -20,7 +20,7 @@ end
 
 local function tab_mark(tab)
     local mark_key = vim.t[tab.id]["mark_key"]
-    return mark_key and string.format('[%s]', mark_key) or ''
+    return mark_key and ' ' .. string.format('[%s]', mark_key) or ''
 end
 
 local function lsp_diag(buf)
@@ -88,7 +88,7 @@ local function tab_modified_and_lsp(tab)
         }
     end
 
-    result[1] = result[1] .. ' '
+    result[1] = ' ' .. result[1] .. ' '
     return result
 end
 
@@ -126,9 +126,7 @@ require('tabby').setup({
                 return {
                     line.sep(start_sign, hl, theme.tail),
                     is_tab_name_present and ' ' .. tab_name(tab) or '',
-                    ' ',
                     tab_mark(tab),
-                    ' ',
                     tab_sign,
                     line.sep(end_sign, hl, theme.tail),
                     -- margin = ' ',

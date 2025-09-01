@@ -234,8 +234,8 @@ local plugins = {
         end
     },
     {
-        "nkey-ops/extended-marks.nvim",
-        -- dir = "/home/local/table/extended-marks.nvim/",
+        -- "nkey-ops/extended-marks.nvim",
+        dir = "/home/local/table/extended-marks.nvim/",
         enabled = true,
 
         --- @type ExtendedMarksOpts
@@ -306,12 +306,15 @@ local plugins = {
     -- MARKDONW SHENANIGANS
     {
         "iamcco/markdown-preview.nvim",
-        run = function() vim.fn["mkdp#util#install"]() end,
-        build = "cd app && npm install",
+        cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+        build = "cd app && yarn install",
+        init = function()
+            vim.g.mkdp_filetypes = { "markdown" }
+        end,
         ft = { "markdown", "md" },
         keys = {
             { "<leader>pt", "<cmd>MarkdownPreviewToggle<cr>", ft = { "markdown", "md" }, desc = "Markdown: [P]review [T]oggle" }
-        }
+        },
     },
     {
         "epwalsh/obsidian.nvim",

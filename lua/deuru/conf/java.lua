@@ -48,11 +48,11 @@ return function()
             -- "-Xms100m",
             -- "-Xmx512m",
 
-            '-Xmx400m',
-            '-XX:ReservedCodeCacheSize=64m',
-            '-XX:-UseCompressedClassPointers',
-            "-Xss512k",
-            "-XX:MaxRAM=500",
+            '-Xmx1000M',
+            -- '-XX:ReservedCodeCacheSize=64m',
+            -- '-XX:-UseCompressedClassPointers',
+            -- "-Xss512k",
+            -- "-XX:MaxRAM=500",
 
             "-javaagent:" .. Paths.lombok,
             "-jar", Paths.jdtls_launcher,
@@ -64,7 +64,10 @@ return function()
         root_dir = require('jdtls.setup').find_root({ 'gradlew', 'mvnw', '.git', 'pom.xml' }),
         settings = {
             java = {
-                signatureHelp = { enabled = true },
+                signatureHelp = {
+                    enabled = true,
+                    description = { enabled = true } -- not working
+                },
                 contentProvider = { preferred = 'fernflower' },
                 import = { enabled = true },
                 rename = { enabled = true },
@@ -73,7 +76,7 @@ return function()
                     downloadSources = true,
                 },
                 implementationsCodeLens = {
-                    enabled = true,
+                    enabled = false,
                 },
                 referenceCodeLens = {
                     enabled = true,
@@ -82,24 +85,43 @@ return function()
                     includeAccessors = true,
                     includeDecompiledSources = true,
                 },
+                completion = {
+                    enabled = true,
+                    favoriteStaticMembers = {
+                        "org.hamcrest.MatcherAssert.assertThat",
+                        "org.hamcrest.Matchers.*",
+                        "org.hamcrest.CoreMatchers.*",
+                        "java.util.Objects.*",
+                        "java.util.Arrays.*",
+                        "org.mockito.Mockito.*",
+                        "org.junit.Assert.*",
+                        "org.junit.Assume.*",
+                        "org.junit.jupiter.api.Assertions.*",
+                        "org.junit.jupiter.api.Assumptions.*",
+                        "org.junit.jupiter.api.DynamicContainer.*",
+                        "org.junit.jupiter.api.DynamicTest.*"
+                    },
+                    overwrite = true,
+                    guessMethodArguments = true,
+                    matchCase = "all",
+                    postFix = true,
+
+                },
+                codeGeneration = {
+                    generateComments = true,
+                    insertionLocation = "lastMember",
+                    useBlocks = true,
+                },
+                format = {
+                    enabled = true,
+                },
+                inlayhints = {
+                    parameterNames = {
+                        enabled = "all"
+                    }
+                },
+                maxConcurrentBuilds = 1,
             },
-        },
-        completion = {
-            favoriteStaticMembers = {
-                "org.hamcrest.MatcherAssert.assertThat",
-                "org.hamcrest.Matchers.*",
-                "org.hamcrest.CoreMatchers.*",
-                "org.junit.jupiter.api.Assertions.*",
-                "java.util.Objects.*",
-                "org.mockito.Mockito.*",
-            },
-            -- importOrder = {
-            --     "com",
-            --     "org",
-            --     "java",
-            --     "javax"
-            -- },
-            overwrite = true,
         },
         sources = {
             organizeImports = {

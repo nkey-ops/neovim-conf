@@ -53,7 +53,7 @@ vim.keymap.set("n", "]B", "<cmd>blast<CR>")
 vim.keymap.set("n", "<C-n>", "<cmd>messages<cr>", { desc = "Run :messages" })
 vim.keymap.set("n", "<C-l>", "<cmd>nohlsearch<CR>", { desc = "Run :noh" })
 
-vim.keymap.set("n", "<leader>esc", "<cmd>set spell spelllang=en_us<CR>",
+vim.keymap.set("n", "<leader>esc", "<cmd>set spell<CR>",
     { desc = "[E]nable [S]yntax [C]heck" });
 vim.keymap.set("n", "<leader>dsc", "<cmd>set nospell<CR>",
     { desc = "[D]isable [S]yntax [C]heck" });

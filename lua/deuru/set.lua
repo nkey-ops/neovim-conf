@@ -33,6 +33,7 @@ vim.opt.showtabline = 1
 vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
 vim.opt.scrollback = 2000
 vim.opt.cursorline = true
+vim.opt.cursorcolumn = true
 
 vim.opt.showmode = false
 

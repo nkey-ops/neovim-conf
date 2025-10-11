@@ -344,7 +344,7 @@ return function()
         end,
         -- inside a snippet navigation
         ['<C-c><C-n>'] = cmp.mapping(function()
-            P(luasnip.jump(1))
+            luasnip.jump(1)
         end, { "i", "s" }),
         ['<C-c><C-p>'] = cmp.mapping(function()
             luasnip.jump(-1)
@@ -384,14 +384,14 @@ return function()
         },
         sorting = {
 
-            -- comparators = comparators
+            comparators = comparators
         },
 
         preselect = cmp.PreselectMode.Item,
 
         formatting = {
             fields = { cmp.ItemField.Kind, cmp.ItemField.Abbr, cmp.ItemField.Menu },
-            -- format = format,
+            format = format,
         },
 
         mapping = cmp.mapping.preset.insert(keybinds),
@@ -401,7 +401,7 @@ return function()
             {
                 name = 'nvim_lsp',
                 priority = 1,
-                -- entry_filter = nvim_lsp_entry_filter
+                entry_filter = nvim_lsp_entry_filter
             },
             { name = 'luasnip',        priority = 2, group_index = 2 }, -- For luasnip users.
             { name = 'render-markdown' },

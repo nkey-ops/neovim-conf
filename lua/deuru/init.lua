@@ -22,6 +22,7 @@ end
 
 req_conf("filetypes.filetypes")
 req_conf("filetypes.sql")
+req_conf("filetypes.md")
 req_conf("cwd-settings")
 
 
@@ -110,7 +111,8 @@ local plugins = {
             { 'kristijanhusak/vim-dadbod-completion' },
 
             { 'onsails/lspkind.nvim' },
-        }
+        },
+        init = function() req_conf("luasnip") end,
     },
     {
         'neovim/nvim-lspconfig',
@@ -178,7 +180,7 @@ local plugins = {
     {
         'Pocco81/auto-save.nvim',
         config = req_conf('auto-save'),
-        enabled = false
+        enabled = true
     },
     {
         'nvim-lualine/lualine.nvim',
@@ -271,6 +273,9 @@ local plugins = {
                 end)
             vim.keymap.set("n", "M", marks.set_global_or_tab_mark)
             vim.keymap.set("n", "'", marks.jump_to_global_or_tab_mark)
+            vim.g.extended_marks = {
+                is_debug = true
+            }
         end,
     },
     {
@@ -334,6 +339,12 @@ local plugins = {
         opts = {
             completions = { lsp = { enabled = true } },
             indent = { enabled = true, skip_heading = true },
+            pipe_table = { cell = "trimmed" },
+            latex = {
+                -- top_pad = 1
+                highlight = 'PmenuSel',
+                -- converter = 'latex2text --fill-text'
+            }
         },
         keys = {
             {

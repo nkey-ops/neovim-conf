@@ -95,7 +95,7 @@ end
 local theme = {
     fill = 'TabLineFill',
     -- Also you can do this: fill = { fg = '#f2e9de', bg = '#907aa9', style = 'italic' },
-    current_tab = 'Substitute',
+    current_tab = 'TabLineSel',
     inactive_tab = 'TabLine',
     tail = 'Normal',
 }
@@ -118,7 +118,10 @@ require('tabby').setup({
             line.tabs().foreach(function(tab)
                 local hl = tab.is_current() and theme.current_tab or theme.inactive_tab
                 local tab_sign = tab_modified_and_lsp(tab.id)
-                tab_sign.hl.bg = get_rgb(hl, false)
+                if tab_sign.hl.fg == nil then
+                    tab_sign.hl.fg = get_rgb(hl, true)
+                    tab_sign.hl.bg = get_rgb(hl, false)
+                end
 
                 local start_sign = tab.is_current() and '' or ''
                 local end_sign = tab.number() - current_tab_number == -1 and '' or ''

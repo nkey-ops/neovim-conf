@@ -45,7 +45,7 @@ local plugins = {
         priority = 1000,
         config = req_conf('colors'),
         init = function()
-            vim.cmd.colorscheme("catppuccin-mocha")
+            vim.cmd.colorscheme("catppuccin-macchiato")
         end
     },
     {
@@ -223,7 +223,8 @@ local plugins = {
                 require("ibl").setup {
                     scope = {
                         enabled = true,
-                        show_exact_scope = true
+                        show_exact_scope = true,
+                        highlight = { "LineNr" }
                     },
                 }
             end,
@@ -341,6 +342,7 @@ local plugins = {
             indent = { enabled = true, skip_heading = true },
             pipe_table = { cell = "trimmed" },
             latex = {
+                enabled = false,
                 -- top_pad = 1
                 highlight = 'PmenuSel',
                 -- converter = 'latex2text --fill-text'

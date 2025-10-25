@@ -150,7 +150,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
         vim.api.nvim_create_autocmd("BufWritePre", {
             buffer = ev.buf,
             callback = function(args)
-                if (not vim.bo[args.buf].filetype:match("java") and enable_auto_format) then
+                if (not vim.bo[args.buf].filetype:match("java")
+                        and not vim.bo[args.buf].filetype:match("markdown")
+                        and enable_auto_format) then
                     local_marks.update()
                     vim.lsp.buf.format()
                     local_marks.restore()

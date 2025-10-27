@@ -229,13 +229,69 @@ vim.g.rest_nvim =
                     end
                     local result = vim.system(cmd, { text = true }):wait().stdout
                     return result:gsub("\n", "")
-                end
+                end,
+            }
+        }
+    end,
+    ---@param ctx rest.Context
+    ---@return table
+    custom_pre_scripts = function(ctx)
+        return {
+            lua = {
+                set = function(key, value)
+                    assert(type(key) == 'string', "key should be of type 'string'")
+                    assert(type(value) == 'string', "value should be of type 'string'")
 
+                    vim.env[key] = value
+                end,
+                ---@param fun function(rest.Request)
+                pre_script = function(fun)
+                    assert(type(fun) == "function")
+                    vim.api.nvim_create_autocmd("User", {
+                        pattern = "RestRequestPre",
+                        once = true,
+                        callback = function()
+                            fun(_G.rest_request)
+                        end,
+                    })
+                end,
+                ---@parm str string
+                ---@return string
+                sha256 = function(str)
+                    assert(type(str) == 'string', "str should be of type 'string'")
+                    local tmp_path = os.tmpname()
+                    local tmp_file, err = io.open(tmp_path, 'w')
+                    assert(tmp_file, string.format(
+                        "Coldn't open temporary file with the path '%s' due to '%s'",
+                        tmp_path, err))
+
+                    tmp_file:write(str)
+                    tmp_file:close()
+
+                    local res = require("plenary.job")
+                        :new(
+                            {
+                                command = "sha256sum",
+                                args = { tmp_path },
+                                cwd = "."
+                            })
+                        :sync()
+
+                    assert(res, string.format(
+                        "Couldn't convert to sha256, sha256sum job returned 'nil'",
+                        tmp_path, err))
+                    assert(type(res) == "table" and res[1], string.format(
+                        "No data were converted data is empty"))
+                    assert(#res[1] >= 64, string.format(
+                        "The converted text doesn't have a length of 64 or more, "
+                        .. "the length is '%s', the text is '%s'", #res, res[1]))
+
+                    return res[1]:sub(1, 64)
+                end
             }
         }
     end
 }
-
 -- update scripts/lua.lua
 --
 -- if vim.g.rest_nvim.custom_requests

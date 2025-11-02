@@ -262,6 +262,9 @@ local plugins = {
             Tab = {
                 key_length = 2,
             },
+            post_script = function()
+                require("tabby.tabline").render()
+            end
         },
         init = function()
             local marks = require('extended-marks')

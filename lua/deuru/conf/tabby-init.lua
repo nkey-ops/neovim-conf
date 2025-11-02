@@ -2,7 +2,6 @@ vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
 vim.o.showtabline = 2
 
 local is_tab_name_present = false
-
 local function get_rgb(hl, is_fg)
     assert(hl ~= nil)
     assert(type(hl) == 'string')
@@ -97,8 +96,9 @@ local theme = {
     -- Also you can do this: fill = { fg = '#f2e9de', bg = '#907aa9', style = 'italic' },
     current_tab = 'TabLineSel',
     inactive_tab = 'TabLine',
-    tail = 'Normal',
+    tail = 'TabLineFill',
 }
+
 
 require('tabby').setup({
     option = {
@@ -109,6 +109,7 @@ require('tabby').setup({
 
     line   = function(line)
         local current_tab_number = vim.api.nvim_tabpage_get_number(vim.api.nvim_get_current_tabpage())
+        local is_mark_tab_present = false
         return {
             {
                 { '  ', hl = theme.current_tab },
@@ -120,8 +121,8 @@ require('tabby').setup({
                 local tab_sign = tab_modified_and_lsp(tab.id)
                 if tab_sign.hl.fg == nil then
                     tab_sign.hl.fg = get_rgb(hl, true)
-                    tab_sign.hl.bg = get_rgb(hl, false)
                 end
+                tab_sign.hl.bg = get_rgb(hl, false)
 
                 local start_sign = tab.is_current() and '' or ''
                 local end_sign = tab.number() - current_tab_number == -1 and '' or ''
@@ -137,8 +138,39 @@ require('tabby').setup({
                 }
             end),
             line.sep('%=s', theme.tail, theme.tail),
+            (function()
+                if not vim.b[0].extended_marks_cwd_mark_key
+                    and not vim.b[0].extended_marks_cwd_mark_key then
+                    return ""
+                end
+
+                return {
+                    line.sep('', theme.current_tab, theme.tail),
+                    {
+                        (function()
+                            local is_mark_present = false
+                            local cwd_mark = vim.b[0].extended_marks_cwd_mark_key
+                            cwd_mark = cwd_mark and "[c:" .. cwd_mark .. "]" or ""
+                            if cwd_mark then
+                                is_mark_present = true
+                            end
+
+                            local global_mark = vim.b[0].extended_marks_global_mark_key
+                            global_mark = global_mark and "[g:" .. global_mark .. "]" or ""
+                            if global_mark then
+                                is_mark_present = true
+                            end
+
+                            is_mark_tab_present = is_mark_present
+                            return string.format(" %s%s ", cwd_mark, global_mark)
+                        end)(),
+                        hl = theme.current_tab
+                    },
+                    line.sep('', theme.current_tab, theme.tail),
+                }
+            end)(),
             {
-                line.sep('', theme.current_tab, theme.tail),
+                line.sep(is_mark_tab_present and '' or '', theme.current_tab, theme.tail),
                 {
                     string.format(" [%s] ", vim.fn.fnamemodify(vim.fn.getcwd(), ':t')),
                     hl = theme.current_tab

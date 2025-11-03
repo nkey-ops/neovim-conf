@@ -16,6 +16,7 @@ vim.keymap.set("n", "N", "Nzzzv")
 -- end)
 -- greatest remap ever
 vim.keymap.set("x", "<leader>p", [["_dP]])
+vim.keymap.set("x", "<Esc>", [["_dP]])
 
 -- next greatest remap ever : asbjornHaland
 -- vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]])
@@ -69,13 +70,14 @@ vim.keymap.set("n", "<leader>tc",
 vim.keymap.set("n", "<leader>tr", ":split<CR>:terminal<CR>",
     { desc = "Open Terminal window at the root directory" });
 
--- Vim Like Cmd Navigation
-vim.keymap.set({ "c", "t" }, "<A-h>", "<Left>")
-vim.keymap.set({ "c", "t" }, "<A-l>", "<Right>")
-vim.keymap.set({ "c", "t" }, "<A-j>", "<Down>")
-vim.keymap.set({ "c", "t" }, "<A-k>", "<Up>")
-vim.keymap.set({ "c", "t" }, "<A-w>", "<C-Right>")
-vim.keymap.set({ "c", "t" }, "<A-b>", "<C-Left>")
+-- Vim Like Navigation in the Insert, Terminal and Cmd modes
+vim.keymap.set({ "i", "t", "c" }, "<C-g>h", "<Left>")
+vim.keymap.set({ "i", "t", "c" }, "<C-g>l", "<Right>")
+vim.keymap.set({ "t", "c" }, "<C-g>k", "<Up>")
+vim.keymap.set({ "t", "c" }, "<C-g>j", "<Down>")
+vim.keymap.set({ "i", "t", "c" }, "<C-g>b", "<C-Left>")
+vim.keymap.set({ "i", "t", "c" }, "<C-g>w", "<C-Right>")
+vim.keymap.set({ "i", "t", "c" }, "<C-x>i", "<C-Right>")
 
 vim.keymap.set("n", "/", "/\\v")
 
@@ -87,9 +89,9 @@ vim.keymap.set({ 'n' }, '<Esc>', function()
         vim.api.nvim_win_close(buffer, false)
     end
 end, { desc = "Close floating window" })
+vim.keymap.set({ 'v' }, '<Esc>', "<C-c>", { desc = "Quit visual mode" })
 
-
--- yunk current dir path
+-- yank current dir path
 vim.api.nvim_create_user_command("Cppath", function()
     local path = vim.fn.expand("%:p")
     vim.fn.setreg("+", path)

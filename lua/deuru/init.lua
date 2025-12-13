@@ -265,30 +265,25 @@ local plugins = {
                 local misc = require("extended-marks.misc")
                 local module = misc.ActionResultModule
                 local type = misc.ActionResultType
-                if result.type == type.DELETE_MARK and result.module ~= module.LOCAL then
+                if (result.type == type.DELETE_MARK
+                        or result.type == type.SET_MARK)
+                    and result.module ~= module.LOCAL
+                    and result.success == true then
                     require("tabby.tabline").render()
+                end
+
+                if result.type == type.JUMPT_TO_MARK
+                    and result.module == module.LOCAL
+                    and result.success == true then
+                    vim.api.nvim_command(":normal! zt")
                 end
             end
         },
         init = function()
             local marks = require('extended-marks')
-            vim.keymap.set("n", "m", function()
-                if marks.set_cwd_or_local_mark() then
-                    require("tabby.tabline").render()
-                end
-            end
-            )
-            vim.keymap.set("n", "`",
-                function()
-                    if marks.jump_to_cwd_or_local_mark() then
-                        vim.api.nvim_command(":normal! zt")
-                    end
-                end)
-            vim.keymap.set("n", "M", function()
-                if marks.set_global_or_tab_mark() then
-                    require("tabby.tabline").render()
-                end
-            end)
+            vim.keymap.set("n", "m", marks.set_cwd_or_local_mark)
+            vim.keymap.set("n", "`", marks.jump_to_cwd_or_local_mark)
+            vim.keymap.set("n", "M", marks.set_global_or_tab_mark)
             vim.keymap.set("n", "'", marks.jump_to_global_or_tab_mark)
         end,
     },
@@ -330,6 +325,22 @@ local plugins = {
         build = "cd app && yarn install",
         init = function()
             vim.g.mkdp_filetypes = { "markdown" }
+            -- vim.g.mkdp_highlight_css = '/home/local/.config/dotfiles/nvim/lua/deuru/style.css'
+            -- vim.g.mkdp_markdown_css = '/home/local/.config/dotfiles/nvim/lua/deuru/style.css'
+            -- vim.gmkdp_preview_options = {
+            --     mkit = {""},
+            --     katex = {},
+            --     uml = {},
+            --     maid = {},
+            --     disable_sync_scroll = 0,
+            --     sync_scroll_type = 'middle',
+            --     hide_yaml_meta = 1,
+            --     sequence_diagrams = {},
+            --     flowchart_diagrams = {},
+            --     content_editable = false,
+            --     disable_filename = 0,
+            --     toc = {}
+            -- }
         end,
         ft = { "markdown", "md" },
         keys = {
@@ -391,5 +402,15 @@ local plugins = {
         dir = "~/table/hireg",
         opts = {}
     }
+    -- {
+    --     "CopilotC-Nvim/CopilotChat.nvim",
+    --     dependencies = {
+    --         { "nvim-lua/plenary.nvim", branch = "master" },
+    --     },
+    --     build = "make tiktoken",
+    --     opts = {
+    --         -- See Configuration section for options
+    --     },
+    -- },
 }
 require("lazy").setup(plugins)

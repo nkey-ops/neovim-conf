@@ -18,7 +18,7 @@ local function tab_name(tab)
 end
 
 local function tab_mark(tab)
-    local mark_key = vim.t[tab.id]["mark_key"]
+    local mark_key = vim.t[tab.id]["extended_marks_tab_mark_key"]
     return mark_key and ' ' .. string.format('[%s]', mark_key) or ''
 end
 

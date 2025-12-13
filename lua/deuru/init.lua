@@ -238,22 +238,21 @@ local plugins = {
         end
     },
     {
-        -- "nkey-ops/extended-marks.nvim",
-        dir = "/home/local/table/extended-marks.nvim/",
+        "nkey-ops/extended-marks.nvim",
+        -- dir = "/home/local/table/extended-marks.nvim/",
         enabled = true,
 
         --- @type ExtendedMarksOpts
         opts = {
             -- path where 'extended-marks' dir will be created
             data_dir = "~/.cache/nvim",
-
             confirmation_on_last_key = true,
             confirmation_on_replace = true,
             Global = {
                 key_length = 4
             },
             Cwd = {
-                key_length = 4,
+                key_length = 5,
             },
             Local = {
                 key_length = 3, -- valid from 1 to 30
@@ -262,24 +261,35 @@ local plugins = {
             Tab = {
                 key_length = 2,
             },
-            post_script = function()
-                require("tabby.tabline").render()
+            post_script = function(result)
+                local misc = require("extended-marks.misc")
+                local module = misc.ActionResultModule
+                local type = misc.ActionResultType
+                if result.type == type.DELETE_MARK and result.module ~= module.LOCAL then
+                    require("tabby.tabline").render()
+                end
             end
         },
         init = function()
             local marks = require('extended-marks')
-            vim.keymap.set("n", "m", marks.set_cwd_or_local_mark)
+            vim.keymap.set("n", "m", function()
+                if marks.set_cwd_or_local_mark() then
+                    require("tabby.tabline").render()
+                end
+            end
+            )
             vim.keymap.set("n", "`",
                 function()
                     if marks.jump_to_cwd_or_local_mark() then
                         vim.api.nvim_command(":normal! zt")
                     end
                 end)
-            vim.keymap.set("n", "M", marks.set_global_or_tab_mark)
+            vim.keymap.set("n", "M", function()
+                if marks.set_global_or_tab_mark() then
+                    require("tabby.tabline").render()
+                end
+            end)
             vim.keymap.set("n", "'", marks.jump_to_global_or_tab_mark)
-            vim.g.extended_marks = {
-                is_debug = true
-            }
         end,
     },
     {

@@ -30,6 +30,8 @@ ls.add_snippets("markdown",
         s("nq", fmt("\\neq {}", { i(1) })),
         s("lq", fmt("\\leq {}", { i(1) })),
         s("gq", fmt("\\geq {}", { i(1) })),
+        s("tr", fmt("\\triangle{{{}}}", { i(1) })),
+        s("ol", fmt("\\overline{{{}}}", { i(1) })),
         s("fr", fmt(
             [[
             \frac{{{}}}{{{}}}
@@ -58,4 +60,27 @@ ls.add_snippets("markdown",
                 i(1),
             }
         ))
+    })
+
+
+ls.add_snippets("http",
+    {
+        s("plua", fmt(
+            [[
+            # @lang lua
+            < {{%
+            {}
+            %}}
+            ]],
+            { i(1) })),
+        s("alua", fmt(
+            [[
+            # @lang lua
+            > {{%
+            {}
+            %}}
+            ]],
+            { i(1) })),
+        s("cjson", fmt("Content-Type: application/json", {})),
+        s("cform", fmt("Content-Type: application/x-www-form-urlencoded", {}))
     })

@@ -1,5 +1,7 @@
 vim.opt.guicursor = ""
 
+
+
 vim.opt.nu = true
 vim.opt.relativenumber = true
 
@@ -42,7 +44,4 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', eol = "↵" }
 
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
-vim.opt.shellcmdflag = "-ic"
-
-vim.keymap.set("i", "<C-I>", "<C-I>")
-vim.keymap.set("i", "<Tab>", "<Tab>")
+vim.shellcmdflag = "-ic"

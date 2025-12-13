@@ -1,4 +1,3 @@
-local rest = require("rest-nvim")
 vim.api.nvim_create_autocmd({ "FileType" }, {
     pattern = 'http',
     callback = function(args)
@@ -8,7 +7,10 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
         --     { desc = "RestNvim: [P]review Curl Command", buffer = args.buf })
         vim.keymap.set("n", "<leader>l", "<cmd>Rest last<CR>",
             { desc = "RestNvim: Run [L]ast Curl Command", buffer = args.buf })
+
         vim.opt_local.expandtab = true
+
+        vim.cmd("hi @string.special.url cterm=italic gui=italic")
     end
 })
 vim.api.nvim_create_autocmd("FileType", {

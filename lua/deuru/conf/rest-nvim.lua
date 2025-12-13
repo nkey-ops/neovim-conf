@@ -269,66 +269,63 @@ Scripts = {
         return res[1]:sub(1, 64)
     end,
 
+    ---@param req rest.Request
     ---@param ctx rest.Context
-    csup_auth = function(ctx)
-        return function()
-            Scripts.pre_script(function(req)
-                assert(type(ctx.vars["csup_id"]) == 'string',
-                    "the 'csup_id' env. var. should be present and of the type 'string'")
-                assert(type(ctx.vars["csup_secret_key"]) == 'string',
-                    "the 'csup_secret_key' env. var. should be present and of the type 'string'")
-                assert(type(ctx.vars["csup_key"]) == 'string',
-                    "the 'csup_key' env. var. should be present and of the type 'string'")
+    csup_auth = function(req, ctx)
+        assert(type(ctx.vars["csup_id"]) == 'string',
+            "the 'csup_id' env. var. should be present and of the type 'string'")
+        assert(type(ctx.vars["csup_secret_key"]) == 'string',
+            "the 'csup_secret_key' env. var. should be present and of the type 'string'")
+        assert(type(ctx.vars["csup_key"]) == 'string',
+            "the 'csup_key' env. var. should be present and of the type 'string'")
 
-                local merchant_id = ctx.vars["csup_id"]
-                local secret_key = ctx.vars["csup_secret_key"]
-                local key = ctx.vars["csup_key"]
+        local merchant_id = ctx.vars["csup_id"]
+        local secret_key = ctx.vars["csup_secret_key"]
+        local key = ctx.vars["csup_key"]
 
-                local _, _, host, uri = req.url:find(".+//(.-)(/.-)/?$")
-                assert(host, "couldn't find the host of the request: " .. req.url)
-                assert(uri, "couldn't find the uri of the request: " .. req.url)
+        local _, _, host, uri = req.url:find(".+//(.-)(/.-)/?$")
+        assert(host, "couldn't find the host of the request: " .. req.url)
+        assert(uri, "couldn't find the uri of the request: " .. req.url)
 
-                local is_get = req.method:lower() == "get"
-                req.headers["host"] = { host }
-                req.headers["v-c-date"] = { os.date("!%a,%e %b %Y %H:%M:%S GMT") }
-                req.headers["v-c-merchant-id"] = { merchant_id }
+        local is_get = req.method:lower() == "get"
+        req.headers["host"] = { host }
+        req.headers["v-c-date"] = { os.date("!%a,%e %b %Y %H:%M:%S GMT") }
+        req.headers["v-c-merchant-id"] = { merchant_id }
 
-                local signature = string.format(
-                    "host: " .. host
-                    .. "\nv-c-date: " .. req.headers["v-c-date"][1]
-                    .. "\nrequest-target: " .. req.method:lower() .. " " .. uri
-                    .. "\nv-c-merchant-id: " .. merchant_id
-                )
+        local signature = string.format(
+            "host: " .. host
+            .. "\nv-c-date: " .. req.headers["v-c-date"][1]
+            .. "\nrequest-target: " .. req.method:lower() .. " " .. uri
+            .. "\nv-c-merchant-id: " .. merchant_id
+        )
 
-                if not is_get then
-                    req.headers.digest = {
-                        "SHA-256=" ..
-                        Scripts.base64(
-                            Scripts.pipe_cmd(
-                                req.body.data, "openssl dgst -sha256 -binary"))
-                    }
+        if not is_get then
+            req.headers.digest = {
+                "SHA-256=" ..
+                Scripts.base64(
+                    Scripts.pipe_cmd(
+                        req.body.data, "openssl dgst -sha256 -binary"))
+            }
 
-                    signature = signature .. "\ndigest: " .. req.headers.digest[1]
-                end
-
-                signature =
-                    Scripts.base64(
-                        Scripts.pipe_cmd(signature,
-                            string.format(
-                                "openssl dgst -sha256 -binary -hmac %s",
-                                Scripts.base64(secret_key, true)
-                            )))
-
-                req.headers.signature = {
-                    string.format("%s, %s, %s, %s",
-                        string.format("keyid=\"%s\"", key),
-                        "algorithm=\"HmacSHA256\"",
-                        string.format("headers=\"host v-c-date request-target v-c-merchant-id%s\"",
-                            not is_get and " digest" or ""),
-                        string.format("signature=\"%s\"", signature)
-                    ) }
-            end)
+            signature = signature .. "\ndigest: " .. req.headers.digest[1]
         end
+
+        signature =
+            Scripts.base64(
+                Scripts.pipe_cmd(signature,
+                    string.format(
+                        "openssl dgst -sha256 -binary -hmac %s",
+                        Scripts.base64(secret_key, true)
+                    )))
+
+        req.headers.signature = {
+            string.format("%s, %s, %s, %s",
+                string.format("keyid=\"%s\"", key),
+                "algorithm=\"HmacSHA256\"",
+                string.format("headers=\"host v-c-date request-target v-c-merchant-id%s\"",
+                    not is_get and " digest" or ""),
+                string.format("signature=\"%s\"", signature)
+            ) }
     end,
 
     cmd = function(command)
@@ -350,7 +347,38 @@ Scripts = {
 ---@type rest.Opts
 vim.g.rest_nvim =
 {
-    ---@type table<string, fun():string> Table of custom dynamic variables
+    custom_tags = {
+        lua = {
+            pre_scripts = { csup_auth = Scripts.csup_auth },
+            post_scripts = { say_bye = function() print "bye" end }
+        }
+    },
+    custom_pre_scripts = {
+        lua = function(ctx)
+            return {
+                set = Scripts.set,
+                pre_script = Scripts.pre_script,
+                sha256 = Scripts.sha256,
+                base64 = Scripts.base64,
+                pipe_cmd = Scripts.pipe_cmd,
+                csup_auth = Scripts.csup_auth(ctx),
+                yank = Scripts.yank,
+            }
+        end
+    },
+    custom_post_scripts = {
+        lua = function(ctx, response)
+            return {
+                gas_json = Scripts.gas_json(response),
+                gas_body = Scripts.gas_body(response),
+                gas_header = Scripts.gas_header(response),
+                sha256 = Scripts.sha256,
+                base64 = Scripts.base64,
+                yank = Scripts.yank,
+                cmd = Scripts.cmd,
+            }
+        end
+    },
     custom_dynamic_variables = {},
     ---@class rest.Config.Request
     request = {
@@ -447,33 +475,6 @@ vim.g.rest_nvim =
     ---@see vim.log.levels
     ---@type integer log level
     _log_level = vim.log.levels.WARN,
-
-    custom_pre_scripts = {
-        lua = function(ctx)
-            return {
-                set = Scripts.set,
-                pre_script = Scripts.pre_script,
-                sha256 = Scripts.sha256,
-                base64 = Scripts.base64,
-                pipe_cmd = Scripts.pipe_cmd,
-                csup_auth = Scripts.csup_auth(ctx),
-                yank = Scripts.yank,
-            }
-        end
-    },
-    custom_post_scripts = {
-        lua = function(ctx, response)
-            return {
-                gas_json = Scripts.gas_json(response),
-                gas_body = Scripts.gas_body(response),
-                gas_header = Scripts.gas_header(response),
-                sha256 = Scripts.sha256,
-                base64 = Scripts.base64,
-                yank = Scripts.yank,
-                cmd = Scripts.cmd,
-            }
-        end
-    },
 }
 -- update scripts/lua.lua
 --

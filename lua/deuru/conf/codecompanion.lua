@@ -85,7 +85,6 @@ M.open_with_buf = function(buf)
     local chat_buf = buf
     local cc_opts = vim.b[chat_buf].cc_opts
     if not M.is_valid(cc_opts) then
-        print("invalid")
         cc_opts = nil
     end
 
@@ -502,7 +501,6 @@ M.generate_chat_ui = function(input_win_opts, used_wins, chat_glob)
         then
             timer:stop()
             timer:close()
-            print("stop")
             return
         end
 

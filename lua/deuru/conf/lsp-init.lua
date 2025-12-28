@@ -78,6 +78,15 @@ local lsp_constructors = function()
         })
 end
 
+local lsp_headers = function()
+    builtin.lsp_document_symbols(
+        {
+            symbols = { "header" },
+            symbol_width = 100,
+            symbol_type_width = 0
+        })
+end
+
 local lsp_dynamic_classes = function()
     -- looking for lua and java clients, if only one is
     -- found then we can open dynamic workspace with it from any bufferr
@@ -138,6 +147,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
         set('n', '<A-s>m', lsp_methods, { desc = "Telescope: List [M]ethods" })
         set('n', '<A-s>c', lsp_classes, { desc = "Telescope: List [C]lasses" })
         set('n', '<A-s>t', lsp_constructors, { desc = "Telescope: List Cons[t]ructors" })
+        set('n', '<A-s>h', lsp_headers, { desc = "Telescope: List [H]eaders" })
         set('n', "<A-w>", lsp_dynamic_classes, { desc = "Telescope: Search Dynamically [W]orkspace Symbols" })
 
         vim.api.nvim_create_autocmd('User', {

@@ -45,7 +45,7 @@ local plugins = {
         priority = 1000,
         config = req_conf('colors'),
         init = function()
-            vim.cmd.colorscheme("catppuccin-macchiato")
+            vim.cmd.colorscheme("catppuccin-mocha")
         end
     },
     {
@@ -324,7 +324,7 @@ local plugins = {
         cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
         build = "cd app && yarn install",
         init = function()
-            vim.g.mkdp_filetypes = { "markdown" }
+            vim.g.mkdp_filetypes = { "markdown", "codecompanion" }
             -- vim.g.mkdp_highlight_css = '/home/local/.config/dotfiles/nvim/lua/deuru/style.css'
             -- vim.g.mkdp_markdown_css = '/home/local/.config/dotfiles/nvim/lua/deuru/style.css'
             -- vim.gmkdp_preview_options = {
@@ -342,9 +342,9 @@ local plugins = {
             --     toc = {}
             -- }
         end,
-        ft = { "markdown", "md" },
+        ft = { "markdown", "md", "codecompanion" },
         keys = {
-            { "<leader>pt", "<cmd>MarkdownPreviewToggle<cr>", ft = { "markdown", "md" }, desc = "Markdown: [P]review [T]oggle" }
+            { "<leader>pt", "<cmd>MarkdownPreviewToggle<cr>", ft = { "markdown", "md", "codecompanion" }, desc = "Markdown: [P]review [T]oggle" }
         },
     },
     {
@@ -360,7 +360,7 @@ local plugins = {
         dependencies = {
             'nvim-treesitter/nvim-treesitter',
             'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-        ft = { "markdown", "md" },
+        ft = { "markdown", "md", "codecompanion" },
         opts = {
             completions = { lsp = { enabled = true } },
             indent = { enabled = true, skip_heading = true },
@@ -401,16 +401,48 @@ local plugins = {
     {
         dir = "~/table/hireg",
         opts = {}
-    }
-    -- {
-    --     "CopilotC-Nvim/CopilotChat.nvim",
-    --     dependencies = {
-    --         { "nvim-lua/plenary.nvim", branch = "master" },
-    --     },
-    --     build = "make tiktoken",
-    --     opts = {
-    --         -- See Configuration section for options
-    --     },
-    -- },
+    },
+    {
+        "olimorris/codecompanion.nvim",
+        version = "^18.0.0",
+        enabled = true,
+        opts = {
+            interactions = {
+                chat = {
+                    adapter = "gemini",
+                }
+            },
+            adapters = {
+                http = {
+                    gemini = function()
+                        return require("codecompanion.adapters").extend("gemini", {
+                            defaults = {
+                                auth_method = "gemini-api-key",
+
+                            },
+                            schema = {
+                                model = {
+                                    default = "gemini-2.5-flash-lite"
+                                }
+                            }
+                        })
+                    end
+                },
+            },
+            opts = {
+                log_level = "DEBUG"
+            }
+        },
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "nvim-treesitter/nvim-treesitter",
+        },
+        init = function()
+            vim.keymap.set({ "n", "v" }, "<Leader>a", "<cmd>CodeCompanionChat Toggle<cr>",
+                { noremap = true, silent = true })
+            req_conf("codecompanion")
+        end
+
+    },
 }
 require("lazy").setup(plugins)

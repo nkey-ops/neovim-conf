@@ -32,7 +32,6 @@ M.send_input = function()
 end
 
 M.open = function()
-    vim.cmd("hi NormalFloat guibg=Black")
     local group = vim.api.nvim_create_augroup("CodeCompanionHooks", { clear = false })
     vim.api.nvim_create_autocmd({ "User" }, {
         pattern = { "CodeCompanionChatOpened", "CodeCompanionChatHidden" },
@@ -639,7 +638,7 @@ M.generate_left_input_ui = function(input_win_opts, ns, used_win)
             height = input_win_opts.height,
             style = "minimal",
             zindex = 61,
-            focusable = true
+            focusable = false
         }
     end
 

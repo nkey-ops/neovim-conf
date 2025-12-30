@@ -40,11 +40,116 @@ vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")
 end)
 
-vim.keymap.set("n", "<M-h>", ":vertical resize -5<cr>")
-vim.keymap.set("n", "<M-l>", ":vertical resize +5<cr>")
 
-vim.keymap.set("n", "<M-j>", ":resize +5<cr>")
-vim.keymap.set("n", "<M-k>", ":resize -5<cr>")
+
+vim.keymap.set("n", "<M-h>h", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.col = math.max(win_pos[2] - 5, 0)
+
+    vim.api.nvim_win_set_config(win, win_config)
+    vim.api.nvim_exec_autocmds("WinResized", {
+        buffer = vim.api.nvim_win_get_buf(win)
+    })
+end)
+vim.keymap.set("n", "<M-l>l", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.col = math.max(win_pos[2] + 5, 0)
+
+    vim.api.nvim_win_set_config(win, win_config)
+    vim.api.nvim_exec_autocmds("WinResized", {
+        buffer = vim.api.nvim_win_get_buf(win)
+    })
+end)
+vim.keymap.set("n", "<M-k>k", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.row = math.max(win_pos[1] - 2, 0)
+
+    vim.api.nvim_win_set_config(win, win_config)
+    vim.api.nvim_exec_autocmds("WinResized", {
+        buffer = vim.api.nvim_win_get_buf(win)
+    })
+end)
+vim.keymap.set("n", "<M-j>j", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.row = win_pos[1] + 2
+
+    vim.api.nvim_win_set_config(win, win_config)
+    vim.api.nvim_exec_autocmds("WinResized", {
+        buffer = vim.api.nvim_win_get_buf(win)
+    })
+end)
+
+
+vim.keymap.set("n", "<M-h>", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.col = math.max(win_pos[2] - 5, 0)
+    win_config.width = win_config.width + 5
+    vim.api.nvim_win_set_config(win, win_config)
+end)
+
+vim.keymap.set("n", "<M-h>l", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.col = math.max(win_pos[2] + 5, 0)
+    win_config.width = math.max(win_config.width - 5, 1)
+    vim.api.nvim_win_set_config(win, win_config)
+end)
+
+vim.keymap.set("n", "<M-l>", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.width = win_config.width + 5
+    vim.api.nvim_win_set_config(win, win_config)
+end)
+
+vim.keymap.set("n", "<M-l>h", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.width = math.max(win_config.width - 5, 1)
+    vim.api.nvim_win_set_config(win, win_config)
+end)
+
+vim.keymap.set("n", "<M-k>", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.row = math.max(win_pos[1] - 2, 0)
+    win_config.height = win_config.height + 2
+    vim.api.nvim_win_set_config(win, win_config)
+end)
+vim.keymap.set("n", "<M-k>j", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_pos = vim.api.nvim_win_get_position(win)
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.row = math.max(win_pos[1] + 2, 0)
+    win_config.height = math.max(win_config.height - 2, 1)
+    vim.api.nvim_win_set_config(win, win_config)
+end)
+
+vim.keymap.set("n", "<M-j>", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.height = win_config.height + 2
+    vim.api.nvim_win_set_config(win, win_config)
+end)
+
+vim.keymap.set("n", "<M-j>k", function()
+    local win = vim.api.nvim_get_current_win()
+    local win_config = vim.api.nvim_win_get_config(win)
+    win_config.height = math.max(win_config.height - 2, 1)
+    vim.api.nvim_win_set_config(win, win_config)
+end)
 
 vim.keymap.set("n", "[b", "<cmd>bprevious<CR>")
 vim.keymap.set("n", "]b", "<cmd>bnext<CR>")

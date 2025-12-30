@@ -32,6 +32,7 @@ M.send_input = function()
 end
 
 M.open = function()
+    vim.cmd("hi NormalFloat guibg=Black")
     local group = vim.api.nvim_create_augroup("CodeCompanionHooks", { clear = false })
     vim.api.nvim_create_autocmd({ "User" }, {
         pattern = { "CodeCompanionChatOpened", "CodeCompanionChatHidden" },
@@ -109,7 +110,8 @@ M.open_with_buf = function(buf)
             -- height_* + 2 - account for horizontal height of the borders
             row = math.floor((vim.o.lines - (height_1 + 2 + height_2 + 2)) / 2),
             width = width_1,
-            height = height_1
+            height = height_1,
+            zindex = 60
         }
 
         input_win_opts = {
@@ -120,6 +122,7 @@ M.open_with_buf = function(buf)
             row = math.floor((vim.o.lines - (height_1 + 2 + height_2 + 2)) / 2) + height_1 + 2,
             width = width_2,
             height = height_2,
+            zindex = 61
         }
 
         input_buf = vim.api.nvim_create_buf(true, true)
@@ -219,6 +222,141 @@ M.open_with_buf = function(buf)
     vim.keymap.set("n", "<C-w><C-w>", M.switch_win, { buffer = chat_buf })
     vim.keymap.set("n", "<C-w><C-w>", M.switch_win, { buffer = input_buf })
     vim.keymap.set("n", "<C-s>", M.send_input, { buffer = input_buf })
+
+    -- if true then
+    --     return
+    -- end
+    --
+    vim.api.nvim_create_autocmd({ 'WinResized' }, {
+        group = group,
+        buffer = input_buf,
+        callback = function(args)
+            -- TODO: limit the input and chat window resize to -1 of the max to fit ui wins
+            local resize = function()
+                if not vim.api.nvim_win_is_valid(input_win) then
+                    return
+                end
+
+                --
+                -- wipe input wins and redo creation of them
+                local wins = {
+                    ui_wins.input.wins.top,
+                    ui_wins.input.wins.bot,
+                    ui_wins.input.wins.left,
+                    ui_wins.input.wins.right,
+                }
+                for _, win in ipairs(wins) do
+                    if vim.api.nvim_win_is_valid(win.id) then
+                        vim.api.nvim_win_hide(win.id)
+                    end
+                end
+                -- clear buffers
+                vim.api.nvim_buf_set_lines(ui_wins.input.wins.top.buf, 0, -1, true, {})
+                vim.api.nvim_buf_set_lines(ui_wins.input.wins.bot.buf, 0, -1, true, {})
+                vim.api.nvim_buf_set_lines(ui_wins.input.wins.left.buf, 0, -1, true, {})
+                vim.api.nvim_buf_set_lines(ui_wins.input.wins.right.buf, 0, -1, true, {})
+
+                -- normalize the area of the input win to fit input ui wins
+                -- TODO: account for tab line, cmdline height, left side columsn any right side columns
+                local win_pos = vim.api.nvim_win_get_position(input_win)
+
+                local limit_input_win = function()
+                    input_win_opts.row = math.min(math.max(win_pos[1], 1), vim.o.lines - 3)
+                    input_win_opts.col = math.min(math.max(win_pos[2], 3), vim.o.columns - 3)
+                    input_win_opts.height = vim.api.nvim_win_get_height(input_win)
+                    input_win_opts.width = vim.api.nvim_win_get_width(input_win)
+
+                    if input_win_opts.col + input_win_opts.width - 1 > vim.o.columns - 3 then
+                        input_win_opts.width = vim.o.columns - 3 - input_win_opts.col
+                    end
+
+                    if input_win_opts.row + input_win_opts.height - 1 > vim.o.lines - 3 then
+                        input_win_opts.height = vim.o.lines - 3 - input_win_opts.row
+                    end
+                end
+
+                limit_input_win()
+                vim.api.nvim_win_set_config(input_win, input_win_opts)
+                -- TODO: not let overlap chat
+
+                ui_wins.input = M.generate_input_ui(input_win_opts, {
+                    top = { buf = ui_wins.input.wins.top.buf },
+                    bot = { buf = ui_wins.input.wins.bot.buf },
+                    right = { buf = ui_wins.input.wins.right.buf },
+                    left = { buf = ui_wins.input.wins.left.buf }
+                })
+            end
+
+            -- change of window position will only occur on the next tick
+            vim.schedule(function() resize() end)
+        end
+    })
+
+    vim.api.nvim_create_autocmd({ 'WinResized' }, {
+        group = group,
+        buffer = chat_buf,
+        callback = function(args)
+            -- TODO: limit the chat and chat window resize to -1 of the max to fit ui wins
+            local resize = function()
+                if not vim.api.nvim_win_is_valid(chat_win) then
+                    return
+                end
+
+                --
+                -- wipe chat wins and redo creation of them
+                local wins = {
+                    ui_wins.chat.wins.top,
+                    ui_wins.chat.wins.bot,
+                    ui_wins.chat.wins.left,
+                    ui_wins.chat.wins.right,
+                }
+                for _, win in ipairs(wins) do
+                    if vim.api.nvim_win_is_valid(win.id) then
+                        vim.api.nvim_win_hide(win.id)
+                    end
+                end
+
+                -- clear buffers
+                vim.api.nvim_buf_set_lines(ui_wins.chat.wins.top.buf, 0, -1, true, {})
+                vim.api.nvim_buf_set_lines(ui_wins.chat.wins.bot.buf, 0, -1, true, {})
+                vim.api.nvim_buf_set_lines(ui_wins.chat.wins.left.buf, 0, -1, true, {})
+                vim.api.nvim_buf_set_lines(ui_wins.chat.wins.right.buf, 0, -1, true, {})
+
+                -- normalize the area of the chat win to fit chat ui wins
+                -- TODO: account for tab line, cmdline height, left side columsn any right side columns
+                local win_pos = vim.api.nvim_win_get_position(chat_win)
+
+                local limit_chat_win = function()
+                    chat_win_opts.row = math.min(math.max(win_pos[1], 1), vim.o.lines - 3)
+                    chat_win_opts.col = math.min(math.max(win_pos[2], 3), vim.o.columns - 3)
+                    chat_win_opts.height = vim.api.nvim_win_get_height(chat_win)
+                    chat_win_opts.width = vim.api.nvim_win_get_width(chat_win)
+
+                    if chat_win_opts.col + chat_win_opts.width - 1 > vim.o.columns - 3 then
+                        chat_win_opts.width = vim.o.columns - 3 - chat_win_opts.col
+                    end
+
+                    if chat_win_opts.row + chat_win_opts.height - 1 > vim.o.lines - 3 then
+                        chat_win_opts.height = vim.o.lines - 3 - chat_win_opts.row
+                    end
+                end
+
+                limit_chat_win()
+                vim.api.nvim_win_set_config(chat_win, chat_win_opts)
+                -- TODO: not let overlap chat
+
+                ui_wins.chat = M.generate_chat_ui(chat_win_opts, {
+                    top = { buf = ui_wins.chat.wins.top.buf },
+                    bot = { buf = ui_wins.chat.wins.bot.buf },
+                    right = { buf = ui_wins.chat.wins.right.buf },
+                    left = { buf = ui_wins.chat.wins.left.buf }
+                })
+            end
+
+            -- change of window position will only occur on the next tick
+            vim.schedule(function() resize() end)
+        end
+    })
 end
 
 vim.keymap.set("n", "<Leader>b", M.open)
@@ -302,85 +440,208 @@ end
 
 
 M.generate_top_input_ui = function(input_win_opts, ns, used_win)
-    local buf = used_win and used_win.buf or vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = "nofile"
+    local buf
+    local win_opts = {}
 
-    local win_opts = {
-        relative = "editor",
-        row = input_win_opts.row - 1,
-        col = input_win_opts.col - 2,
-        width = input_win_opts.width + 4,
-        height = 1,
-        style = "minimal",
-        zindex = 60,
-        focusable = false
-    }
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
-
-    local title = "╣ INPUT ╠"
-    local space = string.rep("═", (win_opts.width - vim.fn.strchars(title)) / 2 - 1)
-    local row = space .. title .. space
-
-    if vim.fn.strchars(row) < win_opts.width - 2 then
-        row = row .. "═"
+    -- restore
+    if used_win then
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = used_win.width,
+                height = 1,
+                style = "minimal",
+                zindex = 61,
+                focusable = false,
+            }
+        end
     end
-    row = "╔" .. row .. "╗"
 
-    vim.api.nvim_buf_set_lines(buf, 0, -1, true, { row })
-    vim.hl.range(buf, ns, M.input_border_hl,
-        { 0, 0 },
-        { 0, #row }
-    )
+    -- create
+    if not buf then
+        buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].buftype = "nofile"
+    end
 
+
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 0               -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 2 -- 0-indexed, exclusive
+        local col_min = 0               -- 0-indexed, inclusive
+        local col_max = vim.o.columns   -- 0-indexed, exclusive
+
+        assert(input_win_opts.row >= row_min + 1)
+        assert(input_win_opts.row < row_max - 1)
+        assert(input_win_opts.col >= col_min + 2)
+        assert(input_win_opts.col < col_max - 2)
+
+        win_opts = {
+            relative = "editor",
+            row = input_win_opts.row - 1,
+            col = input_win_opts.col - 2,
+            width = input_win_opts.width + 4,
+            height = 1,
+            style = "minimal",
+            zindex = 61,
+            focusable = false
+        }
+
+        if win_opts.col + win_opts.width > vim.o.columns then
+            win_opts.width = win_opts.width - (win_opts.col + win_opts.width - vim.o.columns)
+        end
+
+        local title = "╣ INPUT ╠"
+        local space = string.rep("═", (win_opts.width - vim.fn.strchars(title)) / 2 - 1)
+        local row = space .. title .. space
+
+        if vim.fn.strchars(row) < win_opts.width - 2 then
+            row = row .. "═"
+        end
+        row = "╔" .. row .. "╗"
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, { row })
+        vim.hl.range(buf, ns, M.input_border_hl,
+            { 0, 0 },
+            { 0, #row }
+        )
+    end
+
+    win_opts.id = vim.api.nvim_open_win(buf, false, win_opts)
     win_opts.buf = buf
-    win_opts.id = win
     return win_opts
 end
 
 M.generate_bot_input_ui = function(input_win_opts, ns, used_win)
-    local buf = used_win and used_win.buf or vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = "nofile"
+    local buf
+    local win_opts = {}
 
-    local win_opts = {
-        relative = "editor",
-        row = input_win_opts.row + input_win_opts.height,
-        col = input_win_opts.col - 2,
-        width = input_win_opts.width + 4,
-        height = 1,
-        style = "minimal",
-        zindex = 60,
-        focusable = false
-    }
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
+    -- restore
+    if used_win then
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = used_win.width,
+                height = 1,
+                style = "minimal",
+                zindex = 61,
+                focusable = false,
+            }
+        end
+    end
 
-    local row = "╚" .. string.rep("═", win_opts.width - 2) .. "╝"
+    -- create
+    if not buf then
+        buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].buftype = "nofile"
+    end
 
-    vim.api.nvim_buf_set_lines(buf, 0, -1, true, { row })
-    vim.hl.range(buf, ns, M.input_border_hl,
-        { 0, 0 },
-        { 1, #row })
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 1               -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 1 -- 0-indexed, exclusive
+        local col_min = 0               -- 0-indexed, inclusive
+        local col_max = vim.o.columns   -- 0-indexed, exclusive
 
+        assert(input_win_opts.row >= row_min - 1)
+        assert(input_win_opts.row < row_max)
+        assert(input_win_opts.col >= col_min + 2)
+        assert(input_win_opts.col < col_max - 2)
+
+        win_opts = {
+            relative = "editor",
+            row = input_win_opts.row + input_win_opts.height,
+            col = input_win_opts.col - 2,
+            width = input_win_opts.width + 4,
+            height = 1,
+            style = "minimal",
+            zindex = 61,
+            focusable = false
+        }
+
+        local row = "╚" .. string.rep("═", win_opts.width - 2) .. "╝"
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, { row })
+        vim.hl.range(buf, ns, M.input_border_hl,
+            { 0, 0 },
+            { 1, #row })
+    end
+
+    win_opts.id = vim.api.nvim_open_win(buf, false, win_opts)
     win_opts.buf = buf
-    win_opts.id = win
     return win_opts
 end
 
 
 M.generate_left_input_ui = function(input_win_opts, ns, used_win)
-    local buf = used_win and used_win.buf or vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = "nofile"
+    local buf
+    local win_opts = {}
 
-    local win_opts = {
-        relative = "editor",
-        row = input_win_opts.row,
-        col = input_win_opts.col - 2,
-        width = 2,
-        height = input_win_opts.height,
-        style = "minimal",
-        zindex = 60,
-        focusable = false
-    }
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
+    -- restore
+    if used_win then
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = 2,
+                height = used_win.height,
+                style = "minimal",
+                zindex = 61,
+                focusable = false,
+            }
+        end
+    end
+
+    -- create
+    if not buf then
+        buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].buftype = "nofile"
+    end
+
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 1                 -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 2   -- 0-indexed, exclusive
+        local col_min = 0                 -- 0-indexed, inclusive
+        -- -1 for 0-index, -2 for right bar, -1 for buf, -1 to fit the width of 2
+        local col_max = vim.o.columns - 5 -- 0-indexed, exclusive
+
+        assert(input_win_opts.row >= row_min)
+        assert(input_win_opts.row + input_win_opts.height - 1 < row_max)
+        assert(input_win_opts.col - 2 >= col_min)
+        assert(input_win_opts.col - 2 < col_max)
+
+        win_opts = {
+            relative = "editor",
+            row = input_win_opts.row,
+            col = input_win_opts.col - 2,
+            width = 2,
+            height = input_win_opts.height,
+            style = "minimal",
+            zindex = 61,
+            focusable = true
+        }
+    end
 
     local row = "║ "
     local replacement = {}
@@ -394,38 +655,83 @@ M.generate_left_input_ui = function(input_win_opts, ns, used_win)
         { 0, 0 },
         { win_opts.height, #row })
 
+    win_opts.id = vim.api.nvim_open_win(buf, false, win_opts)
     win_opts.buf = buf
-    win_opts.id = win
     return win_opts
 end
 
 M.generate_right_input_ui = function(input_win_opts, ns, used_win)
-    local buf = used_win and used_win.buf or vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = "nofile"
+    local buf
+    local win_opts = {}
 
-    local win_opts = {
-        relative = "editor",
-        row = input_win_opts.row,
-        col = input_win_opts.col + input_win_opts.width,
-        width = 2,
-        height = input_win_opts.height,
-        style = "minimal",
-        zindex = 60,
-        focusable = false
-    }
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
-
-    local space = " ║"
-    local replacement = {}
-    for _ = 1, win_opts.height do
-        table.insert(replacement, space)
+    -- restore
+    if used_win then
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = 2,
+                height = used_win.height,
+                style = "minimal",
+                zindex = 61,
+                focusable = false,
+            }
+        end
     end
 
-    vim.api.nvim_buf_set_lines(buf, 0, -1, true, replacement)
-    vim.hl.range(buf, ns, M.input_border_hl, { 0, 0 }, { win_opts.height, win_opts.width })
+    -- create
+    if not buf then
+        buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].buftype = "nofile"
+    end
 
+
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 1               -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 2 -- 0-indexed, exclusive
+        -- +2 for the left bar, +1 for buf
+        local col_min = 3               -- 0-indexed, inclusive
+        local col_max = vim.o.columns   -- 0-indexed, exclusive
+
+        assert(input_win_opts.row >= row_min)
+        assert(input_win_opts.row + input_win_opts.height - 1 < row_max)
+        assert(input_win_opts.col + 1 >= col_min)
+        assert(input_win_opts.col + 2 < col_max)
+
+        win_opts = {
+            relative = "editor",
+            row = input_win_opts.row,
+            col = input_win_opts.col + input_win_opts.width,
+            width = 2,
+            height = input_win_opts.height,
+            style = "minimal",
+            zindex = 61,
+            focusable = false
+        }
+
+        local row = " ║"
+        local replacement = {}
+        for _ = 1, win_opts.height do
+            table.insert(replacement, row)
+        end
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, replacement)
+        vim.hl.range(buf, ns, M.input_border_hl, { 0, 0 }, { win_opts.height, win_opts.width })
+    end
+
+    if vim.o.lines == win_opts.row + win_opts.height then
+        win_opts.height = win_opts.height - 1
+    end
+
+    win_opts.id  = vim.api.nvim_open_win(buf, false, win_opts)
     win_opts.buf = buf
-    win_opts.id = win
     return win_opts
 end
 
@@ -664,6 +970,7 @@ M.update = function(cur_cell, next_cell, color_index, colors, wins, ns)
     end
 
     -- account for different characters' byte lengths
+    -- TODO: check if the line is too short
     local line = vim.api.nvim_buf_get_lines(win.buf, nr, nr + 1, true);
     local char_s = vim.str_byteindex(line[1], "utf-16", nc_s);
     local char_e = vim.str_byteindex(line[1], "utf-16", nc_e);
@@ -677,25 +984,56 @@ M.update = function(cur_cell, next_cell, color_index, colors, wins, ns)
         })
 end
 
+-- create: new buf, new win opts
+-- restore: old buf, old win opts
+-- update: old buf, new win opts
 M.generate_top_chat_ui = function(input_win_opts, ns, used_win)
     local buf
     local win_opts = {}
+    local chat_s
+    local chat_e
 
+    -- restore
     if used_win then
-        buf = used_win.buf
-        win_opts = {
-            relative = used_win.relative,
-            row = used_win.row,
-            col = used_win.col,
-            width = used_win.width,
-            height = used_win.height,
-            style = used_win.style,
-            zindex = used_win.zindex,
-            focusable = used_win.focusable,
-        }
-    else
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = used_win.width,
+                height = 1,
+                style = "minimal",
+                zindex = 60,
+                focusable = false,
+            }
+            chat_s = used_win.chat_s
+            chat_e = used_win.chat_e
+        end
+    end
+
+    -- create
+    if not buf then
         buf = vim.api.nvim_create_buf(false, true)
         vim.bo[buf].buftype = "nofile"
+    end
+
+
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 0               -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 2 -- 0-indexed, exclusive
+        local col_min = 0               -- 0-indexed, inclusive
+        local col_max = vim.o.columns   -- 0-indexed, exclusive
+
+        assert(input_win_opts.row >= row_min + 1)
+        assert(input_win_opts.row < row_max - 1)
+        assert(input_win_opts.col >= col_min + 2)
+        assert(input_win_opts.col < col_max - 2)
 
         win_opts = {
             relative = "editor",
@@ -707,46 +1045,89 @@ M.generate_top_chat_ui = function(input_win_opts, ns, used_win)
             zindex = 60,
             focusable = false,
         }
+
+        local title = "╣ CHAT ╠"
+        local space = string.rep("═", (win_opts.width - vim.fn.strchars(title)) / 2 - 1)
+        local row = space .. title .. space
+        if vim.fn.strchars(row) < win_opts.width - 2 then
+            row = row .. "═"
+        end
+        row = "╔" .. row .. "╗"
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, { row })
+        vim.hl.range(buf, ns, M.chat_border_hl,
+            { 0, 0 },
+            { 0, #row }
+        )
+
+        chat_s = win_opts.col + vim.fn.strchars(space) + 2
+        chat_e = chat_s + vim.fn.strchars(title) - 2
     end
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
 
-    local title = "╣ CHAT ╠"
-    local space = string.rep("═", (win_opts.width - vim.fn.strchars(title)) / 2 - 1)
-    local row = space .. title .. space
-    if vim.fn.strchars(row) < win_opts.width - 2 then
-        row = row .. "═"
-    end
-    row = "╔" .. row .. "╗"
-
-    vim.api.nvim_buf_set_lines(buf, 0, -1, true, { row })
-    vim.hl.range(buf, ns, M.chat_border_hl,
-        { 0, 0 },
-        { 0, #row }
-    )
-
-    win_opts.chat_s = win_opts.col + vim.fn.strchars(space) + 2
-    win_opts.chat_e = win_opts.chat_s + vim.fn.strchars(title) - 2
+    win_opts.id = vim.api.nvim_open_win(buf, false, win_opts)
+    win_opts.chat_s = chat_s
+    win_opts.chat_e = chat_e
     win_opts.buf = buf
-    win_opts.id = win
     win_opts.type = "t"
     return win_opts
 end
 
 M.generate_bot_chat_ui = function(input_win_opts, ns, used_win)
-    local buf = used_win and used_win.buf or vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = "nofile"
+    local buf
+    local win_opts = {}
 
-    local win_opts = {
-        relative = "editor",
-        row = input_win_opts.row + input_win_opts.height,
-        col = input_win_opts.col - 2,
-        width = input_win_opts.width + 4,
-        height = 1,
-        style = "minimal",
-        zindex = 60,
-        focusable = false,
-    }
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
+    -- restore
+    if used_win then
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = used_win.width,
+                height = 1,
+                style = "minimal",
+                zindex = 61,
+                focusable = false,
+            }
+        end
+    end
+
+    -- create
+    if not buf then
+        buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].buftype = "nofile"
+    end
+
+
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 1               -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 1 -- 0-indexed, exclusive
+        local col_min = 0               -- 0-indexed, inclusive
+        local col_max = vim.o.columns   -- 0-indexed, exclusive
+
+        assert(input_win_opts.row >= row_min - 1)
+        assert(input_win_opts.row < row_max)
+        assert(input_win_opts.col >= col_min + 2)
+        assert(input_win_opts.col < col_max - 2)
+
+
+        win_opts = {
+            relative = "editor",
+            row = input_win_opts.row + input_win_opts.height,
+            col = input_win_opts.col - 2,
+            width = input_win_opts.width + 4,
+            height = 1,
+            style = "minimal",
+            zindex = 60,
+            focusable = false,
+        }
+    end
 
     local row = "╚" .. string.rep("═", win_opts.width - 2) .. "╝"
 
@@ -756,28 +1137,68 @@ M.generate_bot_chat_ui = function(input_win_opts, ns, used_win)
         { 0, 0 },
         { 1, #row })
 
+    win_opts.id = vim.api.nvim_open_win(buf, false, win_opts)
     win_opts.buf = buf
-    win_opts.id = win
     win_opts.type = "b"
     return win_opts
 end
 
 
 M.generate_left_chat_ui = function(input_win_opts, ns, used_win)
-    local buf = used_win and used_win.buf or vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = "nofile"
+    local buf
+    local win_opts = {}
 
-    local win_opts = {
-        relative = "editor",
-        row = input_win_opts.row,
-        col = input_win_opts.col - 2,
-        width = 2,
-        height = input_win_opts.height,
-        style = "minimal",
-        zindex = 60,
-        focusable = false,
-    }
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
+    -- restore
+    if used_win then
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = 2,
+                height = used_win.height,
+                style = "minimal",
+                zindex = 61,
+                focusable = false,
+            }
+        end
+    end
+
+    -- create
+    if not buf then
+        buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].buftype = "nofile"
+    end
+
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 1                 -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 2   -- 0-indexed, exclusive
+        local col_min = 0                 -- 0-indexed, inclusive
+        -- -1 for 0-index, -2 for right bar, -1 for buf, -1 to fit the width of 2
+        local col_max = vim.o.columns - 5 -- 0-indexed, exclusive
+
+        assert(input_win_opts.row >= row_min)
+        assert(input_win_opts.row + input_win_opts.height - 1 < row_max)
+        assert(input_win_opts.col - 2 >= col_min)
+        assert(input_win_opts.col - 2 < col_max)
+
+        win_opts = {
+            relative = "editor",
+            row = input_win_opts.row,
+            col = input_win_opts.col - 2,
+            width = 2,
+            height = input_win_opts.height,
+            style = "minimal",
+            zindex = 60,
+            focusable = false,
+        }
+    end
 
     local row = "║ "
     local replacement = {}
@@ -791,27 +1212,68 @@ M.generate_left_chat_ui = function(input_win_opts, ns, used_win)
         { 0, 0 },
         { win_opts.height, #row })
 
+    win_opts.id = vim.api.nvim_open_win(buf, false, win_opts)
     win_opts.buf = buf
-    win_opts.id = win
     win_opts.type = "l"
     return win_opts
 end
 
 M.generate_right_chat_ui = function(input_win_opts, ns, used_win)
-    local buf = used_win and used_win.buf or vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = "nofile"
+    local buf
+    local win_opts = {}
 
-    local win_opts = {
-        relative = "editor",
-        row = input_win_opts.row,
-        col = input_win_opts.col + input_win_opts.width,
-        width = 2,
-        height = input_win_opts.height,
-        style = "minimal",
-        zindex = 60,
-        focusable = false,
-    }
-    local win = vim.api.nvim_open_win(buf, false, win_opts)
+    -- restore
+    if used_win then
+        -- restore
+        if used_win.buf then
+            buf = used_win.buf
+        end
+        -- restore
+        if used_win.relative then
+            win_opts = {
+                relative = used_win.relative,
+                row = used_win.row,
+                col = used_win.col,
+                width = 2,
+                height = used_win.height,
+                style = "minimal",
+                zindex = 61,
+                focusable = false,
+            }
+        end
+    end
+
+    -- create
+    if not buf then
+        buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].buftype = "nofile"
+    end
+
+
+    -- create, update
+    if not win_opts.relative then
+        local row_min = 1               -- 0-indexed, inclusive
+        local row_max = vim.o.lines - 2 -- 0-indexed, exclusive
+        -- +2 for the left bar, +1 for buf
+        local col_min = 3               -- 0-indexed, inclusive
+        local col_max = vim.o.columns   -- 0-indexed, exclusive
+
+        assert(input_win_opts.row >= row_min)
+        assert(input_win_opts.row + input_win_opts.height - 1 < row_max)
+        assert(input_win_opts.col + 1 >= col_min)
+        assert(input_win_opts.col + 2 < col_max)
+
+        win_opts = {
+            relative = "editor",
+            row = input_win_opts.row,
+            col = input_win_opts.col + input_win_opts.width,
+            width = 2,
+            height = input_win_opts.height,
+            style = "minimal",
+            zindex = 60,
+            focusable = false,
+        }
+    end
 
     local row = " ║"
     local replacement = {}
@@ -824,8 +1286,8 @@ M.generate_right_chat_ui = function(input_win_opts, ns, used_win)
         { 0, 0 },
         { win_opts.height, #row })
 
-    win_opts.buf = buf
-    win_opts.id = win
+    win_opts.id   = vim.api.nvim_open_win(buf, false, win_opts)
+    win_opts.buf  = buf
     win_opts.type = "r"
     return win_opts
 end

@@ -407,6 +407,11 @@ local plugins = {
         version = "^18.0.0",
         enabled = true,
         opts = {
+            display = {
+                chat = {
+                    auto_scroll = true
+                }
+            },
             interactions = {
                 chat = {
                     adapter = "gemini",
@@ -422,7 +427,7 @@ local plugins = {
                             },
                             schema = {
                                 model = {
-                                    default = "gemini-2.5-flash-lite"
+                                    default = "gemini-3-flash"
                                 }
                             }
                         })

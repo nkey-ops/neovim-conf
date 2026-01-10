@@ -367,8 +367,19 @@ end
 
 local function generate_gradient(start_color, end_color, steps)
     local colors = {}
+    local is_swapped = false
     for i = 0, steps - 1 do
-        local t = i / (steps - 1)
+        if i > (steps - 1) / 2 and not is_swapped then
+            local tmp_color = start_color
+            start_color = end_color
+            end_color = tmp_color
+            is_swapped = true
+        end
+        if is_swapped then
+            i = i - (steps - 1) / 2
+        end
+
+        local t = i / (steps - 1) * 2
         local r = math.floor(lerp(start_color.r, end_color.r, t))
         local g = math.floor(lerp(start_color.g, end_color.g, t))
         local b = math.floor(lerp(start_color.b, end_color.b, t))
@@ -782,7 +793,7 @@ M.generate_chat_ui = function(input_win_opts, used_wins, chat_glob)
     }
 
     local length = top_win_opts.width * 2 + left_win_opts.height * 2
-    local snake_length = math.floor(length * 0.3)
+    local snake_length = math.floor(length * 1)
     local hls = M.get_hls(snake_length)
 
     local stored = chat_glob and chat_glob.get_cached() or nil
@@ -867,25 +878,27 @@ end
 
 M.get_hls = function(snake_length)
     local colors = {}
-    if #vim.api.nvim_get_hl(0, { name = "Gradient1" }) == 0 then
-        local gradient = generate_gradient(
-            { r = 250, g = 0, b = 0 },
-            { r = 0, g = 0, b = 250 },
-            snake_length)
 
-        for i, c in pairs(gradient) do
-            local hl = "Gradient" .. i
-            vim.api.nvim_set_hl(0, hl,
-                {
-                    fg = c,
-                    bg = vim.api.nvim_get_hl(0, { name = M.chat_border_hl }).bg
-                })
-            table.insert(colors, i, hl)
-        end
-    else
-        for i in snake_length do
+    if vim.api.nvim_get_hl(0, { name = "Gradient1" }) == vim.empty_dict() then
+        for i = 1, snake_length do
             table.insert(colors, "Gradient" .. i)
         end
+        return colors
+    end
+
+    local gradient = generate_gradient(
+        { r = math.random(250), g = math.random(250), b = math.random(250) },
+        { r = math.random(250), g = math.random(250), b = math.random(250) },
+        snake_length)
+
+    for i, c in pairs(gradient) do
+        local hl = "Gradient" .. i
+        vim.api.nvim_set_hl(0, hl,
+            {
+                fg = c,
+                bg = vim.api.nvim_get_hl(0, { name = M.chat_border_hl }).bg
+            })
+        table.insert(colors, i, hl)
     end
     return colors
 end

@@ -1,3 +1,4 @@
+local M = {}
 vim.g.mapleader = " "
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
@@ -52,7 +53,7 @@ vim.keymap.set("n", "<M-h>h", function()
     vim.api.nvim_exec_autocmds("WinResized", {
         buffer = vim.api.nvim_win_get_buf(win)
     })
-end)
+end, { desc = "Move Win Left" })
 vim.keymap.set("n", "<M-l>l", function()
     local win = vim.api.nvim_get_current_win()
     local win_pos = vim.api.nvim_win_get_position(win)
@@ -63,7 +64,7 @@ vim.keymap.set("n", "<M-l>l", function()
     vim.api.nvim_exec_autocmds("WinResized", {
         buffer = vim.api.nvim_win_get_buf(win)
     })
-end)
+end, { desc = "Move Win Right" })
 vim.keymap.set("n", "<M-k>k", function()
     local win = vim.api.nvim_get_current_win()
     local win_pos = vim.api.nvim_win_get_position(win)
@@ -74,7 +75,7 @@ vim.keymap.set("n", "<M-k>k", function()
     vim.api.nvim_exec_autocmds("WinResized", {
         buffer = vim.api.nvim_win_get_buf(win)
     })
-end)
+end, { desc = "Move Win Up" })
 vim.keymap.set("n", "<M-j>j", function()
     local win = vim.api.nvim_get_current_win()
     local win_pos = vim.api.nvim_win_get_position(win)
@@ -85,19 +86,23 @@ vim.keymap.set("n", "<M-j>j", function()
     vim.api.nvim_exec_autocmds("WinResized", {
         buffer = vim.api.nvim_win_get_buf(win)
     })
-end)
+end, { desc = "Move Win Down" })
 
-
-vim.keymap.set("n", "<M-h>", function()
+vim.keymap.set("n", "<M-h><M-h>", function()
     local win = vim.api.nvim_get_current_win()
     local win_pos = vim.api.nvim_win_get_position(win)
     local win_config = vim.api.nvim_win_get_config(win)
-    win_config.col = math.max(win_pos[2] - 5, 0)
-    win_config.width = win_config.width + 5
-    vim.api.nvim_win_set_config(win, win_config)
-end)
 
-vim.keymap.set("n", "<M-h>l", function()
+    if win_config.relative ~= "" then
+        win_config.col = math.max(win_pos[2] - 5, 0)
+        win_config.width = win_config.width + 5
+        vim.api.nvim_win_set_config(win, win_config)
+    else
+        M.shift_other_win(win, win_pos, win_config, "left")
+    end
+end, { desc = "Expand Left" })
+
+vim.keymap.set("n", "<M-h><M-l>", function()
     local win = vim.api.nvim_get_current_win()
     local win_pos = vim.api.nvim_win_get_position(win)
     local win_config = vim.api.nvim_win_get_config(win)
@@ -106,29 +111,34 @@ vim.keymap.set("n", "<M-h>l", function()
     vim.api.nvim_win_set_config(win, win_config)
 end)
 
-vim.keymap.set("n", "<M-l>", function()
+vim.keymap.set("n", "<M-l><M-l>", function()
     local win = vim.api.nvim_get_current_win()
     local win_config = vim.api.nvim_win_get_config(win)
     win_config.width = win_config.width + 5
     vim.api.nvim_win_set_config(win, win_config)
-end)
+end, { desc = "Expand Right" })
 
-vim.keymap.set("n", "<M-l>h", function()
+vim.keymap.set("n", "<M-l><M-h>>", function()
     local win = vim.api.nvim_get_current_win()
     local win_config = vim.api.nvim_win_get_config(win)
     win_config.width = math.max(win_config.width - 5, 1)
     vim.api.nvim_win_set_config(win, win_config)
 end)
 
-vim.keymap.set("n", "<M-k>", function()
+vim.keymap.set("n", "<M-k><M-k>", function()
     local win = vim.api.nvim_get_current_win()
     local win_pos = vim.api.nvim_win_get_position(win)
     local win_config = vim.api.nvim_win_get_config(win)
-    win_config.row = math.max(win_pos[1] - 2, 0)
-    win_config.height = win_config.height + 2
-    vim.api.nvim_win_set_config(win, win_config)
-end)
-vim.keymap.set("n", "<M-k>j", function()
+
+    if win_config.relative ~= "" then
+        win_config.row = math.max(win_pos[1] - 2, 0)
+        win_config.height = win_config.height + 2
+        vim.api.nvim_win_set_config(win, win_config)
+    else
+        M.shift_other_win(win, win_pos, win_config, "above")
+    end
+end, { desc = "Expand up" })
+vim.keymap.set("n", "<M-k><M-j>", function()
     local win = vim.api.nvim_get_current_win()
     local win_pos = vim.api.nvim_win_get_position(win)
     local win_config = vim.api.nvim_win_get_config(win)
@@ -137,14 +147,14 @@ vim.keymap.set("n", "<M-k>j", function()
     vim.api.nvim_win_set_config(win, win_config)
 end)
 
-vim.keymap.set("n", "<M-j>", function()
+vim.keymap.set("n", "<M-j><M-j>", function()
     local win = vim.api.nvim_get_current_win()
     local win_config = vim.api.nvim_win_get_config(win)
     win_config.height = win_config.height + 2
     vim.api.nvim_win_set_config(win, win_config)
-end)
+end, { desc = "Expand dowwn" })
 
-vim.keymap.set("n", "<M-j>k", function()
+vim.keymap.set("n", "<M-j><M-k>", function()
     local win = vim.api.nvim_get_current_win()
     local win_config = vim.api.nvim_win_get_config(win)
     win_config.height = math.max(win_config.height - 2, 1)
@@ -208,4 +218,56 @@ vim.cmd("cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'")
 P = function(v)
     print(vim.inspect(v))
     return v
+end
+
+
+
+
+M.is_in_area = function(win_config, target_win, direction)
+    local win_row = win_config.row
+    local win_col = win_config.col
+
+    if direction == "above" then
+        win_row = win_row - 2
+    elseif direction == "left" then
+        win_col = win_col - 2
+    end
+    return target_win.row <= win_row
+
+        and win_row < target_win.row + target_win.height
+        and target_win.col <= win_col
+        and win_col < target_win.col + target_win.width
+end
+
+M.shift_other_win = function(win, win_pos, win_config, direction)
+    local wins = vim.api.nvim_tabpage_list_wins(0)
+    for _, other_win in pairs(wins) do
+        if other_win == win then
+            goto continue
+        end
+
+        local other_win_config = vim.api.nvim_win_get_config(other_win)
+        local other_win_pos = vim.api.nvim_win_get_position(other_win)
+
+        if M.is_in_area({
+                    row = win_pos[1],
+                    col = win_pos[2],
+                    height = win_config.height,
+                    width = win_config.width },
+                {
+                    row = other_win_pos[1],
+                    col = other_win_pos[2],
+                    height = other_win_config.height,
+                    width = other_win_config.width,
+                }, direction) then
+            if direction == "left" then
+                other_win_config.width = math.max(other_win_config.width - 5, 1)
+            elseif direction == "above" then
+                other_win_config.height = math.max(other_win_config.height - 5, 1)
+            end
+        end
+        vim.api.nvim_win_set_config(other_win, other_win_config)
+
+        ::continue::
+    end
 end

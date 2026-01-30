@@ -309,10 +309,12 @@ local plugins = {
     },
     {
         'folke/todo-comments.nvim',
-        event = 'VimEnter',
-        dependencies = { 'nvim-lua/plenary.nvim' }
+        dependencies = { 'nvim-lua/plenary.nvim' },
+        opts = {},
+        init = function()
+            vim.keymap.set("n", "<M-t>", "<Cmd>TodoTelescope cwd=src/main/java<CR>")
+        end
     },
-    -- https://github.com/echasnovski/mini.nvim
     {
         'AckslD/messages.nvim',
         config = function() require("messages").setup() end,

@@ -52,14 +52,14 @@ return function()
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang=ALL-UNNAMED",
 
-            -- "-XX:+UseParallelGC",
-            -- "-XX:GCTimeRatio=4",
-            -- "-XX:AdaptiveSizePolicyWeight=90",
-            -- "-Dsun.zip.disableMemoryMapping=true",
-            -- "-Xms100m",
-            -- "-Xmx512m",
+            "-XX:+UseParallelGC",
+            "-XX:GCTimeRatio=4",
+            "-XX:AdaptiveSizePolicyWeight=90",
+            "-Dsun.zip.disableMemoryMapping=true",
+            "-Xms200m",
+            "-Xmx800m",
 
-            '-Xmx1000M',
+            -- '-Xmx1000M',
             -- '-XX:ReservedCodeCacheSize=64m',
             -- '-XX:-UseCompressedClassPointers',
             -- "-Xss512k",
@@ -91,7 +91,7 @@ return function()
                     enabled = false,
                 },
                 referenceCodeLens = {
-                    enabled = true,
+                    enabled = false,
                 },
                 references = {
                     includeAccessors = true,
@@ -130,11 +130,12 @@ return function()
                 format = {
                     enabled = true,
                 },
-                inlayhints = {
-                    parameterNames = {
-                        enabled = "all"
-                    }
-                },
+                -- inlayhints = {
+                -- enabled = false,
+                -- parameterNames = {
+                --     enabled = "all"
+                -- }
+                -- },
                 maxConcurrentBuilds = 1,
             },
         },

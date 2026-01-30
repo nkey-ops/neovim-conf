@@ -123,7 +123,7 @@ local plugins = {
         },
         init = function()
             req_conf('lsp-init')
-            vim.lsp.inlay_hint.enable()
+            vim.lsp.inlay_hint.enable(false)
         end
     },
     {

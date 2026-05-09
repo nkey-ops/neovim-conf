@@ -61,45 +61,55 @@ return function()
         local lspkind_format = lspkind.cmp_format({ mode = 'symbol' })
 
         vim_item = lspkind_format(entry, vim_item)
+        -- order: { cmp.ItemField.Kind, cmp.ItemField.Abbr, cmp.ItemField.Menu },
 
         local kind = entry.completion_item.kind
-
-        if kind ~= 15 then -- except snippets
+        --
+        -- abbr = "logout~",
+        -- dup = 1,
+        -- kind = "󰆧",
+        -- menu = "(Customizer<LogoutConfigurer<HttpSecurity>> logoutCustomizer)HttpSecurity",
+        -- word = "logout"
+        if vim_item.menu then
             -- methods, functions and constructors
-            if kind == 2 or kind == 3 or kind == 4 then
-                -- word "named_function"
-                -- abbr "named_function(String arg1)"
+            -- max length is 33
+            if (kind == 2 or kind == 3 or kind == 4) then
+                -- word "function_name"
+                -- menu "(String arg1)return_type"
                 -- >>
-                -- menu -> "(String arg1)"
-                local s = vim_item.word:find("(", 1, { plain = true })
-                vim_item.menu = vim_item.abbr:sub(s or 1)
+                -- menu -> "(String arg1) : return_type"
+                local function_args_start = vim_item.menu:find(")", 1, true) or nil
+                if function_args_start then
+                    local args, type
+                    -- extranct and limit function's arguments length to 20
+                    if function_args_start > 20 then
+                        args = vim_item.menu:sub(1, 18) .. "…)"
+                    else
+                        args = string.format("%-20s", vim_item.menu:sub(1, function_args_start))
+                    end
+                    -- extract and limit function's return type
+                    if #vim_item.menu - function_args_start > 10 then
+                        type = vim_item.menu:sub(function_args_start + 1, function_args_start + 9) .. "…"
+                    else
+                        type = string.format("%-10s", vim_item.menu:sub(function_args_start + 1))
+                    end
+
+                    vim_item.menu = args .. (type and " : " .. type or "")
+                end
             else
-                -- -- word "named_var"
-                -- -- abbr "named_var : Var_Type"
-                -- -- >>
-                -- -- menu -> "Var_Type"
-                vim_item.menu = vim_item.abbr:sub(#vim_item.word + 4)
+                -- word "named_var"
+                -- menu "named_var : Var_Type"
+                -- >>
+                -- menu -> "Var_Type"
+                local var_type_start = vim_item.menu:find(":", 1, true)
+                if var_type_start then
+                    vim_item.menu = vim_item.menu:sub(
+                        var_type_start + 2,
+                        var_type_start + 2 + 33)
+                else
+                    vim_item.menu = vim_item.menu:sub(1, 33)
+                end
             end
-
-            local i = vim_item.menu:find(":")
-
-            local type
-            if i then
-                type = vim_item.menu:sub(i):sub(1, 18)
-                if #type == 18 then type = type .. ".." end
-                vim_item.menu = vim_item.menu:sub(1, i - 2)
-            end
-
-            vim_item.menu = vim_item.menu:sub(1, 18)
-            if #vim_item.menu == 18 then vim_item.menu = vim_item.menu .. ".." end
-
-            vim_item.menu = string.format("%-20s", vim_item.menu)
-
-            if type then
-                vim_item.menu = vim_item.menu .. " " .. type
-            end
-            -- cmp only displayc "abbr", lets assing a shorter "word"
-            vim_item.abbr = vim_item.word
         end
 
         local hl
@@ -306,7 +316,7 @@ return function()
                     cmp.complete({ select = true })
                 end
             end,
-        ['<C-i>'] = function()
+        ['<C-x>i'] = function()
             cmp.complete({ performance = { max_view_entries = 1 } })
             cmp.confirm({ select = true })
         end,
@@ -361,8 +371,15 @@ return function()
             end,
         },
         window = {
-            completion = cmp.config.window.bordered(),
-            documentation = cmp.config.window.bordered(),
+            completion = cmp.config.window.bordered(
+                {
+                    winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:Visual,Search:None" }
+            ),
+            documentation = cmp.config.window.bordered(
+                {
+                    winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:Visual,Search:None",
+                }
+            ),
         },
 
         view = {
@@ -381,9 +398,9 @@ return function()
             disallow_partial_matching = false, --
             disallow_prefix_unmatching = true, --
             disallow_symbol_nonprefix_matching = true,
+	    disallow_case_insensetive_matching = false
         },
         sorting = {
-
             comparators = comparators
         },
 
@@ -465,7 +482,9 @@ return function()
     cmp.setup.cmdline(':', {
         mapping = cmdline_mapping,
         completion = {
-            autocomplete = { cmp.TriggerEvent.TextChanged }
+            autocomplete = { cmp.TriggerEvent.TextChanged },
+            sorting = { comparators = comparators }
+
         },
         sources = cmp.config.sources({
             { name = 'path' }

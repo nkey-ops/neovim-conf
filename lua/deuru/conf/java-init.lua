@@ -5,9 +5,7 @@ local M = {}
 local jdtls = require("jdtls")
 local mason_registry = require('mason-registry')
 local google_java_format_jar =
-    vim.fn.glob(
-        "/home/local/.local/share/nvim/mason/packages/google-java-format/google-java-format-*.jar"
-    )
+    vim.fn.glob( "/home/local/Downloads/google-java-format-1.34.1-all-deps.jar")
 
 local enable_auto_format = false
 local java_formats = { "google2", "google4", "intellij", "securepay" }
@@ -34,7 +32,7 @@ require('formatter').setup({
 
                 -- use the contents of the buffer not the file, so
                 -- you don't have to write into the file to make formatting
-                local tmp  = os.tmpname() .. ".java"
+                local tmp  = "/tmp/securepay-formatter.java"
                 local file = assert(io.open(tmp, "w"))
 
                 local data = vim.fn.getline(1, "$")
@@ -258,7 +256,8 @@ vim.api.nvim_create_autocmd('User', {
         local opts = { silent = true, buffer = args.buf }
 
         set('n', '<leader>o', add_all_missing_imp, ext(opts, "Java Import"))
-        set({ 'n', 'v' }, '<leader>f', format, ext(opts, "Java Format"))
+        set({ 'n', 'v' }, '<leader>fc', format, ext(opts, "Java Format"))
+        set({ 'n', 'v' }, '<leader>fd', vim.lsp.buf.format, ext(opts, "Java Default Format"))
         set({ 'n', 'v' }, '<leader>ev', extract_var, ext(opts, "Java [E]xtract [V]ariable"))
         set({ 'n', 'v' }, '<leader>em', extract_meth, ext(opts, "Java [E]xtract [M]ethod"))
         set("n", "<leader>jc", "<cmd>JdtCompile<CR>", ext(opts, "Java JdtCompile"))

@@ -15,6 +15,24 @@ return function()
                 light = "latte",
                 dark = "mocha",
             },
+            transparent_background = false,
+            show_end_of_buffer = false,
+            integration_default = false,
+            integrations = {
+                barbecue = { dim_dirname = true, bold_basename = true, dim_context = false, alt_background = false },
+                cmp = true,
+                gitsigns = true,
+                hop = true,
+                illuminate = { enabled = true },
+                native_lsp = { enabled = true, inlay_hints = { background = true } },
+                neogit = true,
+                neotree = true,
+                semantic_tokens = true,
+                treesitter = true,
+                treesitter_context = true,
+                vimwiki = true,
+                which_key = true,
+            },
             color_overrides = {
                 latte = {
                     rosewater = "#c14a4a",
@@ -47,7 +65,7 @@ return function()
                 mocha = {
                     rosewater = "#ea6962",
                     flamingo  = "#ea6962",
-                    red       = "#ea6962",
+                    red       = "#c14a4a",
                     maroon    = "#ea6962",
                     pink      = "#d3869b",
                     mauve     = "#d3869b",
@@ -67,67 +85,48 @@ return function()
                     overlay0  = "#595959",
                     surface2  = "#4d4d4d",
                     surface1  = "#404040",
+                    surface12 = "#303030",
                     surface0  = "#292929",
                     base      = "#1d2021",
                     mantle    = "#191b1c",
                     crust     = "#141617",
                 },
                 macchiato = {
-                    rosewater = "#14161b",
-                    flamingo = "#14161b",
-                    red = "#14161b", --
-                    maroon = "#14161b",
-                    pink = "#14161b",
-                    mauve = "#14161b",    --
-                    peach = "#14161b",    --
-                    yellow = "#14161b",   --
-                    green = "#007373",    --
-                    teal = "#14161b",     --
-                    sky = "#14161b",      --
-                    sapphire = "#14161b", --
-                    blue = "#004388",
-                    lavender = "#14161b",
-                    text = "#000000", --
-                    subtext0 = "#a89984",
-                    subtext1 = "#928374",
-                    subtext2 = "#595959", -- black
-                    overlay2 = "#4d4d4d",
-                    overlay1 = "#404040",
-                    overlay0 = "#292929", --
-                    surface2 = "#1d2021",
-                    surface1 = "#191b1c",
-                    surface0 = "#14161b",
-                    base = "#e0e2ea",   --
-                    mantle = "#c4c6cd", --
-                    crust = "#141617",
-                    -- bg="#e0e2ea" fg= "##14161b"
+                    rosewater = "#000000",
+                    flamingo  = "#000000",
+                    red       = "#000000", --
+                    maroon    = "#000000",
+                    pink      = "#000000",
+                    mauve     = "#000000",
+                    peach     = "#000000",
+                    yellow    = "#000000",
+                    green     = "#007373",
+                    teal      = "#005523",
+                    sky       = "#000000",
+                    sapphire  = "#000000",
+                    blue      = "#004c73",
+                    lavender  = "#000000",
+                    mantle    = "#c4c6cf", --
+                    crust     = "#000000",
+                    subtext2  = "#14161b",
+                    subtext1  = "#2c2e33",
+                    subtext0  = "#4f5258",
+                    overlay2  = "#14161b", --
+                    overlay1  = "#2c2e33",
+                    overlay0  = "#4f5258",
+                    surface2  = "#9b9ea4",
+                    surface1  = "#c4c6cd",
+                    surface0  = "#e0e2ea",
+                    base      = "#eef1f8", --
+                    text      = "#000000", --
                 },
-            },
-            transparent_background = false,
-            show_end_of_buffer = false,
-            integration_default = false,
-            integrations = {
-                barbecue = { dim_dirname = true, bold_basename = true, dim_context = false, alt_background = false },
-                cmp = true,
-                gitsigns = true,
-                hop = true,
-                illuminate = { enabled = true },
-                native_lsp = { enabled = true, inlay_hints = { background = true } },
-                neogit = true,
-                neotree = true,
-                semantic_tokens = true,
-                treesitter = true,
-                treesitter_context = true,
-                vimwiki = true,
-                which_key = true,
             },
             highlight_overrides = {
                 all = function(colors)
                     return {
                         CmpItemMenu = { fg = colors.surface2 },
                         CursorLineNr = { fg = colors.text },
-                        -- FloatBorder = { bg = colors.base, fg = colors.surface0 },
-                        FloatBorder = { bg = colors.base, fg = "#e3dec3" },
+                        FloatBorder = { bg = colors.base, fg = colors.surface0 },
                         GitSignsChange = { fg = colors.peach },
                         LineNr = { fg = colors.overlay0 },
                         LspInfoBorder = { link = "FloatBorder" },
@@ -217,7 +216,7 @@ return function()
                         TSConstructor = { fg = colors.green },
                         TSDebug = { link = "Debug" },
                         TSDefine = { link = "Define" },
-                        --         TSEnvironment = { link = "Macro" },
+                        TSEnvironment = { link = "Macro" },
                         TSEnvironmentName = { link = "Type" },
                         TSError = { link = "Error" },
                         TSException = { fg = colors.red },
@@ -322,6 +321,11 @@ return function()
                         ["@string.escape"] = { link = "TSStringEscape" },
                         ["@string.regex"] = { link = "TSStringRegex" },
                         ["@string.special"] = { link = "TSStringSpecial" },
+                        ["@string.special.url"] = {
+                            style = { "underline", "italic" },
+                            bg    = colors.surface0,
+                            fg    = colors.red
+                        },
                         ["@symbol"] = { link = "TSSymbol" },
                         ["@tag"] = { link = "TSTag" },
                         ["@tag.attribute"] = { link = "TSTagAttribute" },
@@ -389,35 +393,46 @@ return function()
                 end,
                 mocha = function(colors)
                     return {
-                        TabLine = { fg = colors.crust, bg = colors.surface1 },
-                        TabLineSel = { fg = colors.pink, bg = colors.surface2 },
-                        TabLineFill = { fg = "NvimLightGrey4", bg = colors.surface0 },
+                        TabLineFill = { fg = colors.text, bg = colors.base },
+                        TabLine = { fg = colors.crust, bg = colors.surface12 },
+                        TabLineSel = { fg = colors.red, bg = colors.surface0 },
+                        LineNr = { bg = colors.mantle },
+
+                        NormalFloat = { bg = colors.base },
+                        ChatBorder = { bg = colors.crust },
+                        InputBorder = { bg = colors.crust },
                     }
                 end,
                 macchiato = function(colors)
                     return {
-                        TSKeywordFunction = { fg = colors.surface0, style = { "bold" } },
-                        TSKeywordOperator = { fg = colors.surface0, style = { "bold" } },
-                        TSKeywordReturn = { fg = colors.surface0, style = { "bold" } },
-                        TSInclude = { fg = colors.surface0, style = { "bold" } },
-                        TSKeyword = { fg = colors.surface0, style = { "bold" } },
-                        TSProperty = { fg = colors.surface0 },
+                        TSKeywordFunction = { fg = colors.text, style = { "bold" } },
+                        TSKeywordOperator = { fg = colors.text, style = { "bold" } },
+                        TSKeywordReturn = { fg = colors.text, style = { "bold" } },
+                        TSInclude = { fg = colors.text, style = { "bold" } },
+                        TSKeyword = { fg = colors.text, style = { "bold" } },
+                        TSProperty = { fg = colors.text },
+                        TSString = { fg = colors.teal },
 
+                        Conditional = { fg = colors.text, style = { "bold" } },
+                        Keyword = { fg = colors.text, style = { "bold" } },
+                        Function = { fg = colors.green },
+                        Substitute = { fg = colors.overlay0, bg = "NvimLightGrey4" },
 
-                        Conditional = { fg = colors.surface0, style = { "bold" } },
-                        Keyword = { fg = colors.surface0, style = { "bold" } },
-                        Substitute = { fg = colors.surface0, bg = "NvimLightGrey4" },
-                        TabLine = { fg = colors.surface0, bg = "NvimLightGrey4" },
-                        TabLineSel = { fg = "NvimLightGrey4", bg = colors.surface0 },
+                        TabLine = { fg = colors.overlay0, bg = "NvimLightGrey4" },
+                        TabLineSel = { fg = "NvimLightGrey4", bg = colors.overlay0 },
+                        FloatTitle = { fg = colors.text, bg = colors.surface0 },
+                        FloatBorder = { fg = colors.text, bg = colors.surface0 },
+                        FloatFooter = { fg = colors.text, bg = colors.surface0 },
 
-                        ColorColumn = { bg = "NvimLightGrey4" },
-                        CursorLine = { bg = "NvimLightGrey4" },
-                        Visual = { bg = "NvimLightGrey4" },
-                        TSString = { fg = "NvimDarkGreen" },
-                        LineNr = { fg = "NvimLightGrey4" },
-                        -- IblIndent = { fg = colors.mantle },
-                        -- IblScope = { fg = colors.surface1 },
-                        --
+                        NormalFloat = { bg = colors.base },
+                        ChatBorder = { bg = colors.surface1 },
+                        InputBorder = { bg = colors.surface1 },
+
+                        ColorColumn = { bg = colors.surface1 },
+                        CursorLine = { bg = colors.surface1 },
+                        Visual = { bg = colors.surface2 },
+                        LineNr = { fg = colors.surface2, bg = colors.surface0 },
+                        CmpItemMenu = { fg = colors.subtext1 },
                     }
                 end,
             },

@@ -1,8 +1,5 @@
 vim.opt.guicursor = ""
-
-
-
-vim.opt.nu = true
+vim.opt.nu = false
 vim.opt.relativenumber = true
 
 vim.opt.tabstop = 4
@@ -45,3 +42,5 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', eol = "↵" }
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.shellcmdflag = "-ic"
+
+vim.o.laststatus = 3

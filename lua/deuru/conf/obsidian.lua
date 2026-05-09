@@ -46,4 +46,5 @@ return function()
     })
 
     vim.keymap.set("n", "<leader>oo", "<cmd>ObsidianQuickSwitch<CR>")
+    vim.keymap.set("n", "<leader>ot", "<cmd>ObsidianToday<CR>")
 end

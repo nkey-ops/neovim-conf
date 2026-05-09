@@ -62,7 +62,7 @@ Scripts = {
             end
 
             vim.env[env_name] = value
-            print(("Set env-var: '%s'='%s'"):format(env_name, value))
+            print(("Set env-var: '%s'='%s'"):format(env_name, value):sub(1, vim.v.echospace))
             return value
         end
     end,
@@ -108,7 +108,7 @@ Scripts = {
             end
 
             vim.env[env_name] = body
-            print(("Set env-var: '%s'='%s'"):format(env_name, body))
+            print(("Set env-var: '%s'='%s'"):format(env_name, body):sub(1, vim.v.echospace))
             return body
         end
     end,
@@ -138,7 +138,7 @@ Scripts = {
             end
 
             vim.env[env_name] = result
-            print(("Set env-var: '%s'='%s'"):format(env_name, result))
+            print(("Set env-var: '%s'='%s'"):format(env_name, result):sub(1, vim.v.echospace))
         end
     end,
 

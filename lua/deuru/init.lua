@@ -45,7 +45,11 @@ local plugins = {
         priority = 1000,
         config = req_conf('colors'),
         init = function()
-            vim.cmd.colorscheme("catppuccin-mocha")
+            if tonumber(os.date("%H")) > 9 and tonumber(os.date("%H")) < 20 then
+                vim.cmd.colorscheme("catppuccin-macchiato")
+            else
+                vim.cmd.colorscheme("catppuccin-mocha")
+            end
         end
     },
     {
@@ -218,13 +222,15 @@ local plugins = {
     {
         'lukas-reineke/indent-blankline.nvim',
         main = "ibl",
+        enabled = true,
         config =
             function()
                 require("ibl").setup {
                     scope = {
                         enabled = true,
                         show_exact_scope = true,
-                        highlight = { "LineNr" }
+                        highlight = { "LineNr" },
+                        exclude = { language = { "markdown", "codecompanion", "md" } }
                     },
                 }
             end,
@@ -238,8 +244,8 @@ local plugins = {
         end
     },
     {
-        "nkey-ops/extended-marks.nvim",
-        -- dir = "/home/local/table/extended-marks.nvim/",
+        -- "nkey-ops/extended-marks.nvim",
+        dir = "/home/local/table/extended-marks.nvim/",
         enabled = true,
 
         --- @type ExtendedMarksOpts
@@ -327,26 +333,18 @@ local plugins = {
         build = "cd app && yarn install",
         init = function()
             vim.g.mkdp_filetypes = { "markdown", "codecompanion" }
-            -- vim.g.mkdp_highlight_css = '/home/local/.config/dotfiles/nvim/lua/deuru/style.css'
-            -- vim.g.mkdp_markdown_css = '/home/local/.config/dotfiles/nvim/lua/deuru/style.css'
-            -- vim.gmkdp_preview_options = {
-            --     mkit = {""},
-            --     katex = {},
-            --     uml = {},
-            --     maid = {},
-            --     disable_sync_scroll = 0,
-            --     sync_scroll_type = 'middle',
-            --     hide_yaml_meta = 1,
-            --     sequence_diagrams = {},
-            --     flowchart_diagrams = {},
-            --     content_editable = false,
-            --     disable_filename = 0,
-            --     toc = {}
-            -- }
+            vim.g.mkdp_auto_close = 0
+            vim.g.mkdp_auto_start = 0
+            vim.g.mkdp_combine_preview = 0
         end,
         ft = { "markdown", "md", "codecompanion" },
         keys = {
-            { "<leader>pt", "<cmd>MarkdownPreviewToggle<cr>", ft = { "markdown", "md", "codecompanion" }, desc = "Markdown: [P]review [T]oggle" }
+            {
+                "<leader>pt",
+                "<cmd>MarkdownPreviewToggle<cr>",
+                ft = { "markdown", "md", "codecompanion" },
+                desc = "Markdown: [P]review [T]oggle"
+            }
         },
     },
     {
@@ -365,7 +363,7 @@ local plugins = {
         ft = { "markdown", "md", "codecompanion" },
         opts = {
             completions = { lsp = { enabled = true } },
-            indent = { enabled = true, skip_heading = true },
+            indent = { enabled = true, skip_heading = true, icon = "" },
             pipe_table = { cell = "trimmed" },
             latex = {
                 enabled = false,
@@ -381,7 +379,7 @@ local plugins = {
                 ft = { "markdown", "md" },
                 desc = "Markdown: [R]ender [T]oggle"
             }
-        }
+        },
     },
 
     -- {
@@ -406,21 +404,30 @@ local plugins = {
     },
     {
         "olimorris/codecompanion.nvim",
-        version = "^18.0.0",
+        version = "^19.0.0",
         enabled = true,
         opts = {
             display = {
                 chat = {
-                    auto_scroll = true
+                    auto_scroll = true,
+                    -- show_settings = true,
                 }
             },
             interactions = {
                 chat = {
-                    adapter = "gemini",
+                    adapter = "claude_code",
                 }
             },
             adapters = {
+                acp = {
+                    -- opts = { show_presets = false },
+                    claude_code = function()
+                        return require("codecompanion.adapters")
+                            .extend("claude_code", {})
+                    end,
+                },
                 http = {
+                    opts = { show_presets = false },
                     gemini = function()
                         return require("codecompanion.adapters").extend("gemini", {
                             defaults = {
@@ -429,7 +436,7 @@ local plugins = {
                             },
                             schema = {
                                 model = {
-                                    default = "gemini-3-flash"
+                                    default = "gemini-3-flash-preview"
                                 }
                             }
                         })
@@ -451,5 +458,92 @@ local plugins = {
         end
 
     },
+    {
+        "stevearc/conform.nvim",
+        event = { "BufWritePre" },
+        cmd = { "ConformInfo" },
+        enabled = false,
+        keys = {
+            {
+                "<leader>f",
+                function()
+                    require("conform").format({ async = true, lsp_fallback = true })
+                end,
+                mode = "",
+                desc = "Format buffer",
+            },
+        },
+        opts = {
+            formatters_by_ft = {
+                sql = { "sqlfluff" },
+                mysql = { "sqlfluff" },
+
+            },
+            formatters = {
+                sqlfluff = {
+                    args = { "format",
+                        "--config", vim.fn.expand("~/.config/dotfiles/sqlfluff/.sqlfluff"),
+                        "-" },
+                    exit_codes = { 0, 1 },
+                },
+            },
+            format_on_save = {
+                timeout_ms = 10000,
+                lsp_fallback = true,
+            },
+        },
+    },
+    {
+        'akinsho/toggleterm.nvim',
+        version = "*",
+        opts = {
+            -- Size can be a number or function
+            size = function(term)
+                if term.direction == "horizontal" then
+                    return 15
+                elseif term.direction == "vertical" then
+                    return vim.o.columns * 0.4
+                end
+            end,
+            open_mapping = [[<c-\>]], -- Shortcut to toggle
+            hide_numbers = true,
+            shade_terminals = true,
+            start_in_insert = true,
+            insert_mappings = true,   -- whether or not the open mapping applies in insert mode
+            terminal_mappings = true, -- whether or not the open mapping applies in the opened terminals
+            persist_size = true,      -- This fixes the "resizing" issue by remembering window sizes
+            direction = 'float',      -- 'vertical' | 'horizontal' | 'tab' | 'float'
+            close_on_exit = true,
+            shell = vim.o.shell,
+            float_opts = {
+                border = 'curved',
+                winblend = 3,
+            },
+        },
+        config = function(_, opts)
+            require("toggleterm").setup(opts)
+
+            -- Terminal Navigation Maps
+            function _G.set_terminal_keymaps()
+                local map_opts = { buffer = 0 }
+                -- jk to escape terminal mode and use vim motions
+                -- vim.keymap.set('t', 'jk', [[<C-\><C-n>]], map_opts)
+                -- Easy movement between splits from within the terminal
+                -- vim.keymap.set('t', '<C-h>', [[<Cmd>wincmd h<CR>]], map_opts)
+                -- -- ...existing code...
+                -- vim.keymap.set('t', '<C-j>', [[<Cmd>wincmd j<CR>]], map_opts)
+                -- vim.keymap.set('t', '<C-k>', [[<Cmd>wincmd k<CR>]], map_opts)
+                -- vim.keymap.set('t', '<C-l>', [[<Cmd>wincmd l<CR>]], map_opts)
+            end
+
+            -- Apply maps when terminal opens
+            -- vim.api.nvim_create_autocmd("TermOpen", {
+            --   pattern = "term://*",
+            --   callback = function()
+            --     set_terminal_keymaps()
+            --   end,
+            -- })
+        end
+    }
 }
 require("lazy").setup(plugins)

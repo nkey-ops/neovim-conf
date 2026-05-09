@@ -12,7 +12,7 @@ return function()
             },
             ignore_focus = {},
             always_divide_middle = true,
-            globalstatus = false,
+            globalstatus = true,
             refresh = {
                 statusline = 1000,
                 tabline = 1000,
@@ -49,22 +49,21 @@ return function()
     }
 
 
-    local theme = "auto"
-    vim.api.nvim_create_autocmd("ColorScheme", {
-        callback = function(args)
-            if args.match == "sorbet" then
-                theme = "ayu_dark"
-
-                config.options.theme = theme
-                require("lualine").setup(config)
-            elseif theme ~= "auto" then
-                theme = "auto"
-                config.options.theme = theme
-                require("lualine").setup(config)
-            end
-        end
-    })
-
+    -- local theme = "auto"
+    -- vim.api.nvim_create_autocmd("ColorScheme", {
+    --     callback = function(args)
+    --         if args.match == "sorbet" then
+    --             theme = "ayu_dark"
+    --
+    --             config.options.theme = theme
+    --             require("lualine").setup(config)
+    --         elseif theme ~= "auto" then
+    --             theme = "auto"
+    --             config.options.theme = theme
+    --             require("lualine").setup(config)
+    --         end
+    --     end
+    -- })
 
     require("lualine").setup(config)
 end

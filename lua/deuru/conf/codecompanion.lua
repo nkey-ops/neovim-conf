@@ -1,14 +1,38 @@
+-- vim modes view
+-- if window is switched to the one that is not related to cc, close cc windows
+
+---
+local Opts = {
+    -- window windth and length ratio to the editor's sizes
+    -- Max valus is 1
+    -- chat's and input's heights are shared so they cannot add up to more than 1
+    chat = {
+        height = 0.7,
+        width = 0.5,
+    },
+    input = {
+        height = 0.3,
+        width = 0.5
+    }
+}
+
 local M = {
     input_border_hl = "InputBorder",
     input_edit_hl = "InputEdit",
     chat_border_hl = "ChatBorder"
 }
 
+vim.keymap.set("n", "<Leader>b", function()
+    M.open()
+end)
+
+
 M.switch_win = function()
     local win = vim.api.nvim_get_current_win()
     local adjecent_win = vim.api.nvim_win_get_var(win, "cc_adjecent_win")
     vim.fn.win_gotoid(adjecent_win)
 end
+
 M.send_input = function()
     local input_buf = vim.api.nvim_get_current_buf()
     local input_win = vim.api.nvim_get_current_win()
@@ -48,7 +72,12 @@ M.open = function()
             end
 
             if #wins == 1 then
-                M.open_with_buf(args.data.bufnr)
+                M.open_with_buf(args.data.bufnr, Opts)
+
+                -- -- force opening preview
+                -- vim.api.nvim_buf_call(args.data.bufnr, function()
+                --     vim.cmd("MarkdownPreview")
+                -- end)
             elseif #wins == 2 then
                 vim.api.nvim_exec_autocmds("BufWinLeave", {
                     group = group,
@@ -76,9 +105,27 @@ M.is_valid = function(cc_opts)
     return true
 end
 
-M.open_with_buf = function(buf)
+M.open_with_buf = function(buf, opts)
     assert(type(buf) == "number", "buf should be of type number")
     assert(vim.api.nvim_buf_is_valid(buf), "buf: ", buf, " is not valid")
+    assert(type(opts) == "table", "opts should be of type table")
+
+    assert(type(opts.chat) == "table", "opts.chat should be of type table")
+    assert(type(opts.input) == "table", "opts.input should be of type table")
+
+    assert(type(opts.input.width) == "number", "opts.input.width should be of type number")
+    assert(type(opts.input.height) == "number", "opts.input.height should be of type number")
+    assert(type(opts.chat.width) == "number", "opts.chat.width should be of type number")
+    assert(type(opts.chat.height) == "number", "opts.chat.height should be of type number")
+
+    local chat_opts = opts.chat
+    local input_opts = opts.input
+    assert(chat_opts.width > 0 and chat_opts.width <= 1, "opts.chat.width should be 0 < width <= 1")
+    assert(chat_opts.height > 0 and chat_opts.height <= 1, "opts.chat.height should be 0 < width <= 1")
+    assert(input_opts.width > 0 and input_opts.width <= 1, "opts.input.width should be 0 < width <= 1")
+    assert(input_opts.height > 0 and input_opts.height <= 1, "opts.input.height should be 0 < width <= 1")
+
+    assert(chat_opts.height + input_opts.height <= 1, "opts.chat.height + opts.input.height should be 0 < sum <= 1")
 
     local group = vim.api.nvim_create_augroup("CodeCompanionHooks", { clear = false })
 
@@ -97,34 +144,46 @@ M.open_with_buf = function(buf)
         chat_win_opts = cc_opts.chat.win_opts
         input_win_opts = cc_opts.input.win_opts
     else
-        local width_1 = math.floor(0.5 * vim.o.columns)
-        local height_1 = math.floor(0.6 * vim.o.lines)
-        local width_2 = math.floor(0.5 * vim.o.columns)
-        local height_2 = math.floor(0.1 * vim.o.lines)
+        local chat_width = math.floor(chat_opts.width * vim.o.columns) - 4
+        local chat_height = math.floor(chat_opts.height * (vim.o.lines - 2)) - 2
+        local input_width = math.floor(input_opts.width * vim.o.columns) - 4
+        local input_height = math.floor(input_opts.height * (vim.o.lines - 2)) - 2
 
+        -- create working windows and then around them later borders
         chat_win_opts = {
             relative = "editor",
             -- centering based on the remain space vertically and horizontally
-            col = math.floor((vim.o.columns - width_1) / 2),
-            -- height_* + 2 - account for horizontal height of the borders
-            row = math.floor((vim.o.lines - (height_1 + 2 + height_2 + 2)) / 2),
-            width = width_1,
-            height = height_1,
+            -- "width -4"  to account for left and right borders
+            -- zero-based, inclusive
+            col = math.floor((vim.o.columns - chat_width) / 2),
+            -- height -2 —  account for top and bottom borders of chat and input windows
+            -- height -2 — account for bottom line lua line
+            -- zero-based, inclusive
+            row = math.floor((vim.o.lines - (chat_height + input_height + 2)) / 2),
+            -- "width -4" to accout for a right and left borders
+            width = chat_width,
+            -- "height -2" to accout for a top and bottom borders
+            height = chat_height,
             zindex = 60
         }
 
         input_win_opts = {
             relative = "editor",
             -- centering based on the remain space vertically and horizontally
-            col = math.floor((vim.o.columns - width_2) / 2),
-            -- height_* + 2 - account for horizontal height of the borders
-            row = math.floor((vim.o.lines - (height_1 + 2 + height_2 + 2)) / 2) + height_1 + 2,
-            width = width_2,
-            height = height_2,
+            -- "width - 4"  to account for borders
+            -- zero-based, inclusive
+            col = math.floor((vim.o.columns - input_width) / 2),
+            -- height +2 — account for bottom and top borders of chat and input windows
+            -- zero-based, inclusive
+            row = chat_win_opts.row + chat_win_opts.height + 2,
+            -- row = math.floor((vim.o.lines - (chat_height + input_height - 2 - 2)) / 2),
+            -- "width - 4" to accout for a right and left borderks
+            width = input_width,
+            height = input_height,
             zindex = 61
         }
 
-        input_buf = vim.api.nvim_create_buf(true, true)
+        input_buf = vim.api.nvim_create_buf(false, false)
     end
 
     local chat_win = vim.api.nvim_open_win(chat_buf, false, chat_win_opts)
@@ -134,6 +193,8 @@ M.open_with_buf = function(buf)
     vim.api.nvim_win_set_var(input_win, "cc_adjecent_win", chat_win)
     vim.api.nvim_buf_set_var(chat_buf, "cc_input_buf", input_buf)
     vim.bo[input_buf].filetype = "markdown"
+    vim.bo[input_buf].buflisted = true
+    vim.bo[chat_buf].buflisted = true
     vim.wo[chat_win].number = false
     vim.wo[input_win].number = false
     vim.wo[chat_win].relativenumber = false
@@ -222,10 +283,6 @@ M.open_with_buf = function(buf)
     vim.keymap.set("n", "<C-w><C-w>", M.switch_win, { buffer = input_buf })
     vim.keymap.set("n", "<C-s>", M.send_input, { buffer = input_buf })
 
-    -- if true then
-    --     return
-    -- end
-    --
     vim.api.nvim_create_autocmd({ 'WinResized' }, {
         group = group,
         buffer = input_buf,
@@ -357,8 +414,6 @@ M.open_with_buf = function(buf)
         end
     })
 end
-
-vim.keymap.set("n", "<Leader>b", M.open)
 
 
 local function lerp(a, b, t)
@@ -745,20 +800,20 @@ M.generate_right_input_ui = function(input_win_opts, ns, used_win)
     return win_opts
 end
 
-M.generate_chat_ui = function(input_win_opts, used_wins, chat_glob)
+M.generate_chat_ui = function(chat_win_opts, used_wins, chat_glob)
     local ns = vim.api.nvim_create_namespace("animated_ui")
 
     local top_win_opts = M.generate_top_chat_ui(
-        input_win_opts, ns,
+        chat_win_opts, ns,
         used_wins and used_wins.top or nil)
     local bot_win_opts = M.generate_bot_chat_ui(
-        input_win_opts, ns,
+        chat_win_opts, ns,
         used_wins and used_wins.bot or nil)
     local left_win_opts = M.generate_left_chat_ui(
-        input_win_opts, ns,
+        chat_win_opts, ns,
         used_wins and used_wins.left or nil)
     local right_win_opts = M.generate_right_chat_ui(
-        input_win_opts, ns,
+        chat_win_opts, ns,
         used_wins and used_wins.right or nil)
 
     -- P(top_win_opts)
@@ -999,7 +1054,7 @@ end
 -- create: new buf, new win opts
 -- restore: old buf, old win opts
 -- update: old buf, new win opts
-M.generate_top_chat_ui = function(input_win_opts, ns, used_win)
+M.generate_top_chat_ui = function(chat_win_opts, ns, used_win)
     local buf
     local win_opts = {}
     local chat_s
@@ -1037,21 +1092,26 @@ M.generate_top_chat_ui = function(input_win_opts, ns, used_win)
 
     -- create, update
     if not win_opts.relative then
-        local row_min = 0               -- 0-indexed, inclusive
-        local row_max = vim.o.lines - 2 -- 0-indexed, exclusive
-        local col_min = 0               -- 0-indexed, inclusive
-        local col_max = vim.o.columns   -- 0-indexed, exclusive
+        -- +1 for the top border
+        local row_min = 1 -- 0-indexed, inclusive
+        -- -1 for the bottom vertical border,
+        -- -2 for bottom line and lua line
+        local row_max = vim.o.lines - 3   -- 0-indexed, exclusive
+        -- +1 for the left border
+        local col_min = 1                 -- 0-indexed, inclusive
+        -- -1 for the right border
+        local col_max = vim.o.columns - 1 -- 0-indexed, exclusive
 
-        assert(input_win_opts.row >= row_min + 1)
-        assert(input_win_opts.row < row_max - 1)
-        assert(input_win_opts.col >= col_min + 2)
-        assert(input_win_opts.col < col_max - 2)
+        assert(chat_win_opts.row >= row_min)
+        assert(chat_win_opts.row < row_max)
+        assert(chat_win_opts.col >= col_min) -- TODO return to +2
+        assert(chat_win_opts.col < col_max)
 
         win_opts = {
             relative = "editor",
-            row = input_win_opts.row - 1,
-            col = input_win_opts.col - 2,
-            width = input_win_opts.width + 4,
+            row = chat_win_opts.row - 1,
+            col = chat_win_opts.col - 2,
+            width = chat_win_opts.width + 4,
             height = 1,
             style = "minimal",
             zindex = 60,
@@ -1084,7 +1144,7 @@ M.generate_top_chat_ui = function(input_win_opts, ns, used_win)
     return win_opts
 end
 
-M.generate_bot_chat_ui = function(input_win_opts, ns, used_win)
+M.generate_bot_chat_ui = function(chat_win_opts, ns, used_win)
     local buf
     local win_opts = {}
 
@@ -1103,7 +1163,7 @@ M.generate_bot_chat_ui = function(input_win_opts, ns, used_win)
                 width = used_win.width,
                 height = 1,
                 style = "minimal",
-                zindex = 61,
+                zindex = 60,
                 focusable = false,
             }
         end
@@ -1123,17 +1183,17 @@ M.generate_bot_chat_ui = function(input_win_opts, ns, used_win)
         local col_min = 0               -- 0-indexed, inclusive
         local col_max = vim.o.columns   -- 0-indexed, exclusive
 
-        assert(input_win_opts.row >= row_min - 1)
-        assert(input_win_opts.row < row_max)
-        assert(input_win_opts.col >= col_min + 2)
-        assert(input_win_opts.col < col_max - 2)
+        assert(chat_win_opts.row >= row_min - 1)
+        assert(chat_win_opts.row < row_max)
+        assert(chat_win_opts.col >= col_min + 1) -- TODO: return to +2
+        assert(chat_win_opts.col < col_max - 1)
 
 
         win_opts = {
             relative = "editor",
-            row = input_win_opts.row + input_win_opts.height,
-            col = input_win_opts.col - 2,
-            width = input_win_opts.width + 4,
+            row = chat_win_opts.row + chat_win_opts.height,
+            col = chat_win_opts.col - 2,
+            width = chat_win_opts.width + 4,
             height = 1,
             style = "minimal",
             zindex = 60,
@@ -1152,11 +1212,12 @@ M.generate_bot_chat_ui = function(input_win_opts, ns, used_win)
     win_opts.id = vim.api.nvim_open_win(buf, false, win_opts)
     win_opts.buf = buf
     win_opts.type = "b"
+
     return win_opts
 end
 
 
-M.generate_left_chat_ui = function(input_win_opts, ns, used_win)
+M.generate_left_chat_ui = function(chat_win_opts, ns, used_win)
     local buf
     local win_opts = {}
 
@@ -1175,7 +1236,7 @@ M.generate_left_chat_ui = function(input_win_opts, ns, used_win)
                 width = 2,
                 height = used_win.height,
                 style = "minimal",
-                zindex = 61,
+                zindex = 60,
                 focusable = false,
             }
         end
@@ -1195,17 +1256,19 @@ M.generate_left_chat_ui = function(input_win_opts, ns, used_win)
         -- -1 for 0-index, -2 for right bar, -1 for buf, -1 to fit the width of 2
         local col_max = vim.o.columns - 5 -- 0-indexed, exclusive
 
-        assert(input_win_opts.row >= row_min)
-        assert(input_win_opts.row + input_win_opts.height - 1 < row_max)
-        assert(input_win_opts.col - 2 >= col_min)
-        assert(input_win_opts.col - 2 < col_max)
+        assert(chat_win_opts.row >= row_min)
+        assert(chat_win_opts.row + chat_win_opts.height - 1 < row_max)
+        assert(chat_win_opts.col >= col_min + 1)
+        assert(chat_win_opts.col < col_max + 1)
+        -- assert(input_win_opts.col - 2 >= col_min)
+        -- assert(input_win_opts.col - 2 < col_max)
 
         win_opts = {
             relative = "editor",
-            row = input_win_opts.row,
-            col = input_win_opts.col - 2,
+            row = chat_win_opts.row,
+            col = chat_win_opts.col - 2,
             width = 2,
-            height = input_win_opts.height,
+            height = chat_win_opts.height,
             style = "minimal",
             zindex = 60,
             focusable = false,
@@ -1230,7 +1293,7 @@ M.generate_left_chat_ui = function(input_win_opts, ns, used_win)
     return win_opts
 end
 
-M.generate_right_chat_ui = function(input_win_opts, ns, used_win)
+M.generate_right_chat_ui = function(chat_win_opts, ns, used_win)
     local buf
     local win_opts = {}
 
@@ -1249,7 +1312,7 @@ M.generate_right_chat_ui = function(input_win_opts, ns, used_win)
                 width = 2,
                 height = used_win.height,
                 style = "minimal",
-                zindex = 61,
+                zindex = 60,
                 focusable = false,
             }
         end
@@ -1267,20 +1330,22 @@ M.generate_right_chat_ui = function(input_win_opts, ns, used_win)
         local row_min = 1               -- 0-indexed, inclusive
         local row_max = vim.o.lines - 2 -- 0-indexed, exclusive
         -- +2 for the left bar, +1 for buf
-        local col_min = 3               -- 0-indexed, inclusive
+        local col_min = 0               -- 0-indexed, inclusive
         local col_max = vim.o.columns   -- 0-indexed, exclusive
 
-        assert(input_win_opts.row >= row_min)
-        assert(input_win_opts.row + input_win_opts.height - 1 < row_max)
-        assert(input_win_opts.col + 1 >= col_min)
-        assert(input_win_opts.col + 2 < col_max)
+        assert(chat_win_opts.row >= row_min)
+        assert(chat_win_opts.row + chat_win_opts.height - 1 < row_max)
+        assert(chat_win_opts.col >= col_min + 1)
+        assert(chat_win_opts.col + 2 < col_max)
+        -- assert(input_win_opts.col + 1 >= col_min)
+        -- assert(input_win_opts.col + 2 < col_max)
 
         win_opts = {
             relative = "editor",
-            row = input_win_opts.row,
-            col = input_win_opts.col + input_win_opts.width,
+            row = chat_win_opts.row,
+            col = chat_win_opts.col + chat_win_opts.width,
             width = 2,
-            height = input_win_opts.height,
+            height = chat_win_opts.height,
             style = "minimal",
             zindex = 60,
             focusable = false,
